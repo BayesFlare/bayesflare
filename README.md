@@ -1,19 +1,19 @@
-##########
+==========
 BayesFlare
-##########
+==========
 
 Automated flare-finding algorithm for Kepler photometric data
-=============================================================
+-------------------------------------------------------------
 
 This repository contains a series of Python scripts which are designed
 to analyse photometric data produced by the Kepler program to find 
-flaring events, using a Bayesian method. The long-term aim for the program is to be capable of
+flaring events. The long-term aim for the program is to be capable of
 running on data from all quarters collected by the spacecraft, and at
 both long and short cadences.
 
-==================
+------------------
    Requirements
-==================
+------------------
 
 * Python 2.7
 * sshfs
@@ -22,9 +22,9 @@ both long and short cadences.
 * Matplotlib 1.3.0
 * PyFITS 3.1.2
 
-============
+------------
    Usage
-============
+------------
 
 Before the analysis is run it is necessary to set up the environment in which
 the script is to run. A shell script is located at src/bash/keplerenv.sh which
@@ -42,9 +42,10 @@ or, to run the analysis on a single star:
        >> ./src/python/analysis.py -i <idnumber>
 
 
-=============
-Documentation
-=============
+-----------------
+  Documentation
+-----------------
+
 The Documentation for BayesFlare is produced by Sphinx with two extension packages,
 * numpydoc
 * sphinx_rtd_theme
