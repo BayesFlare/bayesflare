@@ -17,10 +17,10 @@ both long and short cadences.
 
 * Python 2.7
 * sshfs
-* NumPy 1.7
-* SciPy 0.12.0
-* Matplotlib 1.3.0
-* PyFITS 3.1.2
+* NumPy 1.6.1
+* SciPy 0.9.0
+* Matplotlib 1.1.1
+* PyFITS 2.4.0
 
 ------------
    Usage
