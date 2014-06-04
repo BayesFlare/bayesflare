@@ -5,9 +5,9 @@
 
 .. _reference:
 
-#################
+
 BayesFlare Reference
-#################
+####################
 
 .. module:: pyflare
 

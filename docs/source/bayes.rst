@@ -1,13 +1,10 @@
 BayesFlare Bayesian Functions
-##########################
+#############################
 
 The Bayes and Parameter estimation classes
 ==========================================
 
 .. automodule:: bayesflare.stats.bayes
-   :members:
-
-.. automodule:: pyflare.stats.bayes
    :members:
 
 General functions
