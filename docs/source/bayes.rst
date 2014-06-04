@@ -1,25 +1,19 @@
-<<<<<<< HEAD
-=======
-##########################
->>>>>>> e47694aa4c52f029ce8c0c8242df8d6110004e92
-PyFlare Bayesian Functions
+BayesFlare Bayesian Functions
 ##########################
 
 The Bayes and Parameter estimation classes
-================
+==========================================
 
-<<<<<<< HEAD
 .. automodule:: bayesflare.stats.bayes
-=======
+   :members:
+
 .. automodule:: pyflare.stats.bayes
->>>>>>> e47694aa4c52f029ce8c0c8242df8d6110004e92
    :members:
 
 General functions
 =================
 
 .. c:macro:: LOG2PI
-<<<<<<< HEAD
 
    The natural logarithm of :math:`2\pi` defined using the GSL macros `(M_LN2 + M_LNPI)`
 
@@ -59,7 +53,7 @@ General functions
 
    References
    ----------
-=======
+
     The natural logarithm of :math:`2\pi` defined using the GSL macros `(M_LN2 + M_LNPI)`
 
 .. c:macro:: LOGPI_2
@@ -97,14 +91,13 @@ General functions
 
     References
     ----------
->>>>>>> e47694aa4c52f029ce8c0c8242df8d6110004e92
+
     .. [1] http://mattpitkin.github.io/amplitude-marginaliser
     .. [2] Pitkin, Williams, Fletcher and Grant, 2014, `arXiv:14XX.XXXX
 <http://arxiv.org/abs/14XX.XXX>`.
 
 .. c:function:: double log_marg_amp_except_final_C(int Nmodels, double modelModel[],
                                                    double dataModel[], double sigma)
-<<<<<<< HEAD
 
    This function calculates the log-likelihood ratio for a signal model (consisting of a number
    `Nmodels` components) compared to a pure Gaussian noise model. For all bar the last model
@@ -137,36 +130,4 @@ General functions
 
 .. automodule:: bayesflare.stats.general
     :members:
-=======
-    This function calculates the log-likelihood ratio for a signal model (consisting of a number
-    `Nmodels` components) compared to a pure Gaussian noise model. For all bar the last model
-    component the amplitudes are analytically marginalised between -infinity and +infinity.
 
-    For a more complete description of this function see [1]_ or Algorithm 2 in [2]_.
-
-    Parameters
-    ----------
-    Nmodels : int
-        The number of model components.
-    modelModel : double array
-        A flattened 1D array consisting of the summed cross terms for each model component [size:
-        `Nmodels` * `Nmodels`].
-    dataModel : double array
-        A 1D array of the summed data crossed with each model component [size: `Nmodels`]
-    sigma : double
-        The underlying Gaussian noise standard deviation
-
-    Returns
-    -------
-    logL : double
-        The log-likelihood ratio marginalised over the model component amplitudes.
-
-    References
-    ----------
-    .. [1] http://mattpitkin.github.io/amplitude-marginaliser
-    .. [2] Pitkin, Williams, Fletcher and Grant, 2014, `arXiv:14XX.XXXX
-<http://arxiv.org/abs/14XX.XXX>`.
-
-.. automodule:: pyflare.stats.general
-    :members:
->>>>>>> e47694aa4c52f029ce8c0c8242df8d6110004e92

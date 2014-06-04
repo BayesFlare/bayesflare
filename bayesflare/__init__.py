@@ -1,6 +1,6 @@
 """
 BayesFlare
-=======
+==========
 
 Provides:
    1. A number of pythonic means for handling lightcurve data from the Kepler spacecraft
@@ -8,17 +8,22 @@ Provides:
 
 Using the documentation
 -----------------------
+
 Documentation for pyFlare is available in the form of docstrings, and this compiled reference
-guide. Further information on the methods used are covered in the paper (Williams et al, 2013).
+guide. Further information on the methods used are covered in the paper (Pitkin et al, 2014).
 
-The examples in the docstrings assume that `pyFlare` has been imported as `pf` ::
-   >>> import pyflare as pf
+The examples in the docstrings assume that `BayesFlare` has been imported as `pf`
 
-Code snippets are indicated by three greater-than signs ::
+   >>> import bayesflare as pf
+
+Code snippets are indicated by three greater-than signs
+
    >>> x = 2 + 3
+
 in common with standard usage in Python documentation.
 
-A docstring can be read using the python interpretter's built-in function ``help`` ::
+A docstring can be read using the python interpretter's built-in function ``help``
+
    >>> help(pf.plot)
 
 """
@@ -31,7 +36,6 @@ from .data.data import Loader, Lightcurve
 from .models.flare import Flare
 from .models.transit import Transit
 from .models.impulse import Impulse
-from .models.gaussian import Gaussian
 from .models.expdecay import Expdecay
 
 from .finder.find import Finder, SigmaThresholdMethod, OddsRatioDetector
