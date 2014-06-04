@@ -44,9 +44,7 @@
   
 
   
-    <link rel="top" title="BayesFlare 1 documentation" href="index.html"/>
-        <link rel="next" title="Noise Estimation and Simulation" href="noise.html"/>
-        <link rel="prev" title="Models" href="models.html"/> 
+    <link rel="top" title="BayesFlare 1 documentation" href="index.html"/> 
 
   <script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
 
@@ -78,20 +76,22 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="data.html">Data Handling</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="data.html#data-loader">Data Loader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#module-bayesflare.data.data">Data Loader</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="models.html#the-flare-models">The Flare Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#the-transit-models">The Transit Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-bayesflare.models.flare">The Flare Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-bayesflare.models.transit">The Transit Models</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">Statistical Operations</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#automatic-thresholder">Automatic Thresholder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-bayesflare.stats.thresholding">Automatic Thresholder</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="noise.html">Noise Estimation and Simulation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="finder.html">Flare Indentification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="finder.html">Flare Indentification</a><ul class="simple">
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="misc.html">Miscellaneous Functions</a></li>
 </ul>
 
@@ -122,22 +122,127 @@
           
   <div class="section" id="statistical-operations">
 <h1>Statistical Operations<a class="headerlink" href="#statistical-operations" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="automatic-thresholder">
-<h2>Automatic Thresholder<a class="headerlink" href="#automatic-thresholder" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-bayesflare.stats.thresholding">
+<span id="automatic-thresholder"></span><h2>Automatic Thresholder<a class="headerlink" href="#module-bayesflare.stats.thresholding" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="bayesflare.stats.thresholding.Thresholder">
+<em class="property">class </em><tt class="descclassname">bayesflare.stats.thresholding.</tt><tt class="descname">Thresholder</tt><big>(</big><em>B</em>, <em>confidence=0.999</em><big>)</big><a class="reference internal" href="_modules/bayesflare/stats/thresholding.html#Thresholder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.stats.thresholding.Thresholder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to carry out the thresholding proceedure in an automated manner.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>B</strong> : ndarray</p>
+<blockquote>
+<div><p>An array of log-odds ratios.</p>
+</div></blockquote>
+<p><strong>confidence</strong> : float, optional</p>
+<blockquote class="last">
+<div><p>The threshold confidence (percentage). Defaults to 0.999 (i.e. 99.9%).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.stats.thresholding.Thresholder.bayes_to_confidence" title="bayesflare.stats.thresholding.Thresholder.bayes_to_confidence"><tt class="xref py py-obj docutils literal"><span class="pre">bayes_to_confidence</span></tt></a>(lnB)</td>
+<td>This function returns a percentage confidence when given a lnB value.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.stats.thresholding.Thresholder.calculate_threshold" title="bayesflare.stats.thresholding.Thresholder.calculate_threshold"><tt class="xref py py-obj docutils literal"><span class="pre">calculate_threshold</span></tt></a>()</td>
+<td>This function returns the lnB above which a value has a 99.9% confidence of being a flare as opposed to guassian noise.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.stats.thresholding.Thresholder.generate_threshold" title="bayesflare.stats.thresholding.Thresholder.generate_threshold"><tt class="xref py py-obj docutils literal"><span class="pre">generate_threshold</span></tt></a>()</td>
+<td>This function generates a histogram to calculate the lnB values at a given confidence level.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="bayesflare.stats.thresholding.Thresholder.bayes_to_confidence">
+<tt class="descname">bayes_to_confidence</tt><big>(</big><em>lnB</em><big>)</big><a class="reference internal" href="_modules/bayesflare/stats/thresholding.html#Thresholder.bayes_to_confidence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.stats.thresholding.Thresholder.bayes_to_confidence" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns a percentage confidence when given a lnB value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>quarter</strong> : int</p>
+<blockquote>
+<div><p>The <em>Kepler</em> quarter from which the data is taken</p>
+</div></blockquote>
+<p><strong>cadence</strong> : string</p>
+<blockquote>
+<div><p>The cadence of the data, can be either &#8216;long&#8217; or &#8216;short&#8217;.</p>
+</div></blockquote>
+<p><strong>lnB</strong> : float</p>
+<blockquote>
+<div><p>The ln(bayes factor) to be converted into a percentage conidence.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>percentage</strong> : float</p>
+<blockquote class="last">
+<div><p>The percentage confidence corresponding to <tt class="docutils literal"><span class="pre">lnB</span></tt></p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.stats.thresholding.Thresholder.calculate_threshold">
+<tt class="descname">calculate_threshold</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bayesflare/stats/thresholding.html#Thresholder.calculate_threshold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.stats.thresholding.Thresholder.calculate_threshold" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns the lnB above which a value has a 99.9% confidence of being a flare
+as opposed to guassian noise.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>quarter</strong> : int</p>
+<blockquote>
+<div><p>The <em>Kepler</em> quarter from which the data is taken</p>
+</div></blockquote>
+<p><strong>cadence</strong> : string</p>
+<blockquote>
+<div><p>The cadence of the data, can be either &#8216;long&#8217; or &#8216;short&#8217;.</p>
+</div></blockquote>
+<p><strong>confidence</strong> : float</p>
+<blockquote>
+<div><p>The level of confidence where the threshold should be drawn. 
+Default is 0.999</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>threshold</strong> : float</p>
+<blockquote class="last">
+<div><p>the threshold ln(bayes factor) above which detections have <tt class="docutils literal"><span class="pre">confidence</span></tt> confidence of
+being a flare.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.stats.thresholding.Thresholder.generate_threshold">
+<tt class="descname">generate_threshold</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bayesflare/stats/thresholding.html#Thresholder.generate_threshold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.stats.thresholding.Thresholder.generate_threshold" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function generates a histogram to calculate the lnB values at a given confidence level.
+The histogram is then stored in the <tt class="docutils literal"><span class="pre">threshold</span></tt> folder.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 </div>
 
 
           <footer>
-  
-    <div class="rst-footer-buttons">
-      
-        <a href="noise.html" class="btn btn-neutral float-right" title="Noise Estimation and Simulation"/>Next <span class="icon icon-circle-arrow-right"></span></a>
-      
-      
-        <a href="models.html" class="btn btn-neutral" title="Models"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>

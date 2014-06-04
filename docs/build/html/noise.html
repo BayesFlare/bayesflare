@@ -45,8 +45,7 @@
 
   
     <link rel="top" title="BayesFlare 1 documentation" href="index.html"/>
-        <link rel="next" title="Flare Indentification" href="finder.html"/>
-        <link rel="prev" title="Statistical Operations" href="stats.html"/> 
+        <link rel="next" title="Flare Indentification" href="finder.html"/> 
 
   <script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
 
@@ -78,20 +77,22 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="data.html">Data Handling</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="data.html#data-loader">Data Loader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#module-bayesflare.data.data">Data Loader</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="models.html#the-flare-models">The Flare Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#the-transit-models">The Transit Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-bayesflare.models.flare">The Flare Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-bayesflare.models.transit">The Transit Models</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="stats.html">Statistical Operations</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="stats.html#automatic-thresholder">Automatic Thresholder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stats.html#module-bayesflare.stats.thresholding">Automatic Thresholder</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">Noise Estimation and Simulation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="finder.html">Flare Indentification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="finder.html">Flare Indentification</a><ul class="simple">
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="misc.html">Miscellaneous Functions</a></li>
 </ul>
 
@@ -120,8 +121,226 @@
 <hr/>
 
           
-  <div class="section" id="noise-estimation-and-simulation">
-<h1>Noise Estimation and Simulation<a class="headerlink" href="#noise-estimation-and-simulation" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-bayesflare.noise.noise">
+<span id="noise-estimation-and-simulation"></span><h1>Noise Estimation and Simulation<a class="headerlink" href="#module-bayesflare.noise.noise" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="bayesflare.noise.noise.detrend_lightcurve">
+<tt class="descclassname">bayesflare.noise.noise.</tt><tt class="descname">detrend_lightcurve</tt><big>(</big><em>lightcurve</em>, <em>knee=3.8580246913580246e-05</em><big>)</big><a class="reference internal" href="_modules/bayesflare/noise/noise.html#detrend_lightcurve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.noise.noise.detrend_lightcurve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Detrends a light curve using a Butterworth filter.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : np.ndarray</p>
+<blockquote>
+<div><p>An array of time stamps</p>
+</div></blockquote>
+<p><strong>z</strong> : np.ndarray</p>
+<blockquote>
+<div><p>An array containing the time series data</p>
+</div></blockquote>
+<p><strong>knee</strong> : float,optional</p>
+<blockquote>
+<div><p>The high-pass filter knee frequency in Hz (default is 3.858e-05 Hz or (1/0.3)/day).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>z</strong> : np.ndarray</p>
+<blockquote class="last">
+<div><p>An array which contains a time series which has been smoothed.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="bayesflare.noise.noise.estimate_noise_ps">
+<tt class="descclassname">bayesflare.noise.noise.</tt><tt class="descname">estimate_noise_ps</tt><big>(</big><em>lightcurve</em>, <em>estfrac=0.5</em><big>)</big><a class="reference internal" href="_modules/bayesflare/noise/noise.html#estimate_noise_ps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.noise.noise.estimate_noise_ps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use the high frequency part of the power spectrum of a lightcurve
+to estimate the time domain noise standard deviation of the
+data. This avoids contamination from low-frequency lines
+and flare signals.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>lightcurve</strong> : BayesFlare Lightcurve instance</p>
+<blockquote>
+<div><p>A Lightcurve instance containing the time series data.</p>
+</div></blockquote>
+<p><strong>estfrac</strong> : float, optional</p>
+<blockquote>
+<div><p>The fraction of the spectrum (from the high frequency end)
+with which to estimate the noise. Default: 0.5 i.e. use
+the final quarter of the spectrum for the estimation.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>np.sqrt(sk)</strong> : the noise standard deviation</p>
+<p><strong>sk</strong> : the noise variance</p>
+<p class="last"><strong>noise_v</strong> : a vector of noise variance values</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="bayesflare.noise.noise.estimate_noise_tv">
+<tt class="descclassname">bayesflare.noise.noise.</tt><tt class="descname">estimate_noise_tv</tt><big>(</big><em>d</em>, <em>sigma=2.5</em><big>)</big><a class="reference internal" href="_modules/bayesflare/noise/noise.html#estimate_noise_tv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.noise.noise.estimate_noise_tv" title="Permalink to this definition">¶</a></dt>
+<dd><p>A second method of estimating the noise, whilst ignoring large outliers.</p>
+<p>This uses the cumulative distribution of data point and uses the probability
+contained within a Gaussian range (defined by sigma) to work out what the
+standard deviation is (i.e. it doesn&#8217;t use tails of the distribution that
+contain large outliers, although the larger the sigma value to more outliers
+will effect the result.) This is mainly suitable to data in which the
+underlying noise is Gaussian.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>d</strong> : array-like</p>
+<blockquote>
+<div><p>The time series of data (either a numpy array or a list).</p>
+</div></blockquote>
+<p><strong>sigma: float</strong> :</p>
+<blockquote>
+<div><p>The number of standard deviations giving the cumulative probability
+to be included in the noise calculation e.g. if sigma=1 then the central
+68% of the cumulative probability distribution is used. [Default: 2sigma
+i.e. ~95% of probability distribution]</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>std: the noise standard deviation</strong> :</p>
+<p class="last"><strong>mean: the value at the middle of the distribution</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="bayesflare.noise.noise.make_noise_lightcurve">
+<tt class="descclassname">bayesflare.noise.noise.</tt><tt class="descname">make_noise_lightcurve</tt><big>(</big><em>dt=1765.55929</em>, <em>length=33.5</em>, <em>sigma=0.5</em>, <em>mean=1</em><big>)</big><a class="reference internal" href="_modules/bayesflare/noise/noise.html#make_noise_lightcurve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.noise.noise.make_noise_lightcurve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce a timeseries of gaussian noise, which can be used to
+estimate confidence thresholds.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>dt</strong> : float, optional</p>
+<blockquote>
+<div><p>The sample time of the required data in seconds.
+Default is 1765.55929, the sample time of the quarter 1
+<em>Kepler</em> data</p>
+</div></blockquote>
+<p><strong>days</strong> : float, optional</p>
+<blockquote>
+<div><p>The number of days long the required data should be.
+Default is 33.5, the length of the quarter 1 <em>Kepler</em>
+data</p>
+</div></blockquote>
+<p><strong>sigma</strong> : float, optional</p>
+<blockquote>
+<div><p>The standard deviation of the noise in the time series.
+Default is 0.5</p>
+</div></blockquote>
+<p><strong>mean</strong> : float, optional</p>
+<blockquote>
+<div><p>The mean of the noise in the time series.
+The default is 1.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>a</strong> : Lightcurve instance</p>
+<blockquote class="last">
+<div><p>The generated lightcurve.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="bayesflare.noise.noise.savitzky_golay">
+<tt class="descclassname">bayesflare.noise.noise.</tt><tt class="descname">savitzky_golay</tt><big>(</big><em>y</em>, <em>window_size</em>, <em>order</em>, <em>deriv=0</em>, <em>rate=1</em><big>)</big><a class="reference internal" href="_modules/bayesflare/noise/noise.html#savitzky_golay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.noise.noise.savitzky_golay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Smooth (and optionally differentiate) data with a Savitzky-Golay filter.
+The Savitzky-Golay filter removes high frequency noise from data.
+It has the advantage of preserving the original shape and
+features of the signal better than other types of filtering
+approaches, such as moving averages techniques.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>y</strong> : array_like, shape (N,)</p>
+<blockquote>
+<div><p>the values of the time history of the signal.</p>
+</div></blockquote>
+<p><strong>window_size</strong> : int</p>
+<blockquote>
+<div><p>the length of the window. Must be an odd integer number.</p>
+</div></blockquote>
+<p><strong>order</strong> : int</p>
+<blockquote>
+<div><p>the order of the polynomial used in the filtering.
+Must be less then <cite>window_size</cite> - 1.</p>
+</div></blockquote>
+<p><strong>deriv: int</strong> :</p>
+<blockquote>
+<div><p>the order of the derivative to compute (default = 0 means only smoothing)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ys</strong> : ndarray, shape (N)</p>
+<blockquote class="last">
+<div><p>the smoothed signal (or it&#8217;s n-th derivative).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>The Savitzky-Golay is a type of low-pass filter, particularly
+suited for smoothing noisy data. The main idea behind this
+approach is to make for each point a least-square fit with a
+polynomial of high order over a odd-sized window centered at
+the point.</p>
+<p class="rubric">References</p>
+<table class="docutils citation" frame="void" id="r3" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[R3]</a></td><td>A. Savitzky, M. J. E. Golay, Smoothing and Differentiation of
+Data by Simplified Least Squares Procedures. Analytical
+Chemistry, 1964, 36 (8), pp 1627-1639.</td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="r4" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[R4]</a></td><td>Numerical Recipes 3rd Edition: The Art of Scientific Computing
+W.H. Press, S.A. Teukolsky, W.T. Vetterling, B.P. Flannery
+Cambridge University Press ISBN-13: 9780521880688</td></tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span> <span class="o">-</span><span class="n">t</span><span class="o">**</span><span class="mi">2</span> <span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ysg</span> <span class="o">=</span> <span class="n">savitzky_golay</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">window_size</span><span class="o">=</span><span class="mi">31</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Noisy signal&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">t</span><span class="o">**</span><span class="mi">2</span><span class="p">),</span> <span class="s">&#39;k&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Original signal&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">ysg</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;Filtered signal&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </div>
 
 
@@ -131,8 +350,6 @@
       
         <a href="finder.html" class="btn btn-neutral float-right" title="Flare Indentification"/>Next <span class="icon icon-circle-arrow-right"></span></a>
       
-      
-        <a href="stats.html" class="btn btn-neutral" title="Statistical Operations"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   

@@ -45,7 +45,6 @@
 
   
     <link rel="top" title="BayesFlare 1 documentation" href="index.html"/>
-        <link rel="next" title="Miscellaneous Functions" href="misc.html"/>
         <link rel="prev" title="Noise Estimation and Simulation" href="noise.html"/> 
 
   <script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
@@ -78,20 +77,22 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="data.html">Data Handling</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="data.html#data-loader">Data Loader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#module-bayesflare.data.data">Data Loader</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="models.html#the-flare-models">The Flare Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#the-transit-models">The Transit Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-bayesflare.models.flare">The Flare Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-bayesflare.models.transit">The Transit Models</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="stats.html">Statistical Operations</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="stats.html#automatic-thresholder">Automatic Thresholder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stats.html#module-bayesflare.stats.thresholding">Automatic Thresholder</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="noise.html">Noise Estimation and Simulation</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">Flare Indentification</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Flare Indentification</a><ul class="simple">
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="misc.html">Miscellaneous Functions</a></li>
 </ul>
 
@@ -123,14 +124,615 @@
   <div class="section" id="flare-indentification">
 <h1>Flare Indentification<a class="headerlink" href="#flare-indentification" title="Permalink to this headline">¶</a></h1>
 <p>Having extracted the Bayes functions these classes and methods complete the analysis to identify flares in the arrays.</p>
+<span class="target" id="module-bayesflare.finder.find"></span><dl class="class">
+<dt id="bayesflare.finder.find.Finder">
+<em class="property">class </em><tt class="descclassname">bayesflare.finder.find.</tt><tt class="descname">Finder</tt><big>(</big><em>bayesfactors</em>, <em>thresholder</em>, <em>results_root=None</em><big>)</big><a class="reference internal" href="_modules/bayesflare/finder/find.html#Finder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.finder.find.Finder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operations intended to identify flaring events from the array of Bayesian odds-ratios,
+and to save the results and the odds-ratios out as a FITS file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>bayesfactors</strong> : BayesFlare Bayes instance</p>
+<blockquote>
+<div><p>The object holding the odds-ratio information.</p>
+</div></blockquote>
+<p><strong>thresholder</strong> : BayesFlare Thresholder instance</p>
+<blockquote>
+<div><p>The object containing the thresholds.</p>
+</div></blockquote>
+<p><strong>results_root</strong> : str, optional</p>
+<blockquote class="last">
+<div><p>A file path to the location where results should be output. Defaults to the value of
+the environmental variable KPLR_RES_ROOT.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.finder.find.Finder.find" title="bayesflare.finder.find.Finder.find"><tt class="xref py py-obj docutils literal"><span class="pre">find</span></tt></a>()</td>
+<td>The principle flare finding method.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.finder.find.Finder.mptaus" title="bayesflare.finder.find.Finder.mptaus"><tt class="xref py py-obj docutils literal"><span class="pre">mptaus</span></tt></a>(i)</td>
+<td>Find the most probable set of decay constants at a given location in an array of lnB values marginalised over amplitude.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.finder.find.Finder.save" title="bayesflare.finder.find.Finder.save"><tt class="xref py py-obj docutils literal"><span class="pre">save</span></tt></a>()</td>
+<td>This method writes the log Bayes factors out to a fits file, along with the header information from the light curve file.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.finder.find.Finder.star_summary" title="bayesflare.finder.find.Finder.star_summary"><tt class="xref py py-obj docutils literal"><span class="pre">star_summary</span></tt></a>()</td>
+<td>Generates a summary of the flaring activity of the star, and writes the KIC number of the star to an appropriate file.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.finder.find.Finder.star_vitals" title="bayesflare.finder.find.Finder.star_vitals"><tt class="xref py py-obj docutils literal"><span class="pre">star_vitals</span></tt></a>()</td>
+<td>Generates summary statistics for the flaring of the star, and outputs it to a file.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="bayesflare.finder.find.Finder.find">
+<tt class="descname">find</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bayesflare/finder/find.html#Finder.find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.finder.find.Finder.find" title="Permalink to this definition">¶</a></dt>
+<dd><p>The principle flare finding method.
+Must be run to generate the results table.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.finder.find.Finder.mptaus">
+<tt class="descname">mptaus</tt><big>(</big><em>i</em><big>)</big><a class="reference internal" href="_modules/bayesflare/finder/find.html#Finder.mptaus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.finder.find.Finder.mptaus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the most probable set of decay constants at a given location in an array of lnB values
+marginalised over amplitude.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>i</strong> : int</p>
+<blockquote>
+<div><p>The location index in the array of lnB values to be examined</p>
+</div></blockquote>
+<p><strong>lnBmargAmp</strong> : np.ndarray</p>
+<blockquote>
+<div><p>An array of ln(bayes factor) values which have been marginalised over amplitude
+but not over the decay constants.</p>
+</div></blockquote>
+<p><strong>tausGauss</strong> : np.ndarray</p>
+<blockquote>
+<div><p>An array of the gaussian decay constants</p>
+</div></blockquote>
+<p><strong>tausExp</strong> : np.ndarray</p>
+<blockquote>
+<div><p>An array of the exponential decay constants</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>mptaugauss</strong> : float</p>
+<blockquote>
+<div><p>The most probable value for tau gauss.</p>
+</div></blockquote>
+<p><strong>mptauexp</strong> : float</p>
+<blockquote class="last">
+<div><p>The most probable value of tau exp.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.finder.find.Finder.save">
+<tt class="descname">save</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bayesflare/finder/find.html#Finder.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.finder.find.Finder.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method writes the log Bayes factors out to a fits file,
+along with the header information from the light curve file.
+The original light curve is stored also.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>self</strong> : Finder object</p>
+<p><strong>A Finder object which contains the light curve and the time</strong> :</p>
+<p class="last"><strong>series of log Bayes factors which are to be written out.</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.finder.find.Finder.star_summary">
+<tt class="descname">star_summary</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bayesflare/finder/find.html#Finder.star_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.finder.find.Finder.star_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a summary of the flaring activity of the star, and writes the KIC number of the star to an appropriate file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.finder.find.Finder.star_vitals">
+<tt class="descname">star_vitals</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bayesflare/finder/find.html#Finder.star_vitals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.finder.find.Finder.star_vitals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates summary statistics for the flaring of the star, and outputs it to a file.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="bayesflare.finder.find.OddsRatioDetector">
+<em class="property">class </em><tt class="descclassname">bayesflare.finder.find.</tt><tt class="descname">OddsRatioDetector</tt><big>(</big><em>lightcurve, bglen=55, bgorder=4, amppriorrange=[1000000.0], noiseestmethod='powerspectrum', psestfrac=0.5, tvsigma=1.0, flareparams={'taug': (0, 5400.0, 10), 'taue': (1800.0, 10800.0, 10)}, noisepoly=True, noiseimpulse=True, noiseimpulseparams={'t0': (0.0,)}, noiseexpdecay=True, noiseexpdecayparams={'taue': (0.0, 900.0, 3)}, noiseexpdecaywithreverse=True, ignoreedges=True</em><big>)</big><a class="reference internal" href="_modules/bayesflare/finder/find.html#OddsRatioDetector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.finder.find.OddsRatioDetector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to produce the odds ratio detection statistic for a flare versus a selection of noise
+models. The class will also provides thresholding of the log odds ratio for the purpose of
+flare detection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>lightcurve</strong> : <tt class="xref py py-class docutils literal"><span class="pre">Lightcurve</span></tt></p>
+<blockquote>
+<div><p>The light curve data in which to search for signal.</p>
+</div></blockquote>
+<p><strong>bglen</strong> : int, default: 55</p>
+<blockquote>
+<div><p>The length of the analysis window that slides across the data.</p>
+</div></blockquote>
+<p><strong>bgorder</strong> : int, default: 4</p>
+<blockquote>
+<div><p>The order of the polynomial background variations used in the signal and noise models.</p>
+</div></blockquote>
+<p><strong>amppriorrange</strong> : list or float, default: [1e6]</p>
+<blockquote>
+<div><p>A list (or single value) giving the span of the amplitude prior for each of the polynomial
+coefficients in the background variation model, and the range for the signal model
+amplitude. This assumes the prior is flat within this range.</p>
+</div></blockquote>
+<p><strong>noiseestmethod</strong> : string, default: &#8216;powerspectrum&#8217;</p>
+<blockquote>
+<div><p>The method used to estimate the noise standard deviation of the light curve data.</p>
+</div></blockquote>
+<p><strong>psestfrac</strong> : float, default: 0.5</p>
+<blockquote>
+<div><p>If using the &#8216;powerspectrum&#8217; method of noise estimation (<tt class="xref py py-func docutils literal"><span class="pre">estimate_noise_ps()</span></tt>) this
+gives the fraction of the spectrum (starting from the high frequency end) used in the noise
+estimate. This value can be between 0 and 1.</p>
+</div></blockquote>
+<p><strong>tvsigma</strong> : float, default: 1.0</p>
+<blockquote>
+<div><p>If using the &#8216;tailveto&#8217; method of noise estimation (<tt class="xref py py-func docutils literal"><span class="pre">estimate_noise_tv()</span></tt>) this given
+the standard deviation equivalent to the probability volume required for the noise estimate
+e.g. a value of 1.0 means the estimate is formed from the central 68% of the datas
+cumulative probability distribution. This value must be greater than 0.</p>
+</div></blockquote>
+<p><strong>flareparams</strong> : dict, default: {&#8216;taug&#8217;: (0, 1.5*60*60, 10), &#8216;taue&#8217;: (0.5*60*60, 3.*60*60, 10)}</p>
+<blockquote>
+<div><p>A dictionary containing the flare parameters &#8216;taue&#8217; and &#8216;taug&#8217; giving tuples of each of
+their lower and upper values (in seconds) along with the number of grid points spanning that
+range (if the tuple contains only a single value then this will be the fixed value of that
+parameter). These will be numerically marginalised over to produce the log odds ratio.</p>
+</div></blockquote>
+<p><strong>noisepoly</strong> : bool, default: True</p>
+<blockquote>
+<div><p>If True then the noise model will include a polynomial background variation (with the same
+length and order as used in the signal model and set by <cite>bglen</cite> and <cite>bgorder</cite>.</p>
+</div></blockquote>
+<p><strong>noiseimpulse</strong> : bool, default: True</p>
+<blockquote>
+<div><p>If True then the noise model will include an impulse model (<tt class="xref py py-class docutils literal"><span class="pre">Impulse</span></tt>) on top of a
+polynomial background variation.</p>
+</div></blockquote>
+<p><strong>noiseimpulseparams</strong> : dict, default: {&#8216;t0&#8217;, (0.,)}</p>
+<blockquote>
+<div><p>A dictionary containing the impulse parameters &#8216;t0&#8217; giving a tuple of its lower, and upper
+values (in seconds) and the number of grid points spanning that range (if a single value is
+given in the tuple then the parameter will be fixed at that value). This range will be
+numerically marginalised over. For the default values <cite>0.</cite> corresponds to the impulse being
+at the centre of the analysis window.</p>
+</div></blockquote>
+<p><strong>noiseexpdecay</strong> : bool, default: True</p>
+<blockquote>
+<div><p>If True then the noise model will include a purely exponential decay model
+(<tt class="xref py py-class docutils literal"><span class="pre">Expdecay</span></tt>) on top of a polynomial background variation.</p>
+</div></blockquote>
+<p><strong>noiseexpdecayparams</strong> : dict, default: {&#8216;taue&#8217;: (0.0, 0.25*60*60, 3)}</p>
+<blockquote>
+<div><p>A dictionary containing the exponential decay parameter &#8216;taue&#8217; giving a tuples of its lower
+and upper values (in seconds) and the number of grid points spanning that range (if the
+tuple contains only a single value then this will be the fixed value of that parameter).
+This will be numerically marginalised over to produce the log odds ratio.</p>
+</div></blockquote>
+<p><strong>noiseexpdecaywithreverse</strong> : bool, default: True</p>
+<blockquote>
+<div><p>If True then the noise model will include an exponential rise model (just the reverse of
+the exponential decay) on top of a polynomial background variation. This will have the same
+parameters as defined in <cite>noiseexpdecayparams</cite>.</p>
+</div></blockquote>
+<p><strong>ignoreedges</strong> : bool, default: True</p>
+<blockquote>
+<div><p>If this is true then any output log odds ratio will have the initial and final <cite>bglen</cite>/2
+values removed. This removes values for which the odds ratio has been calculated using
+fewer data points.</p>
+</div></blockquote>
+<p><strong>.. note::</strong> :</p>
+<blockquote class="last">
+<div><p>In the future this could be made more generic to allow any model as the signal model,
+rather than specifically being the flare model. Further noise models could also be added.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.finder.find.OddsRatioDetector.oddsratio" title="bayesflare.finder.find.OddsRatioDetector.oddsratio"><tt class="xref py py-obj docutils literal"><span class="pre">oddsratio</span></tt></a>()</td>
+<td>Get a time series of log odds ratio for data containing a flare <em>and</em> polynomial background versus a selection of noise models.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.finder.find.OddsRatioDetector.set_amp_prior_range" title="bayesflare.finder.find.OddsRatioDetector.set_amp_prior_range"><tt class="xref py py-obj docutils literal"><span class="pre">set_amp_prior_range</span></tt></a>([amppriorrange])</td>
+<td>Set the amplitude priors for each component of the model with an amplitude that is analytically marginalised over.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.finder.find.OddsRatioDetector.set_flare_params" title="bayesflare.finder.find.OddsRatioDetector.set_flare_params"><tt class="xref py py-obj docutils literal"><span class="pre">set_flare_params</span></tt></a>([flareparams])</td>
+<td>Set the Gaussian rise (&#8216;taug&#8217;) and exponential decay (&#8216;taue&#8217;) timescale parameters for the flare parameter grid.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.finder.find.OddsRatioDetector.set_ignore_edges" title="bayesflare.finder.find.OddsRatioDetector.set_ignore_edges"><tt class="xref py py-obj docutils literal"><span class="pre">set_ignore_edges</span></tt></a>([ignoreedges])</td>
+<td>Set whether to ignore the edges of the odds ratio i.e.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.finder.find.OddsRatioDetector.set_noise_est_method" title="bayesflare.finder.find.OddsRatioDetector.set_noise_est_method"><tt class="xref py py-obj docutils literal"><span class="pre">set_noise_est_method</span></tt></a>([noiseestmethod,&nbsp;...])</td>
+<td>Set the noise estimation method and its parameters.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.finder.find.OddsRatioDetector.set_noise_expdecay" title="bayesflare.finder.find.OddsRatioDetector.set_noise_expdecay"><tt class="xref py py-obj docutils literal"><span class="pre">set_noise_expdecay</span></tt></a>([noiseexpdecay,&nbsp;...])</td>
+<td>Set the noise model to include an exponential decay (and potentially additionally, as an extra noise model, an exponential rise) on top of a polynomial background variation.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.finder.find.OddsRatioDetector.set_noise_impulse" title="bayesflare.finder.find.OddsRatioDetector.set_noise_impulse"><tt class="xref py py-obj docutils literal"><span class="pre">set_noise_impulse</span></tt></a>([noiseimpulse,&nbsp;...])</td>
+<td>Set the noise model to include a delta function impulse (<tt class="xref py py-class docutils literal"><span class="pre">Impulse</span></tt>) on a polynomial background variation.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.finder.find.OddsRatioDetector.set_noise_poly" title="bayesflare.finder.find.OddsRatioDetector.set_noise_poly"><tt class="xref py py-obj docutils literal"><span class="pre">set_noise_poly</span></tt></a>([noisepoly])</td>
+<td>Set the noise model to include a polynomial background model.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.finder.find.OddsRatioDetector.thresholder" title="bayesflare.finder.find.OddsRatioDetector.thresholder"><tt class="xref py py-obj docutils literal"><span class="pre">thresholder</span></tt></a>(lnO,&nbsp;thresh[,&nbsp;expand,&nbsp;returnmax])</td>
+<td>Output an list of array start and end indices for regions where the log odds ratio is greater than a given threshold <cite>thresh</cite>.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="bayesflare.finder.find.OddsRatioDetector.oddsratio">
+<tt class="descname">oddsratio</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bayesflare/finder/find.html#OddsRatioDetector.oddsratio"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.finder.find.OddsRatioDetector.oddsratio" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a time series of log odds ratio for data containing a flare <em>and</em> polynomial background
+versus a selection of noise models. For the flare and noise models all parameter values
+(expect the central time of the model) are analytically, or numerically (using the
+trapezium rule) marginalised over.</p>
+<p>Each of the noise models, <span class="math">\(\mathcal{O}^{\textrm noise}_i\)</span>, in the denominator of
+the odds ratio are combined independently, such that</p>
+<div class="math">
+\[\mathcal{O} = \frac{\mathcal{O}^{\textrm signal}}{\sum_i }\mathcal{O}^{\textrm
+noise}_i}\]</div>
+<p>where <span class="math">\(\mathcal{O}^{\textrm signal}\)</span> is the signal model.</p>
+<p>If no noise models are specified then the returned log odds ratio will be for the signal
+model versus Gaussian noise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.finder.find.OddsRatioDetector.set_amp_prior_range">
+<tt class="descname">set_amp_prior_range</tt><big>(</big><em>amppriorrange=[1000000.0]</em><big>)</big><a class="reference internal" href="_modules/bayesflare/finder/find.html#OddsRatioDetector.set_amp_prior_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.finder.find.OddsRatioDetector.set_amp_prior_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the amplitude priors for each component of the model with an amplitude that is
+analytically marginalised over.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>amppriorrange</strong> : list of floats, default: [1.e6]</p>
+<blockquote class="last">
+<div><p>A list containing one, or all, amplitude prior range values.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.finder.find.OddsRatioDetector.set_flare_params">
+<tt class="descname">set_flare_params</tt><big>(</big><em>flareparams={'taug': (0</em>, <em>5400.0</em>, <em>10)</em>, <em>'taue': (1800.0</em>, <em>10800.0</em>, <em>10)}</em><big>)</big><a class="reference internal" href="_modules/bayesflare/finder/find.html#OddsRatioDetector.set_flare_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.finder.find.OddsRatioDetector.set_flare_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the Gaussian rise (&#8216;taug&#8217;) and exponential decay (&#8216;taue&#8217;) timescale parameters for the
+flare parameter grid.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>flareparams</strong> : dict, default: {&#8216;taug&#8217;: (0, 1.5*60*60, 10), &#8216;taue&#8217;: (0.5*60*60, 3.*60*60, 10)}</p>
+<blockquote class="last">
+<div><p>A dictionary of tuples for the parameters &#8216;taug&#8217; and &#8216;taue&#8217;. Each must either be a
+single value of three values for the low end, high end (both in seconds) and number of
+parameter points.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.finder.find.OddsRatioDetector.set_ignore_edges">
+<tt class="descname">set_ignore_edges</tt><big>(</big><em>ignoreedges=True</em><big>)</big><a class="reference internal" href="_modules/bayesflare/finder/find.html#OddsRatioDetector.set_ignore_edges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.finder.find.OddsRatioDetector.set_ignore_edges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set whether to ignore the edges of the odds ratio i.e. points within half the
+background window of the start and end of the light curve.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>ignoreedges</strong> : bool, default: True</p>
+<blockquote class="last">
+<div><p>If True then the ends of the log odds ratio will be ignored.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.finder.find.OddsRatioDetector.set_noise_est_method">
+<tt class="descname">set_noise_est_method</tt><big>(</big><em>noiseestmethod='powerspectrum'</em>, <em>psestfrac=0.5</em>, <em>tvsigma=1.0</em><big>)</big><a class="reference internal" href="_modules/bayesflare/finder/find.html#OddsRatioDetector.set_noise_est_method"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.finder.find.OddsRatioDetector.set_noise_est_method" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the noise estimation method and its parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>noiseestmethod</strong> : string, default: &#8216;powerspectrum&#8217;</p>
+<blockquote>
+<div><p>The noise estimation method. Either &#8216;powerspectrum&#8217; to use <tt class="xref py py-func docutils literal"><span class="pre">estimate_noise_ps()</span></tt>, or
+&#8216;tailveto&#8217; to use <tt class="xref py py-func docutils literal"><span class="pre">estimate_noise_tv()</span></tt>.</p>
+</div></blockquote>
+<p><strong>psestfrac</strong> : float, default: 0.5</p>
+<blockquote>
+<div><p>The fraction of the upper end of the power spectrum to use for the &#8216;powerspectrum&#8217;
+method (must be between 0 and 1).</p>
+</div></blockquote>
+<p><strong>tvsigma</strong> : float, default: 1.0</p>
+<blockquote class="last">
+<div><p>The number of &#8216;standard deviations&#8217; corresponding to the central probability volume
+used in the &#8216;tailveto&#8217; method.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.finder.find.OddsRatioDetector.set_noise_expdecay">
+<tt class="descname">set_noise_expdecay</tt><big>(</big><em>noiseexpdecay=True</em>, <em>noiseexpdecayparams={'taue': (0.0</em>, <em>900.0</em>, <em>3)}</em>, <em>withreverse=True</em><big>)</big><a class="reference internal" href="_modules/bayesflare/finder/find.html#OddsRatioDetector.set_noise_expdecay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.finder.find.OddsRatioDetector.set_noise_expdecay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the noise model to include an exponential decay (and potentially additionally, as an
+extra noise model, an exponential rise) on top of a polynomial background variation.
+Also, set the range of the timescale parameter &#8216;taue&#8217; for the exponential decay (used for
+both the decay and rise models), which will be analytically marginalised over.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>noiseexpdecay</strong> : bool, default: True</p>
+<blockquote>
+<div><p>Set to True if this model is used.</p>
+</div></blockquote>
+<p><strong>noiseexpdecayparams</strong> : dict, default: {&#8216;taue&#8217;: (0.0, 0.25*60*60, 3)}</p>
+<blockquote>
+<div><p>A dictionary of tuples for the parameter &#8216;taue&#8217;. It must either be a single value of
+three values for the low end, high end (both in seconds) and number of parameter points.</p>
+</div></blockquote>
+<p><strong>withreverse</strong> : bool, default: True</p>
+<blockquote class="last">
+<div><p>Set to true if there should also be an exponential rise model including in the noise
+model.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.finder.find.OddsRatioDetector.set_noise_impulse">
+<tt class="descname">set_noise_impulse</tt><big>(</big><em>noiseimpulse=True</em>, <em>noiseimpulseparams={'t0': (0.0</em>, <em>)}</em>, <em>positive=False</em><big>)</big><a class="reference internal" href="_modules/bayesflare/finder/find.html#OddsRatioDetector.set_noise_impulse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.finder.find.OddsRatioDetector.set_noise_impulse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the noise model to include a delta function impulse (<tt class="xref py py-class docutils literal"><span class="pre">Impulse</span></tt>) on a polynomial
+background variation. Also set the range of times of the impulse, which will be numerically
+marginalise over.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>noiseimpulse</strong> : bool, default: True</p>
+<blockquote>
+<div><p>Set to True if this model is used.</p>
+</div></blockquote>
+<p><strong>noiseimpulseparams</strong> : dict, default: {&#8216;t0&#8217;: (0.,)}</p>
+<blockquote>
+<div><p>A dictionary of tuples of the parameter ranges. &#8216;t0&#8217; is the only allowed parameter. The
+tuple should either be a single value or three values giving the low end, high end
+and number of parameter points.</p>
+</div></blockquote>
+<p><strong>positive</strong> : bool, default: False</p>
+<blockquote class="last">
+<div><p>If True then only have the impulse amplitude marginalised over positive values.
+Otherwise it can have either sign and in marginalised between -infinity and infinity.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.finder.find.OddsRatioDetector.set_noise_poly">
+<tt class="descname">set_noise_poly</tt><big>(</big><em>noisepoly=True</em><big>)</big><a class="reference internal" href="_modules/bayesflare/finder/find.html#OddsRatioDetector.set_noise_poly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.finder.find.OddsRatioDetector.set_noise_poly" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the noise model to include a polynomial background model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>noisepoly</strong> : bool, default: True</p>
+<blockquote class="last">
+<div><p>Set to True if this model is to be used.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.finder.find.OddsRatioDetector.thresholder">
+<tt class="descname">thresholder</tt><big>(</big><em>lnO</em>, <em>thresh</em>, <em>expand=0</em>, <em>returnmax=True</em><big>)</big><a class="reference internal" href="_modules/bayesflare/finder/find.html#OddsRatioDetector.thresholder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.finder.find.OddsRatioDetector.thresholder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output an list of array start and end indices for regions where the log odds ratio is
+greater than a given threshold <cite>thresh</cite>. Regions can be expanded by a given amount to allow
+close-by regions to be merged.</p>
+<p>This is used for flare detection.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>lnO</strong> : list or <tt class="xref py py-class docutils literal"><span class="pre">numpy.array</span></tt></p>
+<blockquote>
+<div><p>A time series array of log odds ratios.</p>
+</div></blockquote>
+<p><strong>thresh</strong> : float</p>
+<blockquote>
+<div><p>The log odds ratio threshold for &#8220;detections&#8221;.</p>
+</div></blockquote>
+<p><strong>expand</strong> : int, default:0</p>
+<blockquote>
+<div><p>Expand each contiguous above-threshold region by this number of indices at either side.
+After expansion any overlapping or adjacent regions will be merged into one region.</p>
+</div></blockquote>
+<p><strong>returnmax</strong> : bool, default: True</p>
+<blockquote>
+<div><p>If True then return a list of tuples containing the maximum log odds ratio value in each
+of the &#8220;detection&#8221; segments and the index of that value.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>flarelist</strong> : list of tuples</p>
+<blockquote>
+<div><p>A list of tuples of start and end indices of contiguous regions for the &#8220;detections&#8221;.</p>
+</div></blockquote>
+<p><strong>numflares</strong> : int</p>
+<blockquote>
+<div><p>The number of contiguous regions i.e. the number of detected flares.</p>
+</div></blockquote>
+<p><strong>maxlist</strong> : list of tuples</p>
+<blockquote class="last">
+<div><p>If <cite>returnmax</cite> is true then this contains a list of tuples with the maximum log
+odds ratio value in each of the &#8220;detection&#8221; segments and the index of that value.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="bayesflare.finder.find.SigmaThresholdMethod">
+<em class="property">class </em><tt class="descclassname">bayesflare.finder.find.</tt><tt class="descname">SigmaThresholdMethod</tt><big>(</big><em>lightcurve</em>, <em>detrendpoly=False</em>, <em>detrendmedian=True</em>, <em>noiseestmethod=None</em>, <em>psestfrac=0.5</em>, <em>tvsigma=1.0</em><big>)</big><a class="reference internal" href="_modules/bayesflare/finder/find.html#SigmaThresholdMethod"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.finder.find.SigmaThresholdMethod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Search for points on a lightcurve that cross a threshold that is based on a number of
+standard deviations calculated from the data. This is the method used in Walkowicz
+et al (2011), <a class="reference external" href="http://arxiv.org/abs/1008.0853">http://arxiv.org/abs/1008.0853</a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>lightcurve</strong> : BayesFlare Lightcurve instance</p>
+<blockquote>
+<div><p>The light curve to be processed.</p>
+</div></blockquote>
+<p><strong>detrendpoly</strong> : bool, optional</p>
+<blockquote>
+<div><p>Boolean flag. Set to <cite>True</cite> to use a second-order polynomial to fit the whole curve.
+Defaults to <cite>False</cite>.</p>
+</div></blockquote>
+<p><strong>detrendmedian</strong> : bool, optional</p>
+<blockquote>
+<div><p>Boolean flag. Set to <cite>True</cite> to detrend the Lightcurve using a median filtering technique.</p>
+</div></blockquote>
+<p><strong>noiseestmethod</strong> : {None, &#8216;powerspectrum&#8217;, &#8216;tailveto&#8217;}, optional</p>
+<blockquote>
+<div><p>The method used to estimate the noise in the light curve. If <cite>None</cite> is chosen the noise will
+be estimated as the standard deviation of the entire light curve, including any signals.
+Defaults to <cite>None</cite>.</p>
+</div></blockquote>
+<p><strong>psestfrac</strong> : float, optional</p>
+<blockquote>
+<div><p>The fraction of the power spectrum to be used in estimating the noise, if
+<cite>noiseestmethod==&#8217;powerspectrum&#8217;</cite>. Defaults to 0.5.</p>
+</div></blockquote>
+<p><strong>tvsigma</strong> : float, optional</p>
+<blockquote class="last">
+<div><p>The number of standard deviations giving the cumulative probability
+to be included in the noise calculation e.g. if sigma=1 then the central
+68% of the cumulative probability distribution is used.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><tt class="xref py py-obj docutils literal"><span class="pre">estimate_noise_ps</span></tt></dt>
+<dd>The power spectrum noise estimator.</dd>
+<dt><tt class="xref py py-obj docutils literal"><span class="pre">estimate_noise_tv</span></tt></dt>
+<dd>The tail veto noise estimator.</dd>
+<dt><tt class="xref py py-obj docutils literal"><span class="pre">Lightcurve.running_median</span></tt></dt>
+<dd>The running median detrender.</dd>
+</dl>
+</div>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><tt class="xref py py-obj docutils literal"><span class="pre">thresholder</span></tt>([sigmathresh,&nbsp;mincontiguous,&nbsp;...])</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="bayesflare.finder.find.contiguous_regions">
+<tt class="descclassname">bayesflare.finder.find.</tt><tt class="descname">contiguous_regions</tt><big>(</big><em>condition</em><big>)</big><a class="reference internal" href="_modules/bayesflare/finder/find.html#contiguous_regions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.finder.find.contiguous_regions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find contiguous regions for the condition e.g. array &gt; threshold and return
+a list as two columns of the start and stop indices for each region
+(see <a class="reference external" href="http://stackoverflow.com/a/4495197/1862861">http://stackoverflow.com/a/4495197/1862861</a>)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>condition</strong> : str</p>
+<blockquote>
+<div><p>A test condition (e.g. array &gt; threshold) returning a numpy array.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>A two column array containing the start and end indices of</strong> :</p>
+<blockquote class="last">
+<div><p>contiguous regions obeying the condition.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 
 
           <footer>
   
     <div class="rst-footer-buttons">
-      
-        <a href="misc.html" class="btn btn-neutral float-right" title="Miscellaneous Functions"/>Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
         <a href="noise.html" class="btn btn-neutral" title="Noise Estimation and Simulation"><span class="icon icon-circle-arrow-left"></span> Previous</a>

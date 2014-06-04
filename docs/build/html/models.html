@@ -44,9 +44,7 @@
   
 
   
-    <link rel="top" title="BayesFlare 1 documentation" href="index.html"/>
-        <link rel="next" title="Statistical Operations" href="stats.html"/>
-        <link rel="prev" title="Data Handling" href="data.html"/> 
+    <link rel="top" title="BayesFlare 1 documentation" href="index.html"/> 
 
   <script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
 
@@ -78,20 +76,22 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="data.html">Data Handling</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="data.html#data-loader">Data Loader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#module-bayesflare.data.data">Data Loader</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">Models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#the-flare-models">The Flare Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#the-transit-models">The Transit Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-bayesflare.models.flare">The Flare Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-bayesflare.models.transit">The Transit Models</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="stats.html">Statistical Operations</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="stats.html#automatic-thresholder">Automatic Thresholder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stats.html#module-bayesflare.stats.thresholding">Automatic Thresholder</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="noise.html">Noise Estimation and Simulation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="finder.html">Flare Indentification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="finder.html">Flare Indentification</a><ul class="simple">
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="misc.html">Miscellaneous Functions</a></li>
 </ul>
 
@@ -126,25 +126,793 @@
 <ul class="simple">
 </ul>
 </div>
-<div class="section" id="the-flare-models">
-<h2>The Flare Models<a class="headerlink" href="#the-flare-models" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-bayesflare.models.flare">
+<span id="the-flare-models"></span><h2>The Flare Models<a class="headerlink" href="#module-bayesflare.models.flare" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="bayesflare.models.flare.Flare">
+<em class="property">class </em><tt class="descclassname">bayesflare.models.flare.</tt><tt class="descname">Flare</tt><big>(</big><em>ts</em>, <em>amp=1</em>, <em>t0=None</em>, <em>reverse=False</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/flare.html#Flare"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.flare.Flare" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an exponentially decaying flare model with a Gaussian rise.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>amp</strong> : float, optional</p>
+<blockquote>
+<div><p>The amplitude of the flare. Defaults to 1.</p>
+</div></blockquote>
+<p><strong>ts</strong> : ndarray</p>
+<blockquote>
+<div><p>A vector containing time stamps.</p>
+</div></blockquote>
+<p><strong>t0</strong> : float, optional</p>
+<blockquote>
+<div><p>The time of peak. Defaults to the centre of <tt class="docutils literal"><span class="pre">ts</span></tt>.</p>
+</div></blockquote>
+<p><strong>reverse</strong> : bool, optional</p>
+<blockquote>
+<div><p>A boolean flag. Set this to reverse the flare shape.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>f</strong> : ndarray</p>
+<blockquote class="last">
+<div><p>An array containing the flare model.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.models.flare.Flare.filter_model" title="bayesflare.models.flare.Flare.filter_model"><tt class="xref py py-obj docutils literal"><span class="pre">filter_model</span></tt></a>(m[,&nbsp;nbins,&nbsp;order])</td>
+<td>Use the Savitzky-Golay smoothing to high-pass filter the model m:</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.models.flare.Flare.identity_string" title="bayesflare.models.flare.Flare.identity_string"><tt class="xref py py-obj docutils literal"><span class="pre">identity_string</span></tt></a>()</td>
+<td>Returns a string which identifies the model.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.models.flare.Flare.identity_type" title="bayesflare.models.flare.Flare.identity_type"><tt class="xref py py-obj docutils literal"><span class="pre">identity_type</span></tt></a>()</td>
+<td>Returns the type of model represented by the object.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.models.flare.Flare.model" title="bayesflare.models.flare.Flare.model"><tt class="xref py py-obj docutils literal"><span class="pre">model</span></tt></a>(amp,&nbsp;tauGauss,&nbsp;tauExp,&nbsp;t0,&nbsp;ts)</td>
+<td>Private method to generate the flare time series.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.models.flare.Flare.modeldict" title="bayesflare.models.flare.Flare.modeldict"><tt class="xref py py-obj docutils literal"><span class="pre">modeldict</span></tt></a>(pdict,&nbsp;ts)</td>
+<td>A method to generate a model given a time vector and a dictionary of model parameters.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.models.flare.Flare.output_model" title="bayesflare.models.flare.Flare.output_model"><tt class="xref py py-obj docutils literal"><span class="pre">output_model</span></tt></a>(i,&nbsp;j[,&nbsp;ts,&nbsp;filt,&nbsp;nbins,&nbsp;order])</td>
+<td>A private class to return a model from the object.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.models.flare.Flare.parameters_refresh" title="bayesflare.models.flare.Flare.parameters_refresh"><tt class="xref py py-obj docutils literal"><span class="pre">parameters_refresh</span></tt></a>()</td>
+<td>Refreshes the object to reflect new parameters set by <tt class="docutils literal"><span class="pre">set_taus_exp</span></tt> and <tt class="docutils literal"><span class="pre">set_taus_gauss</span></tt>.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.models.flare.Flare.set_taus_exp" title="bayesflare.models.flare.Flare.set_taus_exp"><tt class="xref py py-obj docutils literal"><span class="pre">set_taus_exp</span></tt></a>(low[,&nbsp;high,&nbsp;number])</td>
+<td>Allows the <tt class="docutils literal"><span class="pre">tau_exp</span></tt> parameter of the model to be set.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.models.flare.Flare.set_taus_gauss" title="bayesflare.models.flare.Flare.set_taus_gauss"><tt class="xref py py-obj docutils literal"><span class="pre">set_taus_gauss</span></tt></a>(low[,&nbsp;high,&nbsp;number])</td>
+<td>Allows the <tt class="docutils literal"><span class="pre">tau_gauss</span></tt> parameter of the model to be set.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.models.flare.Flare.update_priors" title="bayesflare.models.flare.Flare.update_priors"><tt class="xref py py-obj docutils literal"><span class="pre">update_priors</span></tt></a>()</td>
+<td>Updates the priors to reflect the models.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="bayesflare.models.flare.Flare.filter_model">
+<tt class="descname">filter_model</tt><big>(</big><em>m</em>, <em>nbins=101</em>, <em>order=3</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/flare.html#Flare.filter_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.flare.Flare.filter_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use the Savitzky-Golay smoothing to high-pass filter the model m:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>m</strong> : ndarray</p>
+<blockquote>
+<div><p>An array containing the model.</p>
+</div></blockquote>
+<p><strong>nbins</strong> : int, optional</p>
+<blockquote>
+<div><p>An odd integer width (in bins) for the filtering.</p>
+</div></blockquote>
+<p><strong>order</strong> : int, optional</p>
+<blockquote class="last">
+<div><p>The polynomial order for the filtering.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.flare.Flare.identity_string">
+<tt class="descname">identity_string</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bayesflare/models/flare.html#Flare.identity_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.flare.Flare.identity_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a string which identifies the model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>A string identifying the model and its parameters.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.flare.Flare.identity_type">
+<tt class="descname">identity_type</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bayesflare/models/flare.html#Flare.identity_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.flare.Flare.identity_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the type of model represented by the object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>A string containing the type of the model the object represents.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.flare.Flare.model">
+<tt class="descname">model</tt><big>(</big><em>amp</em>, <em>tauGauss</em>, <em>tauExp</em>, <em>t0</em>, <em>ts</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/flare.html#Flare.model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.flare.Flare.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Private method to generate the flare time series.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.flare.Flare.modeldict">
+<tt class="descname">modeldict</tt><big>(</big><em>pdict</em>, <em>ts</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/flare.html#Flare.modeldict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.flare.Flare.modeldict" title="Permalink to this definition">¶</a></dt>
+<dd><p>A method to generate a model given a time vector and a dictionary
+of model parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pdict</strong> : dictionary of parameters</p>
+<blockquote class="last">
+<div><p>A dictionary containing the parameters of the desired model output.
+The valid names for the parameters are contained within <tt class="docutils literal"><span class="pre">flare.paramnames</span></tt></p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.flare.Flare.output_model">
+<tt class="descname">output_model</tt><big>(</big><em>i</em>, <em>j</em>, <em>ts=None</em>, <em>filt=False</em>, <em>nbins=101</em>, <em>order=3</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/flare.html#Flare.output_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.flare.Flare.output_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>A private class to return a model from the object. Should be used with the <tt class="docutils literal"><span class="pre">__call__</span></tt> process.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>i, j</strong> : int</p>
+<blockquote>
+<div><p>The locations in the <tt class="docutils literal"><span class="pre">tau_gauss</span></tt> and <tt class="docutils literal"><span class="pre">tau_exp</span></tt> arrays.</p>
+</div></blockquote>
+<p><strong>ts</strong> : ndarray, optional</p>
+<blockquote>
+<div><p>The time axis to generate the model on.
+Defaults to the normal object&#8217;s normal time axis.</p>
+</div></blockquote>
+<p><strong>filt</strong> : bool, optional</p>
+<blockquote>
+<div><p>Boolean flag to enable filtering on the output model.
+Defaults to False.</p>
+</div></blockquote>
+<p><strong>nbins</strong> : int, optional</p>
+<blockquote>
+<div><p>The width, in bins, of the filter. Defaults to 101.</p>
+</div></blockquote>
+<p><strong>order</strong> : int, optional</p>
+<blockquote class="last">
+<div><p>The order of the filter.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.flare.Flare.parameters_refresh">
+<tt class="descname">parameters_refresh</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bayesflare/models/flare.html#Flare.parameters_refresh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.flare.Flare.parameters_refresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refreshes the object to reflect new parameters set by <tt class="docutils literal"><span class="pre">set_taus_exp</span></tt> and <tt class="docutils literal"><span class="pre">set_taus_gauss</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.flare.Flare.set_taus_exp">
+<tt class="descname">set_taus_exp</tt><big>(</big><em>low</em>, <em>high=None</em>, <em>number=None</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/flare.html#Flare.set_taus_exp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.flare.Flare.set_taus_exp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allows the <tt class="docutils literal"><span class="pre">tau_exp</span></tt> parameter of the model to be set.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>low</strong> : float</p>
+<blockquote>
+<div><p>The lowest value of <tt class="docutils literal"><span class="pre">tau_exp</span></tt> to be used.</p>
+</div></blockquote>
+<p><strong>high</strong> : float, optional</p>
+<blockquote>
+<div><p>The highest value of <tt class="docutils literal"><span class="pre">tau_exp</span></tt> to be used.</p>
+</div></blockquote>
+<p><strong>number</strong> : int, optional</p>
+<blockquote class="last">
+<div><p>The number of intervals to be created between the low and high values of <tt class="docutils literal"><span class="pre">tau_exp</span></tt>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.flare.Flare.set_taus_gauss">
+<tt class="descname">set_taus_gauss</tt><big>(</big><em>low</em>, <em>high=None</em>, <em>number=None</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/flare.html#Flare.set_taus_gauss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.flare.Flare.set_taus_gauss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allows the <tt class="docutils literal"><span class="pre">tau_gauss</span></tt> parameter of the model to be set.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>low</strong> : float</p>
+<blockquote>
+<div><p>The lowest value of <tt class="docutils literal"><span class="pre">tau_gauss</span></tt> to be used.</p>
+</div></blockquote>
+<p><strong>high</strong> : float, optional</p>
+<blockquote>
+<div><p>The highest value of <tt class="docutils literal"><span class="pre">tau_gauss</span></tt> to be used.</p>
+</div></blockquote>
+<p><strong>number</strong> : int, optional</p>
+<blockquote class="last">
+<div><p>The number of intervals to be created between the low and high values of <tt class="docutils literal"><span class="pre">tau_gauss</span></tt>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.flare.Flare.update_priors">
+<tt class="descname">update_priors</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bayesflare/models/flare.html#Flare.update_priors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.flare.Flare.update_priors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the priors to reflect the models.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-bayesflare.models.expdecay"></span><dl class="class">
+<dt id="bayesflare.models.expdecay.Expdecay">
+<em class="property">class </em><tt class="descclassname">bayesflare.models.expdecay.</tt><tt class="descname">Expdecay</tt><big>(</big><em>ts</em>, <em>amp=1</em>, <em>t0=None</em>, <em>reverse=False</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/expdecay.html#Expdecay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.expdecay.Expdecay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an exponentially decaying flare model with a sudden rise.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>amp</strong> : float, optional</p>
+<blockquote>
+<div><p>The amplitude of the flare. Defaults to 1.</p>
+</div></blockquote>
+<p><strong>ts</strong> : ndarray</p>
+<blockquote>
+<div><p>A vector containing time stamps.</p>
+</div></blockquote>
+<p><strong>t0</strong> : float, optional</p>
+<blockquote>
+<div><p>The time of peak. Defaults to the centre of <tt class="docutils literal"><span class="pre">ts</span></tt>.</p>
+</div></blockquote>
+<p><strong>reverse</strong> : bool, optional</p>
+<blockquote>
+<div><p>A boolean flag. Set this to reverse the flare shape.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>f</strong> : ndarray</p>
+<blockquote class="last">
+<div><p>An array containing the flare model.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.models.expdecay.Expdecay.filter_model" title="bayesflare.models.expdecay.Expdecay.filter_model"><tt class="xref py py-obj docutils literal"><span class="pre">filter_model</span></tt></a>(m[,&nbsp;nbins,&nbsp;order])</td>
+<td>Use the Savitzky-Golay smoothing to high-pass filter the model m:</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.models.expdecay.Expdecay.identity_string" title="bayesflare.models.expdecay.Expdecay.identity_string"><tt class="xref py py-obj docutils literal"><span class="pre">identity_string</span></tt></a>()</td>
+<td>Returns a string which identifies the model.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.models.expdecay.Expdecay.identity_type" title="bayesflare.models.expdecay.Expdecay.identity_type"><tt class="xref py py-obj docutils literal"><span class="pre">identity_type</span></tt></a>()</td>
+<td>Returns the type of model represented by the object.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.models.expdecay.Expdecay.model" title="bayesflare.models.expdecay.Expdecay.model"><tt class="xref py py-obj docutils literal"><span class="pre">model</span></tt></a>(amp,&nbsp;tauExp,&nbsp;t0,&nbsp;ts)</td>
+<td>Private method to generate the flare time series.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.models.expdecay.Expdecay.modeldict" title="bayesflare.models.expdecay.Expdecay.modeldict"><tt class="xref py py-obj docutils literal"><span class="pre">modeldict</span></tt></a>(pdict,&nbsp;ts)</td>
+<td>A method to generate a model given a time vector and a dictionary of model parameters.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.models.expdecay.Expdecay.output_model" title="bayesflare.models.expdecay.Expdecay.output_model"><tt class="xref py py-obj docutils literal"><span class="pre">output_model</span></tt></a>(i[,&nbsp;ts,&nbsp;filt,&nbsp;nbins,&nbsp;order])</td>
+<td>A private class to return a model from the object.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.models.expdecay.Expdecay.parameters_refresh" title="bayesflare.models.expdecay.Expdecay.parameters_refresh"><tt class="xref py py-obj docutils literal"><span class="pre">parameters_refresh</span></tt></a>()</td>
+<td>Refreshes the object to reflect new parameters set by <tt class="docutils literal"><span class="pre">set_taus_exp</span></tt> and <tt class="docutils literal"><span class="pre">set_taus_gauss</span></tt>.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.models.expdecay.Expdecay.set_taus_exp" title="bayesflare.models.expdecay.Expdecay.set_taus_exp"><tt class="xref py py-obj docutils literal"><span class="pre">set_taus_exp</span></tt></a>(low[,&nbsp;high,&nbsp;number])</td>
+<td>Allows the <tt class="docutils literal"><span class="pre">tau_exp</span></tt> parameter of the model to be set.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.models.expdecay.Expdecay.update_priors" title="bayesflare.models.expdecay.Expdecay.update_priors"><tt class="xref py py-obj docutils literal"><span class="pre">update_priors</span></tt></a>()</td>
+<td>Updates the priors to reflect the models.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="bayesflare.models.expdecay.Expdecay.filter_model">
+<tt class="descname">filter_model</tt><big>(</big><em>m</em>, <em>nbins=101</em>, <em>order=3</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/expdecay.html#Expdecay.filter_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.expdecay.Expdecay.filter_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use the Savitzky-Golay smoothing to high-pass filter the model m:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>m</strong> : ndarray</p>
+<blockquote>
+<div><p>An array containing the model.</p>
+</div></blockquote>
+<p><strong>nbins</strong> : int, optional</p>
+<blockquote>
+<div><p>An odd integer width (in bins) for the filtering.</p>
+</div></blockquote>
+<p><strong>order</strong> : int, optional</p>
+<blockquote class="last">
+<div><p>The polynomial order for the filtering.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.expdecay.Expdecay.identity_string">
+<tt class="descname">identity_string</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bayesflare/models/expdecay.html#Expdecay.identity_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.expdecay.Expdecay.identity_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a string which identifies the model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>A string identifying the model and its parameters.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.expdecay.Expdecay.identity_type">
+<tt class="descname">identity_type</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bayesflare/models/expdecay.html#Expdecay.identity_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.expdecay.Expdecay.identity_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the type of model represented by the object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>A string containing the type of the model the object represents.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.expdecay.Expdecay.model">
+<tt class="descname">model</tt><big>(</big><em>amp</em>, <em>tauExp</em>, <em>t0</em>, <em>ts</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/expdecay.html#Expdecay.model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.expdecay.Expdecay.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Private method to generate the flare time series.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.expdecay.Expdecay.modeldict">
+<tt class="descname">modeldict</tt><big>(</big><em>pdict</em>, <em>ts</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/expdecay.html#Expdecay.modeldict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.expdecay.Expdecay.modeldict" title="Permalink to this definition">¶</a></dt>
+<dd><p>A method to generate a model given a time vector and a dictionary
+of model parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pdict</strong> : dictionary of parameters</p>
+<blockquote class="last">
+<div><p>A dictionary containing the parameters of the desired model output.
+The valid names for the parameters are contained within <tt class="docutils literal"><span class="pre">expdecay.paramnames</span></tt></p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.expdecay.Expdecay.output_model">
+<tt class="descname">output_model</tt><big>(</big><em>i</em>, <em>ts=None</em>, <em>filt=False</em>, <em>nbins=101</em>, <em>order=3</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/expdecay.html#Expdecay.output_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.expdecay.Expdecay.output_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>A private class to return a model from the object. Should be used with the <tt class="docutils literal"><span class="pre">__call__</span></tt> process.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>i, j</strong> : int</p>
+<blockquote>
+<div><p>The locations in the <tt class="docutils literal"><span class="pre">tau_exp</span></tt> array.</p>
+</div></blockquote>
+<p><strong>ts</strong> : ndarray, optional</p>
+<blockquote>
+<div><p>The time axis to generate the model on.
+Defaults to the normal object&#8217;s normal time axis.</p>
+</div></blockquote>
+<p><strong>filt</strong> : bool, optional</p>
+<blockquote>
+<div><p>Boolean flag to enable filtering on the output model.
+Defaults to False.</p>
+</div></blockquote>
+<p><strong>nbins</strong> : int, optional</p>
+<blockquote>
+<div><p>The width, in bins, of the filter. Defaults to 101.</p>
+</div></blockquote>
+<p><strong>order</strong> : int, optional</p>
+<blockquote class="last">
+<div><p>The order of the filter.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.expdecay.Expdecay.parameters_refresh">
+<tt class="descname">parameters_refresh</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bayesflare/models/expdecay.html#Expdecay.parameters_refresh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.expdecay.Expdecay.parameters_refresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refreshes the object to reflect new parameters set by <tt class="docutils literal"><span class="pre">set_taus_exp</span></tt> and <tt class="docutils literal"><span class="pre">set_taus_gauss</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.expdecay.Expdecay.set_taus_exp">
+<tt class="descname">set_taus_exp</tt><big>(</big><em>low</em>, <em>high=None</em>, <em>number=None</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/expdecay.html#Expdecay.set_taus_exp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.expdecay.Expdecay.set_taus_exp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allows the <tt class="docutils literal"><span class="pre">tau_exp</span></tt> parameter of the model to be set.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>low</strong> : float</p>
+<blockquote>
+<div><p>The lowest value of <tt class="docutils literal"><span class="pre">tau_exp</span></tt> to be used.</p>
+</div></blockquote>
+<p><strong>high</strong> : float, optional</p>
+<blockquote>
+<div><p>The highest value of <tt class="docutils literal"><span class="pre">tau_exp</span></tt> to be used.</p>
+</div></blockquote>
+<p><strong>number</strong> : int, optional</p>
+<blockquote class="last">
+<div><p>The number of intervals to be created between the low and high values of <tt class="docutils literal"><span class="pre">tau_exp</span></tt>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.expdecay.Expdecay.update_priors">
+<tt class="descname">update_priors</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bayesflare/models/expdecay.html#Expdecay.update_priors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.expdecay.Expdecay.update_priors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the priors to reflect the models.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
-<div class="section" id="the-transit-models">
-<h2>The Transit Models<a class="headerlink" href="#the-transit-models" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-bayesflare.models.transit">
+<span id="the-transit-models"></span><h2>The Transit Models<a class="headerlink" href="#module-bayesflare.models.transit" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="bayesflare.models.transit.Transit">
+<em class="property">class </em><tt class="descclassname">bayesflare.models.transit.</tt><tt class="descname">Transit</tt><big>(</big><em>ts</em>, <em>amp=1</em>, <em>t0=None</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/transit.html#Transit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.transit.Transit" title="Permalink to this definition">¶</a></dt>
+<dd><p>A transit model with a half-Gaussian dip and rise and flat bottom profile.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>amp</strong> : float, optional</p>
+<blockquote>
+<div><p>The amplitude of the flare. Defaults to 1.</p>
+</div></blockquote>
+<p><strong>ts</strong> : ndarray</p>
+<blockquote>
+<div><p>A vector containing time stamps.</p>
+</div></blockquote>
+<p><strong>t0</strong> : float, optional</p>
+<blockquote>
+<div><p>The time of peak. Defaults to the centre of <tt class="docutils literal"><span class="pre">ts</span></tt>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>f</strong> : ndarray</p>
+<blockquote class="last">
+<div><p>An array containing the transit model.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.models.transit.Transit.filter_model" title="bayesflare.models.transit.Transit.filter_model"><tt class="xref py py-obj docutils literal"><span class="pre">filter_model</span></tt></a>(m[,&nbsp;nbins,&nbsp;order])</td>
+<td>Use the Savitzky-Golay smoothing to high-pass filter the model m:</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.models.transit.Transit.identity_string" title="bayesflare.models.transit.Transit.identity_string"><tt class="xref py py-obj docutils literal"><span class="pre">identity_string</span></tt></a>()</td>
+<td>Returns a string which identifies the model.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.models.transit.Transit.identity_type" title="bayesflare.models.transit.Transit.identity_type"><tt class="xref py py-obj docutils literal"><span class="pre">identity_type</span></tt></a>()</td>
+<td>Returns the type of model represented by the object.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.models.transit.Transit.model" title="bayesflare.models.transit.Transit.model"><tt class="xref py py-obj docutils literal"><span class="pre">model</span></tt></a>(amp,&nbsp;sigmag,&nbsp;tauf,&nbsp;t0,&nbsp;ts)</td>
+<td>Private method to generate the impulse time series.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.models.transit.Transit.modeldict" title="bayesflare.models.transit.Transit.modeldict"><tt class="xref py py-obj docutils literal"><span class="pre">modeldict</span></tt></a>(pdict,&nbsp;ts)</td>
+<td>A method to generate a model given a time vector and a dictionary of model parameters.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.models.transit.Transit.output_model" title="bayesflare.models.transit.Transit.output_model"><tt class="xref py py-obj docutils literal"><span class="pre">output_model</span></tt></a>(i,&nbsp;j[,&nbsp;ts,&nbsp;filt,&nbsp;nbins,&nbsp;order])</td>
+<td>A private class to return a model from the object.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.models.transit.Transit.parameters_refresh" title="bayesflare.models.transit.Transit.parameters_refresh"><tt class="xref py py-obj docutils literal"><span class="pre">parameters_refresh</span></tt></a>()</td>
+<td>Refreshes the object to reflect new parameters set by <tt class="docutils literal"><span class="pre">set_taus_exp</span></tt> and <tt class="docutils literal"><span class="pre">set_taus_gauss</span></tt>.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.models.transit.Transit.set_maxduration" title="bayesflare.models.transit.Transit.set_maxduration"><tt class="xref py py-obj docutils literal"><span class="pre">set_maxduration</span></tt></a>(maxd)</td>
+<td>Sets the <tt class="docutils literal"><span class="pre">maxdur</span></tt> parameter.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.models.transit.Transit.set_sigmag" title="bayesflare.models.transit.Transit.set_sigmag"><tt class="xref py py-obj docutils literal"><span class="pre">set_sigmag</span></tt></a>(low[,&nbsp;high,&nbsp;number])</td>
+<td>Allows the <tt class="docutils literal"><span class="pre">sigmag</span></tt> parameter of the model to be set.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#bayesflare.models.transit.Transit.set_tauf" title="bayesflare.models.transit.Transit.set_tauf"><tt class="xref py py-obj docutils literal"><span class="pre">set_tauf</span></tt></a>(low[,&nbsp;high,&nbsp;number])</td>
+<td>Allows the <tt class="docutils literal"><span class="pre">tauf</span></tt> parameter of the model to be set.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#bayesflare.models.transit.Transit.update_priors" title="bayesflare.models.transit.Transit.update_priors"><tt class="xref py py-obj docutils literal"><span class="pre">update_priors</span></tt></a>([sigmagcutoff])</td>
+<td>Updates the priors to reflect the models.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="bayesflare.models.transit.Transit.filter_model">
+<tt class="descname">filter_model</tt><big>(</big><em>m</em>, <em>nbins=101</em>, <em>order=3</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/transit.html#Transit.filter_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.transit.Transit.filter_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use the Savitzky-Golay smoothing to high-pass filter the model m:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>m</strong> : ndarray</p>
+<blockquote>
+<div><p>An array containing the model.</p>
+</div></blockquote>
+<p><strong>nbins</strong> : int, optional</p>
+<blockquote>
+<div><p>An odd integer width (in bins) for the filtering.</p>
+</div></blockquote>
+<p><strong>order</strong> : int, optional</p>
+<blockquote class="last">
+<div><p>The polynomial order for the filtering.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.transit.Transit.identity_string">
+<tt class="descname">identity_string</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bayesflare/models/transit.html#Transit.identity_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.transit.Transit.identity_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a string which identifies the model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>A string identifying the model and its parameters.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.transit.Transit.identity_type">
+<tt class="descname">identity_type</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bayesflare/models/transit.html#Transit.identity_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.transit.Transit.identity_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the type of model represented by the object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>str</strong> :</p>
+<blockquote class="last">
+<div><p>A string containing the type of the model the object represents.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.transit.Transit.model">
+<tt class="descname">model</tt><big>(</big><em>amp</em>, <em>sigmag</em>, <em>tauf</em>, <em>t0</em>, <em>ts</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/transit.html#Transit.model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.transit.Transit.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Private method to generate the impulse time series.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.transit.Transit.modeldict">
+<tt class="descname">modeldict</tt><big>(</big><em>pdict</em>, <em>ts</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/transit.html#Transit.modeldict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.transit.Transit.modeldict" title="Permalink to this definition">¶</a></dt>
+<dd><p>A method to generate a model given a time vector and a dictionary
+of model parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pdict</strong> : dictionary of parameters</p>
+<blockquote class="last">
+<div><p>A dictionary containing the parameters of the desired model output.
+The valid names for the parameters are contained within <tt class="docutils literal"><span class="pre">transit.paramnames</span></tt></p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.transit.Transit.output_model">
+<tt class="descname">output_model</tt><big>(</big><em>i</em>, <em>j</em>, <em>ts=None</em>, <em>filt=False</em>, <em>nbins=101</em>, <em>order=3</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/transit.html#Transit.output_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.transit.Transit.output_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>A private class to return a model from the object. Should be used with the <tt class="docutils literal"><span class="pre">__call__</span></tt> process.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>i,j</strong> : int</p>
+<blockquote>
+<div><p>The locations in the <tt class="docutils literal"><span class="pre">sigmag</span></tt> and <tt class="docutils literal"><span class="pre">tauf</span></tt> arrays.</p>
+</div></blockquote>
+<p><strong>ts</strong> : ndarray, optional</p>
+<blockquote>
+<div><p>The time axis to generate the model on.
+Defaults to the normal object&#8217;s normal time axis.</p>
+</div></blockquote>
+<p><strong>filt</strong> : bool, optional</p>
+<blockquote>
+<div><p>Boolean flag to enable filtering on the output model.
+Defaults to False.</p>
+</div></blockquote>
+<p><strong>nbins</strong> : int, optional</p>
+<blockquote>
+<div><p>The width, in bins, of the filter. Defaults to 101.</p>
+</div></blockquote>
+<p><strong>order</strong> : int, optional</p>
+<blockquote class="last">
+<div><p>The order of the filter.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.transit.Transit.parameters_refresh">
+<tt class="descname">parameters_refresh</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/bayesflare/models/transit.html#Transit.parameters_refresh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.transit.Transit.parameters_refresh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refreshes the object to reflect new parameters set by <tt class="docutils literal"><span class="pre">set_taus_exp</span></tt> and <tt class="docutils literal"><span class="pre">set_taus_gauss</span></tt>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.transit.Transit.set_maxduration">
+<tt class="descname">set_maxduration</tt><big>(</big><em>maxd</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/transit.html#Transit.set_maxduration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.transit.Transit.set_maxduration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the <tt class="docutils literal"><span class="pre">maxdur</span></tt> parameter.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>maxd</strong> : float</p>
+<blockquote class="last">
+<div><p>The maximum duration, in hours.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.transit.Transit.set_sigmag">
+<tt class="descname">set_sigmag</tt><big>(</big><em>low</em>, <em>high=None</em>, <em>number=None</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/transit.html#Transit.set_sigmag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.transit.Transit.set_sigmag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allows the <tt class="docutils literal"><span class="pre">sigmag</span></tt> parameter of the model to be set.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>low</strong> : float</p>
+<blockquote>
+<div><p>The lowest value of <tt class="docutils literal"><span class="pre">sigmag</span></tt> to be used.</p>
+</div></blockquote>
+<p><strong>high</strong> : float, optional</p>
+<blockquote>
+<div><p>The highest value of <tt class="docutils literal"><span class="pre">sigmag</span></tt> to be used.</p>
+</div></blockquote>
+<p><strong>number</strong> : int, optional</p>
+<blockquote class="last">
+<div><p>The number of intervals to be created between the low and high values of <tt class="docutils literal"><span class="pre">sigmag</span></tt>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.transit.Transit.set_tauf">
+<tt class="descname">set_tauf</tt><big>(</big><em>low</em>, <em>high=None</em>, <em>number=None</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/transit.html#Transit.set_tauf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.transit.Transit.set_tauf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allows the <tt class="docutils literal"><span class="pre">tauf</span></tt> parameter of the model to be set.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>low</strong> : float</p>
+<blockquote>
+<div><p>The lowest value of <tt class="docutils literal"><span class="pre">tauf</span></tt> to be used.</p>
+</div></blockquote>
+<p><strong>high</strong> : float, optional</p>
+<blockquote>
+<div><p>The highest value of <tt class="docutils literal"><span class="pre">tauf</span></tt> to be used.</p>
+</div></blockquote>
+<p><strong>number</strong> : int, optional</p>
+<blockquote class="last">
+<div><p>The number of intervals to be created between the low and high values of <tt class="docutils literal"><span class="pre">tauf</span></tt>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bayesflare.models.transit.Transit.update_priors">
+<tt class="descname">update_priors</tt><big>(</big><em>sigmagcutoff=2</em><big>)</big><a class="reference internal" href="_modules/bayesflare/models/transit.html#Transit.update_priors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.models.transit.Transit.update_priors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the priors to reflect the models.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 </div>
 
 
           <footer>
-  
-    <div class="rst-footer-buttons">
-      
-        <a href="stats.html" class="btn btn-neutral float-right" title="Statistical Operations"/>Next <span class="icon icon-circle-arrow-right"></span></a>
-      
-      
-        <a href="data.html" class="btn btn-neutral" title="Data Handling"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>

@@ -44,8 +44,7 @@
   
 
   
-    <link rel="top" title="BayesFlare 1 documentation" href="index.html"/>
-        <link rel="prev" title="Flare Indentification" href="finder.html"/> 
+    <link rel="top" title="BayesFlare 1 documentation" href="index.html"/> 
 
   <script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
 
@@ -77,20 +76,22 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="data.html">Data Handling</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="data.html#data-loader">Data Loader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#module-bayesflare.data.data">Data Loader</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="models.html#the-flare-models">The Flare Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#the-transit-models">The Transit Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-bayesflare.models.flare">The Flare Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-bayesflare.models.transit">The Transit Models</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="stats.html">Statistical Operations</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="stats.html#automatic-thresholder">Automatic Thresholder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stats.html#module-bayesflare.stats.thresholding">Automatic Thresholder</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="noise.html">Noise Estimation and Simulation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="finder.html">Flare Indentification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="finder.html">Flare Indentification</a><ul class="simple">
+</ul>
+</li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">Miscellaneous Functions</a></li>
 </ul>
 
@@ -119,19 +120,48 @@
 <hr/>
 
           
-  <div class="section" id="miscellaneous-functions">
-<h1>Miscellaneous Functions<a class="headerlink" href="#miscellaneous-functions" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-bayesflare.misc.misc">
+<span id="miscellaneous-functions"></span><h1>Miscellaneous Functions<a class="headerlink" href="#module-bayesflare.misc.misc" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="bayesflare.misc.misc.mkdir">
+<tt class="descclassname">bayesflare.misc.misc.</tt><tt class="descname">mkdir</tt><big>(</big><em>path</em><big>)</big><a class="reference internal" href="_modules/bayesflare/misc/misc.html#mkdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.misc.misc.mkdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively makes a folder.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>path</strong> : str</p>
+<blockquote class="last">
+<div><p>A string describing the path where the folder should be created.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="bayesflare.misc.misc.nextpow2">
+<tt class="descclassname">bayesflare.misc.misc.</tt><tt class="descname">nextpow2</tt><big>(</big><em>i</em><big>)</big><a class="reference internal" href="_modules/bayesflare/misc/misc.html#nextpow2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bayesflare.misc.misc.nextpow2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the nearest power of two to the inputed number.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>i</strong> : int</p>
+<blockquote class="last">
+<div><p>An integer.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 
 
           <footer>
-  
-    <div class="rst-footer-buttons">
-      
-      
-        <a href="finder.html" class="btn btn-neutral" title="Flare Indentification"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>
