@@ -1,0 +1,536 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD &mdash; BayesFlare 1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:'./',
+        VERSION:'1',
+        COLLAPSE_INDEX:false,
+        FILE_SUFFIX:'.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+    <link rel="top" title="BayesFlare 1 documentation" href="index.html"/> 
+
+  <script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="index.html" class="icon icon-home"> BayesFlare</a>
+        <form class="wy-form" action="search.html" method="get">
+  <input type="text" name="q" placeholder="Search docs" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">A Brief Introduction to pyFlare</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Pre-made Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html#pitkin-williams-et-al">Pitkin, Williams, et. al.</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Handling</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data.html#data-loader">Data Loader</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="models.html#the-flare-models">The Flare Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#the-transit-models">The Transit Models</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="stats.html">Statistical Operations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="stats.html#automatic-thresholder">Automatic Thresholder</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="noise.html">Noise Estimation and Simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="finder.html">Flare Indentification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="misc.html">Miscellaneous Functions</a></li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top">
+        <i data-toggle="wy-nav-top" class="icon icon-reorder"></i>
+        <a href="/">BayesFlare</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <ul class="wy-breadcrumbs">
+  <li><a href="index.html">Docs</a> &raquo;</li>
+  <li><a href="">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</a></li>
+  
+</ul>
+<hr/>
+
+          
+  <div class="section" id="head">
+<h1>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD<a class="headerlink" href="#head" title="Permalink to this headline">¶</a></h1>
+</div>
+<hr class="docutils" />
+<div class="section" id="the-bayes-and-parameter-estimation-classes">
+<h1>The Bayes and Parameter estimation classes<a class="headerlink" href="#the-bayes-and-parameter-estimation-classes" title="Permalink to this headline">¶</a></h1>
+<p>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+.. automodule:: bayesflare.stats.bayes
+=======
+.. automodule:: pyflare.stats.bayes
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; e47694aa4c52f029ce8c0c8242df8d6110004e92</p>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">members:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="general-functions">
+<h1>General functions<a class="headerlink" href="#general-functions" title="Permalink to this headline">¶</a></h1>
+<dl class="macro">
+<dt id="c.LOG2PI">
+<tt class="descname">LOG2PI</tt><a class="headerlink" href="#c.LOG2PI" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</p>
+<blockquote>
+<div>The natural logarithm of <span class="math">\(2\pi\)</span> defined using the GSL macros <cite>(M_LN2 + M_LNPI)</cite></div></blockquote>
+<dl class="macro">
+<dt id="c.LOGPI_2">
+<tt class="descname">LOGPI_2</tt><a class="headerlink" href="#c.LOGPI_2" title="Permalink to this definition">¶</a></dt>
+<dd><p>The natural logarithm of <span class="math">\(\pi/2\)</span> defined using the GSL macros <cite>(M_LNPI - M_LN2)</cite></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="c.log_marg_amp_full_C">
+double <tt class="descname">log_marg_amp_full_C</tt><big>(</big>int<em>&nbsp;Nmodels</em>, double<em>&nbsp;modelModel[]</em>, double<em>&nbsp;dataModel[]</em>, double<em>&nbsp;sigma</em>, unsigned int<em>&nbsp;lastHalfRange</em><big>)</big><a class="headerlink" href="#c.log_marg_amp_full_C" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calculates the log-likelihood ratio for a signal model (consisting of a number
+<cite>Nmodels</cite> components, each with an amplitude that is marginalised over) compared to a pure
+Gaussian noise model. For all bar the last model component the amplitudes are analytically
+marginalised between -infinity and +infinity, whilst if <cite>lastHalfRange</cite> is true the final
+amplitude will be marginalised between 0 and infinity (i.e. it must be positive).</p>
+<p>For a more complete description of this function see <a href="#id21"><span class="problematic" id="id22"><span id="id1"></span>[1]_</span></a> or Algorithm 1 in <a href="#id23"><span class="problematic" id="id24"><span id="id2"></span>[2]_</span></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>Nmodels</strong> : int</p>
+<blockquote>
+<div><p>The number of model components.</p>
+</div></blockquote>
+<p><strong>modelModel</strong> : double array</p>
+<blockquote>
+<div><p>A flattened 1D array consisting of the summed cross terms for each model component [size:
+<cite>Nmodels</cite> * <cite>Nmodels</cite>].</p>
+</div></blockquote>
+<p><strong>dataModel</strong> : double array</p>
+<blockquote>
+<div><p>A 1D array of the summed data crossed with each model component [size: <cite>Nmodels</cite>]</p>
+</div></blockquote>
+<p><strong>sigma</strong> : double</p>
+<blockquote>
+<div><p>The underlying Gaussian noise standard deviation</p>
+</div></blockquote>
+<p><strong>lastHalfRange</strong> : bool</p>
+<blockquote>
+<div><p>A boolean saying whether the final model component amplitudes should be marginalised over
+the full -infinity to infinity range (False), or between 0 and inf (True).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>logL</strong> : double</p>
+<blockquote class="last">
+<div><p>The log-likelihood ratio marginalised over the model component amplitudes.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="macro">
+<dt>
+<tt class="descname">LOGPI_2</tt></dt>
+<dt>
+<tt class="descname">The natural logarithm of :math:`pi/2` defined using the GSL macros `(M_LNPI - M_LN2)`</tt></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">double log_marg_amp_full_C(int Nmodels, double modelModel[], double dataModel[],</tt></dt>
+<dt>
+<tt class="descname">double sigma, unsigned int lastHalfRange)</tt></dt>
+<dt>
+<tt class="descname">This function calculates the log-likelihood ratio for a signal model (consisting of a number</tt></dt>
+<dt id="c.pure">
+`Nmodels` components, each with an amplitude that is marginalised over) compared to a <tt class="descname">pure</tt><big>(</big><big>)</big><a class="headerlink" href="#c.pure" title="Permalink to this definition">¶</a></dt>
+<dt id="c.analytically">
+Gaussian noise model. For all bar the last model component the amplitudes are <tt class="descname">analytically</tt><big>(</big><big>)</big><a class="headerlink" href="#c.analytically" title="Permalink to this definition">¶</a></dt>
+<dt id="c.final">
+marginalised between -infinity and +infinity, whilst if `lastHalfRange` is true the <tt class="descname">final</tt><big>(</big><big>)</big><a class="headerlink" href="#c.final" title="Permalink to this definition">¶</a></dt>
+<dt>
+<tt class="descname">amplitude will be marginalised between 0 and infinity (i.e. it must be positive).</tt></dt>
+<dd><p>For a more complete description of this function see <a href="#id25"><span class="problematic" id="id26"><span id="id3"></span>[1]_</span></a> or Algorithm 1 in <a href="#id27"><span class="problematic" id="id28"><span id="id4"></span>[2]_</span></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>Nmodels</strong> : int</p>
+<blockquote>
+<div><p>The number of model components.</p>
+</div></blockquote>
+<p><strong>modelModel</strong> : double array</p>
+<blockquote>
+<div><p>A flattened 1D array consisting of the summed cross terms for each model component [size:
+<cite>Nmodels</cite> * <cite>Nmodels</cite>].</p>
+</div></blockquote>
+<p><strong>dataModel</strong> : double array</p>
+<blockquote>
+<div><p>A 1D array of the summed data crossed with each model component [size: <cite>Nmodels</cite>]</p>
+</div></blockquote>
+<p><strong>sigma</strong> : double</p>
+<blockquote>
+<div><p>The underlying Gaussian noise standard deviation</p>
+</div></blockquote>
+<p><strong>lastHalfRange</strong> : bool</p>
+<blockquote>
+<div><p>A boolean saying whether the final model component amplitudes should be marginalised over
+the full -infinity to infinity range (False), or between 0 and inf (True).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>logL</strong> : double</p>
+<blockquote class="last">
+<div><p>The log-likelihood ratio marginalised over the model component amplitudes.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="docutils">
+<dt>&gt;&gt;&gt;&gt;&gt;&gt;&gt; e47694aa4c52f029ce8c0c8242df8d6110004e92</dt>
+<dd><table class="first docutils footnote" frame="void" id="id5" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[1]</td><td><a class="reference external" href="http://mattpitkin.github.io/amplitude-marginaliser">http://mattpitkin.github.io/amplitude-marginaliser</a></td></tr>
+</tbody>
+</table>
+<table class="last docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[2]</td><td>Pitkin, Williams, Fletcher and Grant, 2014, <a href="#id7"><span class="problematic" id="id8">`</span></a>arXiv:14XX.XXXX</td></tr>
+</tbody>
+</table>
+</dd>
+</dl>
+<p>&lt;<a class="reference external" href="http://arxiv.org/abs/14XX.XXX">http://arxiv.org/abs/14XX.XXX</a>&gt;`.</p>
+<dl class="function">
+<dt>
+<tt class="descname">double log_marg_amp_except_final_C(int Nmodels, double modelModel[],</tt></dt>
+<dt>
+<tt class="descname">double dataModel[], double sigma)</tt></dt>
+<dd></dd></dl>
+
+<p>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</p>
+<blockquote>
+<div><p>This function calculates the log-likelihood ratio for a signal model (consisting of a number
+<cite>Nmodels</cite> components) compared to a pure Gaussian noise model. For all bar the last model
+component the amplitudes are analytically marginalised between -infinity and +infinity.</p>
+<p>For a more complete description of this function see <a href="#id29"><span class="problematic" id="id30"><span id="id9"></span>[1]_</span></a> or Algorithm 2 in <a href="#id31"><span class="problematic" id="id32"><span id="id10"></span>[2]_</span></a>.</p>
+<dl class="docutils">
+<dt>Nmodels <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The number of model components.</dd>
+<dt>modelModel <span class="classifier-delimiter">:</span> <span class="classifier">double array</span></dt>
+<dd>A flattened 1D array consisting of the summed cross terms for each model component [size:
+<cite>Nmodels</cite> * <cite>Nmodels</cite>].</dd>
+<dt>dataModel <span class="classifier-delimiter">:</span> <span class="classifier">double array</span></dt>
+<dd>A 1D array of the summed data crossed with each model component [size: <cite>Nmodels</cite>]</dd>
+<dt>sigma <span class="classifier-delimiter">:</span> <span class="classifier">double</span></dt>
+<dd>The underlying Gaussian noise standard deviation</dd>
+</dl>
+<dl class="docutils">
+<dt>logL <span class="classifier-delimiter">:</span> <span class="classifier">double</span></dt>
+<dd>The log-likelihood ratio marginalised over the model component amplitudes.</dd>
+</dl>
+<table class="docutils footnote" frame="void" id="id11" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[1]</td><td><a class="reference external" href="http://mattpitkin.github.io/amplitude-marginaliser">http://mattpitkin.github.io/amplitude-marginaliser</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id12" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[2]</td><td>Pitkin, Williams, Fletcher and Grant, 2014, <a href="#id13"><span class="problematic" id="id14">`</span></a>arXiv:14XX.XXXX</td></tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>&lt;<a class="reference external" href="http://arxiv.org/abs/14XX.XXX">http://arxiv.org/abs/14XX.XXX</a>&gt;`.</p>
+<blockquote>
+<div><p>component the amplitudes are analytically marginalised between -infinity and +infinity.</p>
+<p>For a more complete description of this function see <a href="#id33"><span class="problematic" id="id34"><span id="id15"></span>[1]_</span></a> or Algorithm 2 in <a href="#id35"><span class="problematic" id="id36"><span id="id16"></span>[2]_</span></a>.</p>
+<dl class="docutils">
+<dt>Nmodels <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>The number of model components.</dd>
+<dt>modelModel <span class="classifier-delimiter">:</span> <span class="classifier">double array</span></dt>
+<dd>A flattened 1D array consisting of the summed cross terms for each model component [size:
+<cite>Nmodels</cite> * <cite>Nmodels</cite>].</dd>
+<dt>dataModel <span class="classifier-delimiter">:</span> <span class="classifier">double array</span></dt>
+<dd>A 1D array of the summed data crossed with each model component [size: <cite>Nmodels</cite>]</dd>
+<dt>sigma <span class="classifier-delimiter">:</span> <span class="classifier">double</span></dt>
+<dd>The underlying Gaussian noise standard deviation</dd>
+</dl>
+<dl class="docutils">
+<dt>logL <span class="classifier-delimiter">:</span> <span class="classifier">double</span></dt>
+<dd>The log-likelihood ratio marginalised over the model component amplitudes.</dd>
+</dl>
+<table class="docutils footnote" frame="void" id="id17" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[1]</td><td><a class="reference external" href="http://mattpitkin.github.io/amplitude-marginaliser">http://mattpitkin.github.io/amplitude-marginaliser</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id18" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[2]</td><td>Pitkin, Williams, Fletcher and Grant, 2014, <a href="#id19"><span class="problematic" id="id20">`</span></a>arXiv:14XX.XXXX</td></tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>&lt;<a class="reference external" href="http://arxiv.org/abs/14XX.XXX">http://arxiv.org/abs/14XX.XXX</a>&gt;`.</p>
+<span class="target" id="module-pyflare.stats.general"></span><p>Created on Thu Jun 20 12:35:57 2013</p>
+<p>&#64;author: daniel</p>
+<dl class="function">
+<dt id="pyflare.stats.general.log_likelihood_marg_background">
+<tt class="descclassname">pyflare.stats.general.</tt><tt class="descname">log_likelihood_marg_background</tt><big>(</big><big>)</big><a class="headerlink" href="#pyflare.stats.general.log_likelihood_marg_background" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the log-likelihood function marginalised over the background polynomial terms.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyflare.stats.general.log_likelihood_ratio">
+<tt class="descclassname">pyflare.stats.general.</tt><tt class="descname">log_likelihood_ratio</tt><big>(</big><big>)</big><a class="headerlink" href="#pyflare.stats.general.log_likelihood_ratio" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Gaussian likelihood ratio (model versus Gaussian noise).
+&#64;param model An array containing the model
+&#64;param data An array (of the same length as model) containing the data.
+&#64;param sk The noise standard deviation</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyflare.stats.general.log_marg_amp">
+<tt class="descclassname">pyflare.stats.general.</tt><tt class="descname">log_marg_amp</tt><big>(</big><big>)</big><a class="headerlink" href="#pyflare.stats.general.log_marg_amp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the log-likelihood ratio for the signal model m (with the
+amplitude factored out) compared to a pure Gaussian noise model,
+marginalised over the unknown model amplitude between 0 and infinity,
+for each timestep, given a data time series d, a model, m, and a
+time domain noise variance ss.</p>
+<p>This uses the GSL function gsl_sf_log_erfc and has a speed up over the
+&#8216;original&#8217; function.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyflare.stats.general.log_marg_amp_full">
+<tt class="descclassname">pyflare.stats.general.</tt><tt class="descname">log_marg_amp_full</tt><big>(</big><big>)</big><a class="headerlink" href="#pyflare.stats.general.log_marg_amp_full" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the log-likelihood ratio for a signal model (consisting of a number [Nmodels]
+components, each with an amplitude marginalised over) compared to a pure Gaussian noise
+model. For all bar the last model component the amplitudes are analytically marginalised
+between -infinity and +infinity, whilst if lastHalfRange is true the final amplitude
+will be marginalised between 0 and infinity (i.e. it must be positive).</p>
+<dl class="docutils">
+<dt>Inputs:</dt>
+<dd><p class="first">Nmodels - the number of model components
+modelModel - the summed cross terms for each model component [size: Nmodels x Nmodels]
+dataModel - the summed data crossed with each model component [size: Nmodels]
+sigma - the underlying Gaussian noise standard deviation
+lastHalfRange - a boolean saying whether the final model component amplitudes should</p>
+<blockquote class="last">
+<div>be marginalised over the full -inf to inf range (False), or between 0 and inf (True)</div></blockquote>
+</dd>
+<dt>Output:</dt>
+<dd><dl class="first last docutils">
+<dt>logL - the log-likelihood ratio marginalised over the model component amplitudes [Note:</dt>
+<dd>no prior has been set on the amplitudes, so if assuming a flat prior with a certain
+with this should be included separately.]</dd>
+</dl>
+</dd>
+</dl>
+<p>NOTE: This function is several times SLOWER than the equivalent straight C version
+log_marg_amp_full_C, which should generally be used instead. In that function the
+modelModel array is flattened.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyflare.stats.general.log_marg_amp_full_2Dmodel">
+<tt class="descclassname">pyflare.stats.general.</tt><tt class="descname">log_marg_amp_full_2Dmodel</tt><big>(</big><big>)</big><a class="headerlink" href="#pyflare.stats.general.log_marg_amp_full_2Dmodel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run log_marg_amp_full lopping over the data to get the model log likelihood ratio.</p>
+<p>This version of the function explicitly requires that the model has two variable
+parameters and a third dimension, which give the time series. This means that the
+input size of the ndarrays can be defined, and array indexing does not have to use
+tuples, which makes use of the speed increase this gives.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyflare.stats.general.log_marg_amp_full_background">
+<tt class="descclassname">pyflare.stats.general.</tt><tt class="descname">log_marg_amp_full_background</tt><big>(</big><big>)</big><a class="headerlink" href="#pyflare.stats.general.log_marg_amp_full_background" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run log_marg_amp_full to get the background (a polynomial noise variation) log likelihood
+ratio.</p>
+<dl class="docutils">
+<dt>The polynomial is of the form:</dt>
+<dd>p(t) = sum_{i=0}^bgorder t^i</dd>
+<dt>Inputs:</dt>
+<dd><p class="first">sk - the noise standard deviation
+dlen - the length of the data (integer)
+bgorder - the polynomial order of the noise variation
+bgcross - a matrix of cross-terms of the models from each polynomial power term</p>
+<blockquote>
+<div>[size: bgorder+1 x bgorder+1]</div></blockquote>
+<dl class="last docutils">
+<dt>dbgr - a matrix of the data crossed with each of the polynomial power terms (as a</dt>
+<dd>sliding window of bglen across the data dlen) [size: bgorder+1 x dlen]</dd>
+</dl>
+</dd>
+<dt>Outputs:</dt>
+<dd>B - a matrix of the log-likelihood ratio at each data time stamp [size: dlen]</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyflare.stats.general.log_marg_amp_full_model">
+<tt class="descclassname">pyflare.stats.general.</tt><tt class="descname">log_marg_amp_full_model</tt><big>(</big><big>)</big><a class="headerlink" href="#pyflare.stats.general.log_marg_amp_full_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run log_marg_amp_slow lopping over the data to get the model log likelihood ratio</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyflare.stats.general.log_marg_amp_original">
+<tt class="descclassname">pyflare.stats.general.</tt><tt class="descname">log_marg_amp_original</tt><big>(</big><big>)</big><a class="headerlink" href="#pyflare.stats.general.log_marg_amp_original" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the log-likelihood ratio for the signal model m (with the
+amplitude factored out) compared to a pure Gaussian noise model,
+marginalised over the unknown model amplitude between 0 and infinity,
+for each timestep, given a data time series d, a model, m, and a
+time domain noise variance ss.</p>
+<p>This uses the scipy erf function and is slower that the new version.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyflare.stats.general.log_one_plus_erf">
+<tt class="descclassname">pyflare.stats.general.</tt><tt class="descname">log_one_plus_erf</tt><big>(</big><big>)</big><a class="headerlink" href="#pyflare.stats.general.log_one_plus_erf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the log of the (1+erf(x)).
+This uses the numerical approximation to erf given in
+<a class="reference external" href="http://en.wikipedia.org/wiki/Error_function#Numerical_approximation">http://en.wikipedia.org/wiki/Error_function#Numerical_approximation</a> or
+page 221 of Numerical Recipes in C (<a class="reference external" href="http://apps.nrbook.com/c/index.html">http://apps.nrbook.com/c/index.html</a>)</p>
+<p>This was implemented to see if it removed -infs when using x &lt;&lt; 0, but due
+to the z*z component it does not help. It is kept here for posterity, but
+does not need to be used.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyflare.stats.general.logminus">
+<tt class="descclassname">pyflare.stats.general.</tt><tt class="descname">logminus</tt><big>(</big><big>)</big><a class="headerlink" href="#pyflare.stats.general.logminus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate log(exp(x) - exp(y)) in a way that preserves numerical precision.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyflare.stats.general.logplus">
+<tt class="descclassname">pyflare.stats.general.</tt><tt class="descname">logplus</tt><big>(</big><big>)</big><a class="headerlink" href="#pyflare.stats.general.logplus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate log(exp(x) + exp(y)) in a way that preserves numerical precision.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyflare.stats.general.logtrapz">
+<tt class="descclassname">pyflare.stats.general.</tt><tt class="descname">logtrapz</tt><big>(</big><big>)</big><a class="headerlink" href="#pyflare.stats.general.logtrapz" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calculates the integral via the trap rule
+of the logarithm of a function lx over a range of values
+t. The output is the logarithm of the integral.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>lx     log(function)     ndarray</strong> :</p>
+<p class="last"><strong>t      values for eval   ndarray</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>&gt;&gt;&gt;&gt;&gt;&gt;&gt; e47694aa4c52f029ce8c0c8242df8d6110004e92</p>
+</div>
+
+
+          <footer>
+  
+
+  <hr/>
+
+  <p>
+      &copy; Copyright 2014, Matthew Pitkin, Daniel Williams.
+  </p>
+
+  <a href="https://www.github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="http://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+</body>
+</html>

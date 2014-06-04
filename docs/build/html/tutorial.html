@@ -1,0 +1,205 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Tutorial &mdash; BayesFlare 1 documentation</title>
+  
+
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:'./',
+        VERSION:'1',
+        COLLAPSE_INDEX:false,
+        FILE_SUFFIX:'.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+    <link rel="top" title="BayesFlare 1 documentation" href="index.html"/>
+        <link rel="next" title="Pre-made Scripts" href="scripts.html"/>
+        <link rel="prev" title="A Brief Introduction to pyFlare" href="intro.html"/> 
+
+  <script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="index.html" class="icon icon-home"> BayesFlare</a>
+        <form class="wy-form" action="search.html" method="get">
+  <input type="text" name="q" placeholder="Search docs" />
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix">
+        
+        
+            <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">A Brief Introduction to pyFlare</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Pre-made Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html#pitkin-williams-et-al">Pitkin, Williams, et. al.</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Handling</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data.html#data-loader">Data Loader</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="models.html#the-flare-models">The Flare Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#the-transit-models">The Transit Models</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="stats.html">Statistical Operations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="stats.html#automatic-thresholder">Automatic Thresholder</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="noise.html">Noise Estimation and Simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="finder.html">Flare Indentification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="misc.html">Miscellaneous Functions</a></li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top">
+        <i data-toggle="wy-nav-top" class="icon icon-reorder"></i>
+        <a href="/">BayesFlare</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <ul class="wy-breadcrumbs">
+  <li><a href="index.html">Docs</a> &raquo;</li>
+  <li><a href="">Tutorial</a></li>
+  
+</ul>
+<hr/>
+
+          
+  <div class="section" id="tutorial">
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
+<p>The pyFlare package has been designed to make working with Kepler data
+easier, and searching for flares in the data more straight-forward.</p>
+<p>To use the package you first need to import it into your Python script</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyflare</span> <span class="kn">as</span> <span class="nn">pf</span>
+</pre></div>
+</div>
+<p>This tutorial assumes that the module has been imported with the name &#8216;pf&#8217;.</p>
+<p>In order to conduct any meaningful work with this package, we need access to
+data from the Kepler mission. At present the package only supports the
+public lightcurves, but this may change in the future. The data should be stored
+in the following format:</p>
+<div class="highlight-python"><div class="highlight"><pre>root-dir
+   - Q1_public
+   - Q2_public
+   - ...
+   - Q14_public
+</pre></div>
+</div>
+<p>To access the data it&#8217;s then as simple as</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">pf</span><span class="o">.</span><span class="n">Loader</span><span class="p">(</span><span class="s">&#39;./data&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>assuming that the root-dir is <tt class="docutils literal"><span class="pre">./data</span></tt> in this case.</p>
+<p>The loader can then be used to search for lightcurves for any star in the Kepler Input Catalogue;</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">client</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="mi">757450</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>which will return a list of FITS files in the data folder which correspond to KIC 757450.
+To work with this data we load it into a Lightcurve object</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">curves</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="mi">757450</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lightcurve</span> <span class="o">=</span> <span class="n">pf</span><span class="o">.</span><span class="n">Lightcurve</span><span class="p">(</span><span class="n">curves</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The Lightcurve object handles a large number of processing for the data,
+including DC offset removal, and primitive stitching of different quarters&#8217; data.
+When data is added to the Lightcurve object it is interpolated to
+remove <tt class="docutils literal"><span class="pre">NAN</span></tt> and <tt class="docutils literal"><span class="pre">INF</span></tt> values which cause disruption to a number of the
+detection processes. The various lightcurves are then assembled into a
+combined lightcurve.</p>
+<p>In order to conduct analysis on the data we&#8217;ll need a model to compare
+it to. For example, a flare model:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">M</span> <span class="o">=</span> <span class="n">pf</span><span class="o">.</span><span class="n">Flare</span><span class="p">(</span><span class="n">lightcurve</span><span class="o">.</span><span class="n">cts</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>but transit models are also available:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">M2</span> <span class="o">=</span> <span class="n">pf</span><span class="o">.</span><span class="n">Transit</span><span class="p">(</span><span class="n">lightcurve</span><span class="o">.</span><span class="n">cts</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+
+
+          <footer>
+  
+    <div class="rst-footer-buttons">
+      
+        <a href="scripts.html" class="btn btn-neutral float-right" title="Pre-made Scripts"/>Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="intro.html" class="btn btn-neutral" title="A Brief Introduction to pyFlare"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <p>
+      &copy; Copyright 2014, Matthew Pitkin, Daniel Williams.
+  </p>
+
+  <a href="https://www.github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="http://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+</body>
+</html>
