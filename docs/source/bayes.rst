@@ -1,5 +1,5 @@
-BayesFlare Bayesian Functions
-#############################
+Bayesian Functions
+##################
 
 The Bayes and Parameter estimation classes
 ==========================================
