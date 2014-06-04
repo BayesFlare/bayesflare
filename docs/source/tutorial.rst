@@ -6,7 +6,7 @@ easier, and searching for flares in the data more straight-forward.
 
 To use the package you first need to import it into your Python script 
 
-   >>> import pyflare as pf
+   >>> import bayesflare as pf
 
 This tutorial assumes that the module has been imported with the name 'pf'.
 

@@ -1,7 +1,7 @@
 from flare import ModelCurve
 import numpy as np
 from math import floor, sqrt
-import pyflare as pf
+import bayesflare as pf
 
 class Expdecay():
     """

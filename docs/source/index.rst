@@ -9,7 +9,7 @@
 BayesFlare Reference
 ####################
 
-.. module:: pyflare
+.. module:: bayesflare
 
 This is the reference manual for BayesFlare, a pythonic system for handling Kepler lightcurve data,
 and using Bayesian techniques to identify stellar flares in them.
