@@ -7,7 +7,7 @@ from Cython.Build import cythonize
 
 import os, sys
 
-ext_modules = [ Extension("bayesflare.stats.general", ["bayesflare/stats/general.pyx", "bayesflare/stats/log_marg_amp_full.c"], 
+ext_modules = [ Extension("stats.general", ["bayesflare/stats/general.pyx", "bayesflare/stats/log_marg_amp_full.c"], 
                 include_dirs=['.', os.popen('gsl-config --cflags').read()[2:-1]],  
                 library_dirs=['.', os.popen('gsl-config --libs').read().split()[0][2:]], 
                 libraries=['gsl', 'gslcblas'], extra_compile_args=['-O3']) ]
@@ -17,7 +17,6 @@ directives = {'embedsignature': True} # embed cython function signature in docst
 packs = ['bayesflare.data.data', 
          'bayesflare.models.flare', 
          'bayesflare.models.transit', 
-         'bayesflare.models.sinusoid',
          'bayesflare.models.impulse',
          'bayesflare.models.gaussian',
          'bayesflare.models.expdecay',
@@ -38,6 +37,7 @@ setup(
   packages = ['bayesflare'],
   py_modules = packs,
   cmdclass = {'build_ext': build_ext},
+  ext_package='bayesflare',
   ext_modules = cythonize(ext_modules, gdb_debug=False),
   classifiers=[
       'Development Status :: 5 - Production/Stable',

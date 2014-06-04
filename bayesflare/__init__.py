@@ -30,7 +30,6 @@ from .data.data import Loader, Lightcurve
 
 from .models.flare import Flare
 from .models.transit import Transit
-from .models.sinusoid import Sinusoid
 from .models.impulse import Impulse
 from .models.gaussian import Gaussian
 from .models.expdecay import Expdecay

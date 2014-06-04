@@ -7,6 +7,7 @@ lightcurves.
 
 """
 
-from .general import *
+
 from .thresholding import Thresholder
+from .general import *
 from .bayes import Bayes, ParameterEstimationGrid
