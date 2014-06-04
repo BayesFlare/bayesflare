@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
@@ -36,5 +38,17 @@ setup(
   packages = ['bayesflare'],
   py_modules = packs,
   cmdclass = {'build_ext': build_ext},
-  ext_modules = cythonize(ext_modules, gdb_debug=False)
+  ext_modules = cythonize(ext_modules, gdb_debug=False),
+  classifiers=[
+      'Development Status :: 5 - Production/Stable',
+      'Intended Audience :: Science/Research'
+      'License :: OSI Approved :: GNU General Public License (GPL)',
+      'Operating System :: POSIX :: Linux',
+      'Programming Language :: Python',
+      'Programming Language :: C',
+      'Natural Language :: English',
+      'Topic :: Scientific/Engineering :: Astronomy',
+      'Topic :: Scientific/Engineering :: Information Analysis'
+      
+      ]
 )
