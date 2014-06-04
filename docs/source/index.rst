@@ -30,6 +30,7 @@ API Reference
    data
    models
    stats
+   bayes
    noise
    finder
    misc
