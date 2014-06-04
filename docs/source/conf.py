@@ -13,11 +13,39 @@
 
 import sys, os
 
+# Mock out the Cython modules
+
+class Mock(object):
+
+    __all__ = []
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        return Mock()
+
+    @classmethod
+    def __getattr__(cls, name):
+        if name in ('__file__', '__path__'):
+            return '/dev/null'
+        elif name[0] == name[0].upper():
+            mockType = type(name, (), {})
+            mockType.__module__ = __name__
+            return mockType
+        else:
+            return Mock()
+
+MOCK_MODULES = ['bayesflare.stats.general']
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = Mock()
+
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('../../'))
-sys.path.insert(0, os.path.abspath('../../bayesflare'))
+#sys.path.insert(0, os.path.abspath('../../'))
+#sys.path.insert(0, os.path.abspath('../../bayesflare'))
 # -- General configuration -----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -179,7 +207,7 @@ html_use_index = True
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'pyFlaredoc'
+htmlhelp_basename = 'BayesFlaredoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -198,8 +226,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'pyFlare.tex', u'pyFlare Documentation',
-   u'Daniel Williams, Matthew Pitkin', 'manual'),
+  ('index', 'BayesFlare.tex', u'BayesFlare Documentation',
+   u'Matthew Pitkin, Daniel Williams', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -228,8 +256,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'pyflare', u'pyFlare Documentation',
-     [u'Daniel Williams, Matthew Pitkin'], 1)
+    ('index', 'Bayesflare', u'BayesFlare Documentation',
+     [u'Matthew Pitkin, Daniel Williams'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -242,8 +270,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'pyFlare', u'pyFlare Documentation',
-   u'Daniel Williams, Matthew Pitkin', 'pyFlare', 'One line description of project.',
+  ('index', 'BayesFlare', u'BayesFlare Documentation',
+   u'Matthew Pitkin, Daniel Williams', 'BayesFlare', 'A Bayesian toolkit for identifying flares in photometric data.',
    'Miscellaneous'),
 ]
 
@@ -260,10 +288,10 @@ texinfo_documents = [
 # -- Options for Epub output ---------------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = u'pyFlare'
-epub_author = u'Daniel Williams, Matthew Pitkin'
-epub_publisher = u'Daniel Williams, Matthew Pitkin'
-epub_copyright = u'2013, Daniel Williams, Matthew Pitkin'
+epub_title = u'BayesFlare'
+epub_author = u'Matthew Pitkin, Daniel Williams'
+epub_publisher = u'Matthew Pitkin, Daniel Williams'
+epub_copyright = u'2014, Matthew Pitkin, Daniel Williams'
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.
@@ -302,3 +330,4 @@ epub_copyright = u'2013, Daniel Williams, Matthew Pitkin'
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'http://docs.python.org/': None}
+
