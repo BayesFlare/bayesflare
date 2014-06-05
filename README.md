@@ -1,6 +1,7 @@
 # BayesFlare
 
 [![Semver](http://img.shields.io/SemVer/2.0.0.png)](http://semver.org/spec/v2.0.0.html)
+[![GitHub version](https://badge.fury.io/gh/BayesFlare%2Fbayesflare.svg)](http://badge.fury.io/gh/BayesFlare%2Fbayesflare)
 
 ## Automated flare-finding algorithm for Kepler photometric data
 
@@ -21,26 +22,6 @@ both long and short cadences.
 * SciPy 0.9.0
 * Matplotlib 1.1.1
 * PyFITS 2.4.0
-
-
-## Usage
-
-
-Before the analysis is run it is necessary to set up the environment in which
-the script is to run. A shell script is located at src/bash/keplerenv.sh which
-will set up the required SSHFS mounts. This should be run in the following 
-fashion:
-
-	>> sh ./src/bash/keplerenv.sh
-
-To run the analysis code:
-
-       	>>  ./src/python/analysis.py -f <file location cotaining list of stars to analyse>
-
-or, to run the analysis on a single star:
-
-       >> ./src/python/analysis.py -i <idnumber>
-
 
 
 ## Documentation
