@@ -30,7 +30,7 @@ packs = ['bayesflare.data.data',
          'bayesflare.stats.general']
 setup(
   name = 'BayesFlare',
-  version = '0.1',
+  version = '1.0.0',
   description = 'Python functions and classes implementing a Bayesian approach to flare finding.',
   author = 'Matthew Pitkin, Daniel Williams',
   author_email = 'matthew.pitkin@gla.ac.uk',
