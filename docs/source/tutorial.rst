@@ -72,4 +72,4 @@ of the natural logarithm of the odds ratio.
 Much of this functionality, including thresholding the odds ratio for detection purposes, can be
 found in the :class:`.OddsRatioDetector` class.
 
-More involved examples of using the code can be found in the scripts described in :ref:`scripts`
+More involved examples of using the code can be found in the scripts described in :ref:`scripts-label`

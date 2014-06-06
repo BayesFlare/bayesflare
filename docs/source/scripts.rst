@@ -1,3 +1,5 @@
+.. _scripts-label:
+
 Pre-made Scripts
 ================
 
@@ -6,7 +8,7 @@ used as examples of how to perform an analysis. Currently these scripts use the
 analysis parameters used for the search performed in `Pitkin, Williams, Fletcher & Grant <http://arxiv.org/abs/14XX.XXX>`_.
 The scripts in general provide good examples of using the :class:`.OddsRatioDetector` class.
 
-.. _plot_light_curve_label:
+.. _plot-light-curve-label:
 ``plot_lightcurve.py``
 ----------------------
 
@@ -21,7 +23,7 @@ any simulated light curve will have the same length and time steps as Kepler Qua
 By default the noise standard deviation in the data is calculated using the :func:`.estimate_noise_ps` method
 (with `estfrac` = 0.5).
 
-The default odds ratio calculation assumes a sliding analysis window of 55 time bins and
+The default odds ratio calculation assumes a sliding analysis window of 55 time bins and:
  * a signal model consisting of a flare (with :math:`0 < \tau_g \leq 1800` seconds, :math:`0 < \tau_g \leq 3600` seconds and :math:`\tau_g \leq \tau_e`)
    *and* a 4th order polynomial variation,
  * a noise model consisting of a 4th order polynomial *or* a polynomial *and* a positive or negative impulse
@@ -36,7 +38,7 @@ To see the command line input options for this script use:
 --------------------
 
 This script will plot the one-sided power spectrum of a real or simulated light curve. As
-with :ref:`plot_light_curve_label` the simulated data in Gaussian, but can also contain a sinusoid, and
+with :ref:`plot-light-curve-label` the simulated data in Gaussian, but can also contain a sinusoid, and
 both real or simulated data can have flare signals added to them.
 
 To see the command line input options for this script use:
