@@ -26,7 +26,7 @@ both long and short cadences.
 
 ## Documentation
 
-The documentation is available online at [readthedocs](bayesflare.readthedocs.org).
+The documentation is available online at [readthedocs](http://bayesflare.readthedocs.org).
 
 The Documentation for BayesFlare is produced by Sphinx with two extension packages,
 * numpydoc
