@@ -5,22 +5,22 @@ import bayesflare as pf
 
 class Expdecay():
     """
-    Creates an exponentially decaying flare model with a sudden rise.
+    Creates an exponential decaying, or rise, model.
 
     Parameters
     ----------
-    amp : float, optional
-       The amplitude of the flare. Defaults to 1.
-    ts : ndarray
-       A vector containing time stamps.
+    ts : :class:`numpy.ndarray`
+        A vector containing time stamps.
+    amp : float, optional, default: 1
+        The amplitude of the model at its peak.
     t0 : float, optional
-       The time of peak. Defaults to the centre of ``ts``.
+        The time of peak. Defaults to the centre of ``ts``.
     reverse : bool, optional
-       A boolean flag. Set this to reverse the flare shape.
+        A boolean flag. Set this to reverse the decay into a rise.
 
     Returns
     -------
-    f : ndarray
+    f : :class:`numpy.ndarray`
        An array containing the flare model.
     """
 
@@ -41,7 +41,7 @@ class Expdecay():
 
     def __init__(self, ts, amp=1, t0=None, reverse=False):
         """
-        Creates an exponentially decaying flare model with a Gaussian rise
+        Creates an exponentially decaying model
         amp                        -- initial amplitude
         ts                         -- a vector containing times
         t0                         -- time of peak
@@ -62,7 +62,7 @@ class Expdecay():
         self.reverse = reverse
 
     def __str__(self):
-        return "<pyFlare Flare model containing "+str(len(self.tausExp))+" variants>"
+        return "<bayesflare Expdecay model containing "+str(len(self.tausExp))+" variants>"
 
     def __repr__(self):
         return self.__str__()
@@ -179,16 +179,16 @@ class Expdecay():
 
     def filter_model(self, m, nbins=101, order=3):
         """
-        Use the Savitzky-Golay smoothing to high-pass filter the model m:
+        Use the Savitzky-Golay smoothing (:func:`.savitzky_golay`) to high-pass filter the model `m`.
 
         Parameters
         ----------
         m : ndarray
-           An array containing the model.
-        nbins : int, optional
-           An odd integer width (in bins) for the filtering.
-        order : int, optional
-           The polynomial order for the filtering.
+            An array containing the model.
+        nbins : int, optional, default: 101
+            An odd integer width (in bins) for the filtering.
+        order : int, optional, default: 3
+            The polynomial order for the filtering.
         
         """
         return (m - pf.savitzky_golay(m, nbins, order))
@@ -200,17 +200,16 @@ class Expdecay():
         Parameters
         ----------
         i, j : int
-           The locations in the ``tau_exp`` array.
+            The locations in the ``tau_exp`` array.
         ts : ndarray, optional
-           The time axis to generate the model on.
-           Defaults to the normal object's normal time axis.
-        filt : bool, optional
-           Boolean flag to enable filtering on the output model.
-           Defaults to False.
-        nbins : int, optional
-           The width, in bins, of the filter. Defaults to 101.
-        order : int, optional
-           The order of the filter.
+            The time axis to generate the model on.
+            Defaults to the normal object's normal time axis.
+        filt : bool, optional, default: False
+            Boolean flag to enable filtering on the output model.
+        nbins : int, optional, default: 101
+            The width, in bins, of the filter..
+        order : int, optional, default: 3
+            The order of the filter.
         """
         if ts == None:
             ts = self.ts

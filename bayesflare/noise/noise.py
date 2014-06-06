@@ -9,25 +9,28 @@ from math import factorial
 
 def estimate_noise_ps(lightcurve, estfrac=0.5):
     """
-    Use the high frequency part of the power spectrum of a lightcurve
+    Use the high frequency part of the power spectrum of a light curve
     to estimate the time domain noise standard deviation of the
-    data. This avoids contamination from low-frequency lines
+    data. This avoids the estimate being contaminated by low-frequency lines
     and flare signals.
 
     Parameters
     ----------
-    lightcurve : BayesFlare Lightcurve instance
-       A Lightcurve instance containing the time series data.
-    estfrac : float, optional
+    lightcurve : :class:`.Lightcurve`
+       A :class:`.Lightcurve` instance containing the time series data.
+    estfrac : float, optional, default: 0.5
        The fraction of the spectrum (from the high frequency end)
-       with which to estimate the noise. Default: 0.5 i.e. use
-       the final quarter of the spectrum for the estimation.
+       with which to estimate the noise. The default is 0.5 i.e. use
+       the final half of the spectrum for the estimation.
 
     Returns
     -------
-    np.sqrt(sk) : the noise standard deviation
-    sk : the noise variance
-    noise_v : a vector of noise variance values
+    sqrt(sk) : float
+        The noise standard deviation
+    sk : float
+        The noise variance
+    noise_v : :class:`numpy.array`
+        A vector of noise variance values
     """
     l = len(lightcurve.clc)
     # get the power spectrum of the lightcurve data
@@ -41,11 +44,11 @@ def estimate_noise_ps(lightcurve, estfrac=0.5):
     return np.sqrt(sk), sk, noise_v
 
 
-def estimate_noise_tv(d, sigma=2.5):
+def estimate_noise_tv(d, sigma=1.0):
     """
-    A second method of estimating the noise, whilst ignoring large outliers.
+    A method of estimating the noise, whilst ignoring large outliers.
 
-    This uses the cumulative distribution of data point and uses the probability
+    This uses the cumulative distribution of the data point and uses the probability
     contained within a Gaussian range (defined by sigma) to work out what the
     standard deviation is (i.e. it doesn't use tails of the distribution that
     contain large outliers, although the larger the sigma value to more outliers
@@ -55,18 +58,20 @@ def estimate_noise_tv(d, sigma=2.5):
     Parameters
     ----------
     d : array-like
-       The time series of data (either a numpy array or a list).
+        The time series of data (either a :class:`numpy.array` or a list).
     sigma: float
-       The number of standard deviations giving the cumulative probability
-       to be included in the noise calculation e.g. if sigma=1 then the central
-       68% of the cumulative probability distribution is used. [Default: 2sigma
-       i.e. ~95% of probability distribution]
+        The number of standard deviations giving the cumulative probability
+        to be included in the noise calculation e.g. if sigma=1 then the central
+        68% of the cumulative probability distribution is used.
 
     Returns
     -------
-    std: the noise standard deviation
-    mean: the value at the middle of the distribution
+    std: float
+        The noise standard deviation
+    mean: float
+        The value at the middle of the distribution
     """
+
     ld = len(d)
 
     # get normalised histogram
@@ -105,7 +110,7 @@ def addNoise(z, mean, stdev):
 
     Parameters
     ----------
-    z : ndarray
+    z : :class:`numpy.ndarray`
        An array containing a time series.
     mean : float
        The mean of the desired noise.
@@ -114,8 +119,8 @@ def addNoise(z, mean, stdev):
 
     Returns
     -------
-    z : ndarray
-       The input timeseries with added gaussian noise.
+    z : :class:`numpy.ndarray`
+       The input time series with added Gaussian noise.
 
     """
     z += [random.gauss(mean,stdev) for _ in xrange(len(z))]
@@ -123,7 +128,7 @@ def addNoise(z, mean, stdev):
 
 def make_noise_lightcurve(dt = 1765.55929, length=33.5, sigma=0.5, mean=1):
     """
-    Produce a timeseries of gaussian noise, which can be used to
+    Produce a time series of gaussian noise, which can be used to
     estimate confidence thresholds.
 
     Parameters
@@ -145,8 +150,8 @@ def make_noise_lightcurve(dt = 1765.55929, length=33.5, sigma=0.5, mean=1):
 
     Returns
     -------
-    a : Lightcurve instance
-       The generated lightcurve.
+    a : :class:`.Lightcurve`
+       The generated light curve.
 
     """
 
@@ -174,23 +179,24 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):
       The Savitzky-Golay filter removes high frequency noise from data.
       It has the advantage of preserving the original shape and
       features of the signal better than other types of filtering
-      approaches, such as moving averages techniques.
+      approaches, such as moving averages techniques. This implementation is
+      taken from [3]_.
 
       Parameters
       ----------
       y : array_like, shape (N,)
-          the values of the time history of the signal.
+          The values of the time history of the signal.
       window_size : int
-          the length of the window. Must be an odd integer number.
+          The length of the window. Must be an odd integer number.
       order : int
-          the order of the polynomial used in the filtering.
+          The order of the polynomial used in the filtering.
           Must be less then `window_size` - 1.
-      deriv: int
+      deriv: int, default: 0
           the order of the derivative to compute (default = 0 means only smoothing)
 
       Returns
       -------
-      ys : ndarray, shape (N)
+      ys : :class:`numpy.ndarray`, shape (N)
           the smoothed signal (or it's n-th derivative).
 
       Notes
@@ -221,6 +227,7 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):
       .. [2] Numerical Recipes 3rd Edition: The Art of Scientific Computing
         W.H. Press, S.A. Teukolsky, W.T. Vetterling, B.P. Flannery
         Cambridge University Press ISBN-13: 9780521880688
+      .. [3] http://wiki.scipy.org/Cookbook/SavitzkyGolay
     """
 
     try:
@@ -245,27 +252,26 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     return np.convolve( m[::-1], y, mode='valid')
 
 
-def detrend_lightcurve(lightcurve, knee=(1./(0.3*86400.))):
+def highpass_filter_lightcurve(lightcurve, knee=(1./(0.3*86400.))):
     """
-    Detrends a light curve using a Butterworth filter.
+    Detrends a light curve by high-pass filtering it using a third order Butterworth
+    filter (:func:`scipy.signal.butter`).
 
     Parameters
     -----------
-    x : np.ndarray
+    x : :class:`numpy.ndarray`
        An array of time stamps
-    z : np.ndarray
+    z : :class:`numpy.ndarray`
        An array containing the time series data
-    knee : float,optional
+    knee : float, optional, default: 3.858e-05
        The high-pass filter knee frequency in Hz (default is 3.858e-05 Hz or (1/0.3)/day).
-
 
     Returns
     -------
-    z : np.ndarray
+    z : :class:`numpy.ndarray`
        An array which contains a time series which has been smoothed.
 
     """
-
 
     x  = lightcurve.cts
     z  = lightcurve.clc

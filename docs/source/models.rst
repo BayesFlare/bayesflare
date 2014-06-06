@@ -2,22 +2,82 @@
 Models
 ###################
 
+These classes provide model functions and also set up grid over the parameters spaces of
+the models and provide log(prior) values for those parameter spaces.
+
+.. note::
+   In the future a general model class should be created containing the common methods. These
+   can then be inherited by specific model classes.
+
 .. toctree::
    :maxdepth: 2
 
-The Flare Models
-================
+The Flare Model
+===============
+
+This class provides a flare model in which the flare light curve has a Gaussian rise and
+an exponential decay as given by
+
+.. math::
+   :nowrap:
+
+   m(t, \tau_g, \tau_e, T_0) = A_0
+   \begin{cases}
+    e^{-(t-T_0)^2/(2\tau_g^2)} & \textrm{if } t \le T_0, \\
+    e^{-(t-T_0)/\tau_e} & \textrm{if } t > T_0,
+   \end{cases}
+
+where :math:`\tau_g` is the width of the Gaussian rise, :math:`\tau_e` is the time constant
+of the exponential decay, :math:`T_0` is the time of the flare peak, and :math:`A_0` is the peak
+amplitude.
+
+In this class the parameter space grid and prior is set up such that :math:`\tau_e > \tau_g`.
 
 .. automodule:: bayesflare.models.flare
    :members:
 
-.. automodule:: bayesflare.models.expdecay
-   :members:
+The Transit Model
+=================
 
-.. automodule:: bayeflare.models.impulse
+This class provides a generic transit model. It is not the fully physical model of [1]_, but is instead
+a simple model with Gaussian wings and a flat trough.
 
-The Transit Models
-==================
+The parameter space grid and prior is set up such that the total length on the transit does not
+exceed a given value.
 
 .. automodule:: bayesflare.models.transit
    :members:
+
+General models
+==============
+
+These classes provide models for a range of generic signal types. These can be used either as signal
+or noise models when forming an odds ratio.
+
+Exponential decay/rise
+---------------------
+
+A class giving a model with exponential decay or rise.
+
+.. automodule:: bayesflare.models.expdecay
+   :members:
+
+Impulse
+-------
+
+A class giving a model with a delta-function-like (single bin) impulse.
+
+.. automodule:: bayeflare.models.impulse
+   :members:
+
+Gaussian
+--------
+
+A class giving a model with a Gaussian profile.
+
+.. automodule:: bayeflare.models.gaussian
+   :members:
+
+References
+==========
+.. [1] Mandel and Agol, *Ap. J. Lett.*, **580** (2002), `arXiv:astro-ph/0210099 <http://arxiv.org/abs/astro-ph/0210099>`_.

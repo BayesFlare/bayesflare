@@ -9,9 +9,9 @@ class Transit():
 
     Parameters
     ----------
-    amp : float, optional
-       The amplitude of the flare. Defaults to 1.
-    ts : ndarray
+    amp : float, optional, default: 1
+       The amplitude of the flare.
+    ts : :class:`numpy.ndarray`
        A vector containing time stamps.
     t0 : float, optional
        The time of peak. Defaults to the centre of ``ts``.
@@ -252,15 +252,15 @@ class Transit():
 
     def filter_model(self, m, nbins=101, order=3):
         """
-        Use the Savitzky-Golay smoothing to high-pass filter the model m:
+        Use the Savitzky-Golay smoothing (:func:`.savitzky_golay`) to high-pass filter the model m.
 
         Parameters
         ----------
-        m : ndarray
+        m : :class:`numpy.ndarray`
            An array containing the model.
-        nbins : int, optional
+        nbins : int, optional, default: 101
            An odd integer width (in bins) for the filtering.
-        order : int, optional
+        order : int, optional, default: 3
            The polynomial order for the filtering.
         
         """
@@ -274,16 +274,15 @@ class Transit():
         ----------
         i,j : int
            The locations in the ``sigmag`` and ``tauf`` arrays.
-        ts : ndarray, optional
+        ts : :class:`numpy.ndarray`, optional
            The time axis to generate the model on.
            Defaults to the normal object's normal time axis.
-        filt : bool, optional
+        filt : bool, optional, default: False
            Boolean flag to enable filtering on the output model.
-           Defaults to False.
-        nbins : int, optional
-           The width, in bins, of the filter. Defaults to 101.
-        order : int, optional
-           The order of the filter.
+        nbins : int, optional, default: 101
+           The width, in bins, of the filter.
+        order : int, optional, default: 3
+           The polynomial order of the filter.
         """
         if ts == None:
             ts = self.ts

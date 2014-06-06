@@ -1,21 +1,30 @@
-A Brief Introduction to pyFlare
-===============================
+A Brief Introduction to BayesFlare
+==================================
 
-The development of pyFlare was driven by the need for an automated
-means to identify flaring events in lightcurves released by the Kepler
-mission. This has led to the modern package containing logic to
-perform hypothesis testing and produce detection statistics, in
-addition to being able to handle the large quantities of data which
-are available, and the additional data required to successfully run an
-analysis.
+BayesFlare was created to provide an automated means of identifying
+flaring events in light curves released by the Kepler
+mission. The aim was to provide a technique that was able to identify
+even weak events by making use of the flare signal shape. This has
+led to the modern package containing functions to
+perform Bayesian hypothesis testing comparing the probability of
+light curves containing flares to that of them containing noise
+(or non-flare-like) artefacts.
 
-The statistical methods used in pyFlare owe much to data analysis
+The statistical methods used in BayesFlare owe much to data analysis
 developments from the field of gravitational wave research; the
 detection statistic which is used is based on one developed to
-identify ring downs in gravtitational wave detector data.
+identify ring-downs signals from neutron stars in gravitational wave
+detector data [1]_.
 
-The power of this technique has increased as it was developed, and the
-package now contains logic capable of identifying planetary transits
-in the same Kepler data, and can be extended to perform searches for
-arbitrarily defined profiles.
+During the development of the analysis a method was found to
+account for underlying sinusoidal variations in light curve data by
+including such variations in the signal model, and then analytically
+`marginalising <http://en.wikipedia.org/wiki/Marginal_distribution>`_ over them.
+The functions to do this have also been included in the `amplitude-marginaliser <https://github.com/mattpitkin/amplitude-marginaliser>`_
+suite.
+
+References
+----------
+
+.. [1] Clark, Heng, Pitkin and Woan, *PRD*, **043003** (2007), `arXiv:gr-qc/0703138 <http://arxiv.org/abs/gr-qc/0703138>`_
 

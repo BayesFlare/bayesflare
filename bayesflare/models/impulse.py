@@ -9,16 +9,16 @@ class Impulse():
 
     Parameters
     ----------
-    amp : float, optional
-       The amplitude of the flare. Defaults to 1.
-    ts : ndarray
+    ts : :class:`numpy.ndarray`
        A vector containing time stamps.
+    amp : float, optional, default: 1
+       The amplitude of the flare.
     t0 : float, optional
        The time of peak. Defaults to the centre of ``ts``.
 
     Returns
     -------
-    f : ndarray
+    f : :class:`numpy.ndarray`
        An array containing the flare model.
     """
 
@@ -140,16 +140,16 @@ class Impulse():
 
     def filter_model(self, m, nbins=101, order=3):
         """
-        Use the Savitzky-Golay smoothing to high-pass filter the model m:
+        Use the Savitzky-Golay smoothing (:func:`.savitzky_golay`) to high-pass filter the model m.
 
         Parameters
         ----------
-        m : ndarray
-           An array containing the model.
+        m : :class:`numpy.ndarray`
+            An array containing the model.
         nbins : int, optional
-           An odd integer width (in bins) for the filtering.
+            An odd integer width (in bins) for the filtering.
         order : int, optional
-           The polynomial order for the filtering.
+            The polynomial order for the filtering.
         
         """
         return (m - pf.savitzky_golay(m, nbins, order))
@@ -161,17 +161,15 @@ class Impulse():
         Parameters
         ----------
         i : int
-           The location in the ``t0`` array.
-        ts : ndarray, optional
-           The time axis to generate the model on.
-           Defaults to the normal object's normal time axis.
-        filt : bool, optional
+            The location in the ``t0`` array.
+        ts : :class:`numpy.ndarray`, optional
+            The time axis to generate the model on. Defaults to the normal object's normal time axis.
+        filt : bool, optional, default: False
            Boolean flag to enable filtering on the output model.
-           Defaults to False.
-        nbins : int, optional
-           The width, in bins, of the filter. Defaults to 101.
-        order : int, optional
-           The order of the filter.
+        nbins : int, optional, default: 101
+           The width, in bins, of the filter.
+        order : int, optional, default: 3
+           The polynomial order of the filter.
         """
         if ts == None:
             ts = self.ts

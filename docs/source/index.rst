@@ -11,8 +11,11 @@ BayesFlare Reference
 
 .. module:: bayesflare
 
-This is the reference manual for BayesFlare, a pythonic system for handling Kepler lightcurve data,
+This is the reference manual for BayesFlare, a pythonic system for handling Kepler light curve data,
 and using Bayesian techniques to identify stellar flares in them.
+
+If you make use of this software for a publication we would be grateful if you cite
+Pitkin, Williams, Fletcher and Grant, `arXiv:14XX.XXXX <http://arxiv.org/abs/14XX.XXXX>`_.
 
 .. toctree::
    :maxdepth: 2
@@ -29,7 +32,6 @@ API Reference
 
    data
    models
-   stats
    bayes
    noise
    finder
@@ -38,8 +40,8 @@ API Reference
 
 Acknowledgements
 ================
-The development of the BayesFlare module and the scripts for which 
-it was created was part-funded by the Royal Society of Edinburgh 
+The development of the BayesFlare module and the scripts for which
+it was created was part-funded by the Royal Society of Edinburgh
 Cormack Bequest.
 
 Indices and tables

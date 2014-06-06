@@ -25,7 +25,6 @@ packs = ['bayesflare.data.data',
          'bayesflare.simulate.simulate',
          'bayesflare.inject.inject', 
          'bayesflare.finder.find',
-         'bayesflare.stats.thresholding',
          'bayesflare.stats.bayes',
          'bayesflare.stats.general']
 setup(
@@ -38,7 +37,7 @@ setup(
   py_modules = packs,
   cmdclass = {'build_ext': build_ext},
   ext_package='bayesflare',
-  ext_modules = cythonize(ext_modules, gdb_debug=False),
+  ext_modules = cythonize(ext_modules, gdb_debug=False, compiler_directive=directives),
   classifiers=[
       'Development Status :: 5 - Production/Stable',
       'Intended Audience :: Science/Research'
