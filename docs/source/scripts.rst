@@ -5,7 +5,7 @@ Pre-made Scripts
 
 The BayesFlare package is supplied with a number of pre-made scripts that can be
 used as examples of how to perform an analysis. Currently these scripts use the
-analysis parameters used for the search performed in `Pitkin, Williams, Fletcher & Grant <http://arxiv.org/abs/14XX.XXX>`_.
+analysis parameters used for the search performed in `Pitkin, Williams, Fletcher & Grant, arXiv:1406.1712 <http://arxiv.org/abs/1406.1712>`_.
 The scripts in general provide good examples of using the :class:`.OddsRatioDetector` class.
 
 .. _plot-light-curve-label:

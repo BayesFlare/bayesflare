@@ -97,4 +97,4 @@ Cython functions
 References
 ----------
 .. [1] http://mattpitkin.github.io/amplitude-marginaliser
-.. [2] Pitkin, Williams, Fletcher and Grant, 2014, `arXiv:14XX.XXXX <http://arxiv.org/abs/14XX.XXX>`_.
+.. [2] Pitkin, Williams, Fletcher and Grant, 2014, `arXiv:1406.1712 <http://arxiv.org/abs/1406.1712>`_.

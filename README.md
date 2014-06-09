@@ -12,6 +12,8 @@ flaring events. The long-term aim for the program is to be capable of
 running on data from all quarters collected by the spacecraft, and at
 both long and short cadences.
 
+If using this code for a publication would we be grateful if you cite
+the paper by [Pitkin, Williams, Fletcher & Grant, arXiv:1406.1712](http://arxiv.org/abs/1406.1712).
 
 ## Requirements
 
