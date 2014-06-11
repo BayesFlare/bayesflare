@@ -1,6 +1,6 @@
 import numpy as np
 from math import floor, sqrt
-import bayesflare as pf
+import bayesflare as bf
 from ..stats.general import logminus
 
 
@@ -226,7 +226,7 @@ class Model():
            The polynomial order for the filtering.
         
         """
-        return (m - pf.savitzky_golay(m, nbins, order))
+        return (m - bf.savitzky_golay(m, nbins, order))
 
     def output_model(self, pdict, ts=None, filt=False, nbins=101, order=3):
         """
