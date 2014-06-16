@@ -124,7 +124,7 @@ class Model():
             ml = bf.Lightcurve()
             ml.clc = np.copy(m)
             ml.cts = np.copy(self.ts)
-            filtm = (m - bf.highpass_filter_lightcurve(ml, knee=filterknee))
+            filtm = bf.highpass_filter_lightcurve(ml, knee=filterknee)
             del ml
             return filtm 
         else

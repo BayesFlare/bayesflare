@@ -287,3 +287,32 @@ def highpass_filter_lightcurve(lightcurve, knee=(1./(0.3*86400.))):
     y = signal.lfilter(b, a, zd)
     z = y[np.floor(len(y)/2):]
     return z
+
+    
+def running_median(self, y, window):
+    """
+    A method to subtract a running median for smoothing data.
+
+    Parameters
+    ----------
+    y : :class:`numpy.ndarray`
+       A 1D array containing the data time series.
+    window : int
+       The number of time bins to use for the running median. At edges
+       the window will be shorter.
+       
+    Returns
+    -------
+    ffit : :class:`numpy.ndarray`
+       A 1D array containing the running median of the data time series.
+    """
+    
+    ffit = np.array([])
+    idxs = range(len(y))
+    halfwin = int(window/2)
+    
+    for i in range(len(y)):
+        v = (idxs < (idxs[i]+halfwin)) & (idxs > (idxs[i]-halfwin))
+        ffit = np.append(ffit, np.median(y[v]))
+
+     return ffit
