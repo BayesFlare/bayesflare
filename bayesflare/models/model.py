@@ -290,25 +290,30 @@ class Flare(Model):
         if tauGauss > tauExp or tauGauss > tauerange[-1]:
             tauprior = -np.inf # set prior to 0
         else:
-            if len(tauerange) == 1 and len(taugrange) == 1:
-                tauprior = 0
-            elif len(tauerange) == 1 and len(taugrange) > 1:
-                if tauerange[0] < taugrange[-1]:
-                    tauprior = -np.log(tauerange[0] - taugrange[-1])
-                else:
-                    tauprior = -np.log(taugrange[-1] - taugrange[0])
-            elif len(taugrange) == 1 and len(tauerange) > 1:
-                tauprior = -np.log(tauerange[-1] - tauerange[0])
-            else:
-                area = (tauerange[-1] - tauerange[0])*(taugrange[-1] - taugrange[0])
+            # get area 
             
-                if 
-            
-                # check area from transit model
-                area 
-            
-                tauprior = 
+            taugmin = taugrange[0]
+            taugmax = taugrange[-1]
+            tauemin = tauerange[0]
+            tauemax = tauerange[-1]
+          
+            dtaug = taugmax-taugmin
+            dtaue = tauemax-tauemin
+          
+            if taugmin <= tauemin and taugmax <= tauemax:
+                # get rectangle area and subtract the lower triangle
+                parea = dtaue * dtaug - 0.5*(taugmax-tauemin)**2
+            elif taugmin > tauemin and taugmax > tauemax:
+                # get upper triangle area
+                parea = 0.5*(tauemax-taugmin)**2
+            elif taugmin > tauemin and taugmax < tauemax:
+                # get upper trapezium area
+                parea = 0.5*dtaug*((tauemax-taugmin)+(tauemax-taugmax))
+            elif taugmin < tauemin and taugmax > tauemax:
+                # get lower trapezium area
+                parea = 0.5*dtaue*((tauemin-taugmin)+(tauemax-taugmin))
     
+            tauprior = -np.log(parea)
     
         return (ampprior + t0prior + tauprior) 
         
