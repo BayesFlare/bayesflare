@@ -392,7 +392,8 @@ class SigmaThresholdMethod():
             self.lightcurve.clc = self.lightcurve.clc - f(ts)
 
         if detrendmedian:
-            self.lightcurve.running_median(dt=(10.*60.*60.))
+            nbins = int(10.*60.*60./self.lightcurve.dt())
+            self.lightcurve.detrend(method='runningmedian', nbins=nbins)
 
         # get the standard deviation using the outlier removal method or not
         if noiseestmethod == None:

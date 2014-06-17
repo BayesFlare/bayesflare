@@ -4,7 +4,7 @@
 import pyfits
 import glob
 import numpy as np
-import bayesflare as pf
+import bayesflare as bf
 import scipy.signal as signal
 import matplotlib.mlab as ml
 import matplotlib.pyplot as pl
@@ -93,6 +93,18 @@ class Lightcurve():
     ----------
     curve : string
        The file name for a light curves.
+    detrend : bool, optional, default: False
+       Set whether to detrend the lightcurve.
+    detrendmethod: string, optional, default: 'savitzkygolay'
+       Set the detrending method. Can be 'savitzkygolay, 'runningmedian',
+       or 'highpassfilter'.
+    nbins : int, optional, default: 101
+       Number of time bins to use for the Savitsky-Golay or running median
+       detrending.
+    order : int, optional, default: 3
+       The polynomial order of the Savitsky-Golay filter.
+    knee : float, optional, default: 1./(0.3*86400) Hz
+       Knee frequency for detrending with 3rd order Butterworth high-pass filter.
     """
 
     id = 0   # The KIC number of the star
@@ -110,20 +122,22 @@ class Lightcurve():
     quarter = ""
 
     detrended = False
+    detrend_method = None
     detrend_nbins = 0
     detrend_order = 0
+    detrend_knee = 0
     detrend_fit = np.array([])
 
     running_median_dt = 0
     running_median_fit = np.array([])
     datagap = False
 
-    def __init__(self, curve=None, detrend=False, nbins=101, order=3, maxgap=1):
+    def __init__(self, curve=None, detrend=False, detrendmethod='savitzkygolay', nbins=101, order=3, knee=(1./(0.3*86400)), maxgap=1):
 
         clc = None
         clc = np.array([])
         if curve != None:
-            self.add_data(curve, detrend, nbins, order, maxgap=1)
+            self.add_data(curve=curve, detrend=detrend, detrendmethod=detrendmethod, nbins=nbins, order=order, knee=knee, maxgap=1)
 
     def __str__(self):
         return "<bayesflare Lightcurve for KIC "+str(self.id)+">"
@@ -188,7 +202,7 @@ class Lightcurve():
         # return power spectral density and array of frequencies
         return sk, f
 
-    def add_data(self, curve=None, detrend=False, nbins=101, order=3, maxgap=1):
+    def add_data(self, curve=None, detrend=False, detrendmethod='none', nbins=101, order=3, knee=None, maxgap=1):
         """
         Add light curve data to the object..
 
@@ -197,8 +211,11 @@ class Lightcurve():
         curvefile : string
            The file path file pointing to a light curve fits files.
         detrend : bool, optional, default: False
-           A boolean flag which determines whether light curve should be detrended using the
-           Savitsky-Golay filter (:func:`.savitzky_golay`).
+           A boolean flag which determines whether light curve should be detrended.
+        detrendmethod : string, optional, default: 'none'
+           The method for detrending the data. The options are 'savitzky_golay' to use
+           :func:`.savitzky_golay`, 'runningmedian' to use :func:`.running_median`, or
+           'highpassfilter' tp use :func:`.highpass_filter_lightcurve`
         nbins : int, optional, default: 101
            The width of the detrending window in bins of the light curve.
         order : int, optional, default: 3
@@ -306,7 +323,7 @@ class Lightcurve():
            >>> # linear interpolation of NaNs
            >>> spam = np.ones(100)
            >>> spam[10] = np.nan
-           >>> camelot = pf.Lightcurve(curves)
+           >>> camelot = bf.Lightcurve(curves)
            >>> nans, x = camelot.nan_helper(spam)
            >>> spam[nans]= np.interp(x(nans), x(~nans), spam[~nans])
 
@@ -322,7 +339,7 @@ class Lightcurve():
         Examples
         --------
 
-           >>> camelot = pf.Lightcurve(curves)
+           >>> camelot = bf.Lightcurve(curves)
            >>> camelot.interpolate()
 
         """
@@ -333,15 +350,17 @@ class Lightcurve():
         z[nans]= np.interp(za(nans), za(~nans), z[~nans]).astype('float32')
         self.clc = z
 
-    def set_detrend(nbins, order):
+    def set_detrend(method='none', nbins=None, order=None, knee=None):
         """
         A method allowing the detrending parameters for the light curve to be changed.
 
         Parameters
         ----------
+        method : string
+           The detrending method. Can be 'savitzkygolay', 'runningmedian', or,
+           'highpassfilter'.
         nbins : int
            The length of the detrending window, in bins.
-
         order : int
            The order of the detrending filter.
 
@@ -350,51 +369,59 @@ class Lightcurve():
         detrend
 
         """
+        self.detrend_method=method
         self.detrend_length=nbins
-        self.detrend_order
+        self.detrend_order=order
+        self.detrend_knee=knee
 
-    def detrend(self, nbins, order):
+    def detrend(self, method='none', nbins=None, order=None, knee=None):
         """
-        A method to detrend the light curve using a Savitsky-Golay filter (:func:`.savitzky_golay`).
+        A method to detrend the light curve using a Savitsky-Golay filter (:func:`.savitzky_golay`),
+        a running median filter (:func:`.running_median`), or a high-pass filter
+        (:func:`.highpass_filter_lightcurve`).
 
         Parameters
         ----------
-        nbins : int
-           The number of bins in the running detrend window
-        order : int
-           The polynomial order of the detrending fit.
+        method : string, default: 'none'
+           The detrending method. Either 'savitzkygolay', 'runningmedian', or
+           'highpassfilter'.
+        nbins : int, default: None
+           The number of bins in the Savitsky-Golay, or running median detrend window
+        order : int, default: None
+           The polynomial order of the Savitsky-Golay detrending fit.
+        knee : float, default: None
+           The high-pass filter knee frequency (Hz).
 
         """
-        self.detrend_nbins = nbins
-        self.detrend_order = order
+        
+        self.set_detrend(method=method, nbins=nbins, order=order, knee=knee)
         self.detrended = True
 
-        self.ulc = self.clc
-        ffit = pf.savitzky_golay(self.clc, nbins, order)
-        self.clc = (self.clc - ffit)
-        self.detrend_fit = np.copy(ffit)
-
-    def running_median(self, dt):
-        """
-        A method to subtract a running median for smoothing the light curve (for example as an
-        alternative to the Savitsky-Golay detrending).
-
-        Parameters
-        ----------
-        dt : float
-           the time window (in seconds) for the running median
-        """
-        ffit = np.array([])
-
-        self.running_median_dt = dt
-
-        for i in range(len(self.clc)):
-            v = (self.cts < (self.cts[i]+dt/2.)) & (self.cts > (self.cts[i]-dt/2.))
-            ffit = np.append(ffit, np.median(self.clc[v]))
-
-        self.running_median_fit = np.copy(ffit)
-        self.ulc = self.clc
-        self.clc = (self.clc - ffit)
+        # store un-detrending light curve
+        self.ulc = np.copy(self.clc)
+        
+        if method == 'savitzkygolay':
+            if nbins is None or order is None:
+                raise ValueError("Number of bins, or polynomial order, for Savitsky-Golay filter not set")
+          
+            ffit = bf.savitzky_golay(self.clc, nbins, order)
+            self.clc = (self.clc - ffit)
+            self.detrend_fit = np.copy(ffit)
+        elif method == 'runningmedian':
+            if nbins is None:
+                raise ValueError("Number of bins for running median filter not set")
+          
+            ffit = bf.running_median(self.clc, nbins)
+            self.clc = (self.clc - ffit)
+            self.detrend_fit = np.copy(ffit)
+        elif method == 'highpassfilter':
+            if knee is None:
+                raise ValueError("Knee frequency for high-pass filter not set.")
+          
+            dlc = bf.highpass_filter_lightcurve(self, knee=knee)
+            self.clc = np.copy(dlc.clc)
+        else:
+            raise ValueError("No detrend method set")
 
     def plot(self, figsize=(10,3)):
         """

@@ -78,8 +78,8 @@ class Bayes():
         for i in np.arange(l):
             q = np.unravel_index(i, model.shape)
             # m = model(i)
-            m = model(i, filt=self.lightcurve.detrended, nbins=self.lightcurve.detrend_nbins,
-                      order=self.lightcurve.detrend_order)
+            m = model(i, filt=self.lightcurve.detrended, filtermethod=self.lightcurve.detrend_method, nbins=self.lightcurve.detrend_nbins,
+                      order=self.lightcurve.detrend_order, filterknee=self.lightcurve.detrend_knee)
             if m == None:
                 # if the model is not defined (e.g. for the flare model when tau_g > tau_e)
                 # set probability to zero (log probability to -inf)
