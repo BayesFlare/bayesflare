@@ -176,10 +176,6 @@ distribution. If the file name ends in \".gz\" then the output will be gzipped."
     print >> sys.stderr, "Error... background length (bglen) must be an odd number"
     sys.exit(-1)
 
-  # set amplitude priors to be large
-  largeprior = 1.e6 # 1 million!
-  amppriors = (np.ones(bgorder+2)*largeprior).tolist()
-
   Bfs = [] # list to hold Bayes factors
 
   tslen = len(ts)-bglen+1 # length of time series with edges removed

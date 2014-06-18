@@ -206,7 +206,8 @@ with the default time step)].", type="int", default=37)
       t0 = opts.t0
 
     # create flare
-    injdata = np.copy(Mfi.model(opts.injamp, opts.taug, opts.taue, t0, tmi))
+    pdict = {'t0': t0, 'amp': opts.injamp, 'taugauss': opts.taug, 'tauexp': opts.taue}
+    injdata = np.copy(Mfi.model(pdict))
 
     if opts.oinj:
       if oinj != None:
