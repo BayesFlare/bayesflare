@@ -473,10 +473,6 @@ class OddsRatioDetector():
         The length of the analysis window that slides across the data.
     bgorder : int, default: 4
         The order of the polynomial background variations used in the signal and noise models.
-    amppriorrange : list or float, default: [1e6]
-        A list (or single value) giving the span of the amplitude prior for each of the polynomial
-        coefficients in the background variation model, and the range for the signal model
-        amplitude. This assumes the prior is flat within this range.
     noiseestmethod : string, default: 'powerspectrum'
         The method used to estimate the noise standard deviation of the light curve data.
     psestfrac : float, default: 0.5
@@ -517,6 +513,18 @@ class OddsRatioDetector():
         If True then the noise model will include an exponential rise model (just the reverse of
         the exponential decay) on top of a polynomial background variation. This will have the same
         parameters as defined in `noiseexpdecayparams`.
+    noisestep : bool, default: False
+        If True then the noise model will include a step function model (:class:`.Step`) on top of a
+        polynomial background variation.
+    noiseimpulseparams : dict, default: {'t0', (0.,)}
+        A dictionary containing the step function parameters 't0' giving a tuple of its lower, and upper
+        values (in seconds) and the number of grid points spanning that range (if a single value is
+        given in the tuple then the parameter will be fixed at that value). This range will be
+        numerically marginalised over. For the default values `0.` corresponds to the step being
+        at the centre of the analysis window.
+    noisestepwithreverse : bool, default: False
+        If True then the noise model will include an reversed step function on top of a polynomial
+        background variation. This will have the same parameters as defined in `noisestepparams`.
     ignoreedges : bool, default: True
         If this is true then any output log odds ratio will have the initial and final `bglen` /2
         values removed. This removes values for which the odds ratio has been calculated using
@@ -532,7 +540,6 @@ class OddsRatioDetector():
                  lightcurve,
                  bglen=55,
                  bgorder=4,
-                 amppriorrange=[1.e6],
                  noiseestmethod='powerspectrum',
                  psestfrac=0.5,
                  tvsigma=1.0,
@@ -543,6 +550,9 @@ class OddsRatioDetector():
                  noiseexpdecay=True,
                  noiseexpdecayparams={'taue': (0.0, 0.25*60*60, 3)},
                  noiseexpdecaywithreverse=True,
+                 noisestep=False,
+                 noisestepparams={'t0': (0.,)},
+                 noisestepwithreverse=False,
                  ignoreedges=True):
 
         self.lightcurve = deepcopy(lightcurve)
@@ -552,9 +562,6 @@ class OddsRatioDetector():
         # set flare ranges
         self.set_flare_params(flareparams=flareparams)
 
-        # set amplitude priors
-        self.set_amp_prior_range(amppriorrange=amppriorrange)
-
         # set noise estimation method
         self.set_noise_est_method(noiseestmethod=noiseestmethod, psestfrac=psestfrac, tvsigma=tvsigma)
 
@@ -562,7 +569,8 @@ class OddsRatioDetector():
         self.set_noise_poly(noisepoly=noisepoly) # polynomial background
         self.set_noise_impulse(noiseimpulse=noiseimpulse, noiseimpulseparams=noiseimpulseparams) # impulse background
         self.set_noise_expdecay(noiseexpdecay=noiseexpdecay, noiseexpdecayparams=noiseexpdecayparams, withreverse=noiseexpdecaywithreverse)
-
+        self.set_noise_step(noisestep=noisestep, noisestepparams=noisestepparams, withreverse=noisestepwithreverse)
+        
         self.set_ignore_edges(ignoreedges=ignoreedges)
 
     def set_ignore_edges(self, ignoreedges=True):
@@ -612,23 +620,6 @@ class OddsRatioDetector():
             self.flare_taue = [taue[0], taue[1], taue[2]]
         else:
             print "taug parameters improperly defined"
-
-    def set_amp_prior_range(self, amppriorrange=[1.e6]):
-        """
-        Set the amplitude priors for each component of the model with an amplitude that is
-        analytically marginalised over.
-
-        Parameters
-        ----------
-        amppriorrange : list of floats, default: [1.e6]
-            A list containing one, or all, amplitude prior range values.
-        """
-        try:
-            x = len(amppriorrange)
-        except:
-            # Convert to a list
-            amppriorrange = list(amppriorrange)
-        self.amppriors = amppriorrange
 
     def set_noise_est_method(self, noiseestmethod='powerspectrum', psestfrac=0.5, tvsigma=1.0):
         """
@@ -733,6 +724,37 @@ class OddsRatioDetector():
         else:
             print "taug parameters improperly defined"
 
+    def set_noise_step(self, noisestep=False, noisestepparams={'t0': (0.,)}, withreverse=False):
+        """
+        Set the noise model to include a step function (:class:`.Step`) on a polynomial
+        background variation. Also set the range of times of the step function, which will be numerically
+        marginalise over.
+
+        Parameters
+        ----------
+        noisestep : bool, default: False
+            Set to True if this model is used.
+        noisestepparams : dict, default: {'t0': (0.,)}
+            A dictionary of tuples of the parameter ranges. 't0' is the only allowed parameter. The
+            tuple should either be a single value or three values giving the low end, high end
+            and number of parameter points.
+        withreverse : bool, default: False
+            Set to true if there should also be a reverse of the step function noise model.
+        """
+        self.noisestep = noisestep
+        self.noisestepwithreverse = withreverse
+        try:
+            params = noiseimpulseparams['t0']
+        except:
+            print "Error... no 't0' value specified for impulse."
+
+        if len(params) == 1:
+            self.noisestepparams = [params[0], None, None]
+        elif len(params) == 3:
+            self.noisestepparams = [params[0], params[1], params[2]]
+        else:
+            print "Step parameters improperly defined"
+    
     def oddsratio(self):
         """
         Get a time series of log odds ratio for data containing a flare *and* polynomial background
@@ -823,6 +845,35 @@ class OddsRatioDetector():
                 noiseodds.append(Oer.lnBmargAmp)
                 del M
 
+        if self.noisestep:
+            # setup step function model
+            M = Step(self.lightcurve.cts, amp=1)
+            M.set_t0s(self.noisestepparams[0], self.noisestepparams[1], self.noisestepparams[2])
+            Bs = Bayes(self.lightcurve, M)
+            Bs.bayes_factors_marg_poly_bgd(bglen=self.bglen,
+                                           bgorder=self.bgorder,
+                                           amppriorrange=self.amppriors,
+                                           noiseestmethod=self.noiseestmethod,
+                                           psestfrac=self.psestfrac,
+                                           tvsigma=self.tvsigma)
+            Os = Bs.marginalise_full()
+            noiseodds.append(Os.lnBmargAmp)
+            del M
+
+            if self.noisestepwithreverse:
+                M = Step(self.lightcurve.cts, amp=1, reverse=True)
+                M.set_t0s(self.noisestepparams[0], self.noisestepparams[1], self.noisestepparams[2])
+                Bsr = Bayes(self.lightcurve, M)
+                Bsr.bayes_factors_marg_poly_bgd(bglen=self.bglen,
+                                                bgorder=self.bgorder,
+                                                amppriorrange=self.amppriors,
+                                                noiseestmethod=self.noiseestmethod,
+                                                psestfrac=self.psestfrac,
+                                                tvsigma=self.tvsigma)
+                Osr = Bsr.marginalise_full()
+                noiseodds.append(Osr.lnBmargAmp)
+                del M
+                
         # get the total odds ratio
         if self.ignoreedges:
             valrange = np.arange(int(self.bglen/2), len(Of.lnBmargAmp)-int(self.bglen/2))
