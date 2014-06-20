@@ -7,14 +7,13 @@ import numpy as np
 import bayesflare as pf
 import scipy.signal as signal
 import matplotlib.mlab as ml
-#from pyflare import smooth_lightcurve
 import matplotlib.pyplot as pl
 import copy
 
 __all__ = ["Loader", "Lightcurve"]
 
 class Loader():
-    """ An interface for loading Kepler data stored locally.
+    """ An interface for finding Kepler data stored locally given a specific directory structure.
 
     Parameters
     ----------
@@ -27,7 +26,7 @@ class Loader():
           |          |/Q2_public
           |          .
           |          .
-   
+
        This parameter is optional, and can also be loaded from the ``KPLR_ROOT`` environment
        variable.
     """
@@ -50,7 +49,7 @@ class Loader():
         """ Finds all local files which correspond to a given star,
         from all available data collection quarters, either from
         short or long cadence data.
-        
+
         Parameters
         ----------
         kic : int, str
@@ -60,9 +59,9 @@ class Loader():
            Defaults to False.
         quarters : str, optional
            A quarter, or a range of quarters in the format "first-last", for example
-        
+
               >>> Loader.find(757450, quarters="2-3")
-        
+
            will retrieve all quarter 2 and 3 data for the star KIC757450.
            By default, retrieves all quarters between 1 and 9.
 
@@ -75,7 +74,7 @@ class Loader():
         --------
 
         >>> Loader.find(757450, short=True, quarters="1")
-        
+
         Will return the short cadence light curves for KIC757450 in quarter 1.
         """
         kic = str('%09d'%int(kic))
@@ -88,16 +87,12 @@ class Loader():
 class Lightcurve():
     """
     A class designed to handle the day-to-day requirements for
-    Kepler lightcurves, including removing DC offsets, and
-    combining lightcurves.
-
-    Combining lightcurves is not especially well
-    implimented, and it's probably best to not rely on it.
+    Kepler light curves, including removing DC offsets.
 
     Parameters
     ----------
-    curves : array-like
-       An array of file names for light curves.
+    curve : string
+       The file name for a light curves.
     """
 
     id = 0   # The KIC number of the star
@@ -123,15 +118,15 @@ class Lightcurve():
     running_median_fit = np.array([])
     datagap = False
 
-    def __init__(self, curves=None, detrend=False, nbins=101, order=3, maxgap=1):
+    def __init__(self, curve=None, detrend=False, nbins=101, order=3, maxgap=1):
 
         clc = None
         clc = np.array([])
-        if curves != None:
-            self.add_data(curves, detrend, nbins, order, maxgap=1)
+        if curve != None:
+            self.add_data(curve, detrend, nbins, order, maxgap=1)
 
     def __str__(self):
-        return "<pyFlare Lightcurve for KIC "+str(self.id)+">"
+        return "<bayesflare Lightcurve for KIC "+str(self.id)+">"
 
     def __unicode__(self):
         return self.__str__()
@@ -174,7 +169,9 @@ class Lightcurve():
 
     def psd(self):
         """
-        calculate the one-sided non-windowed power spectrum of the lightcurve.
+        Calculate the one-sided non-windowed power spectrum of the light curve. This uses the
+        :func:`matplotlib.mlab.psd` function for computing the power spectrum, with a single
+        non-overlapping FFT.
 
         Returns
         -------
@@ -191,31 +188,23 @@ class Lightcurve():
         # return power spectral density and array of frequencies
         return sk, f
 
-    def add_data(self, curves=None, detrend=False, nbins=101, order=3, maxgap=1):
+    def add_data(self, curve=None, detrend=False, nbins=101, order=3, maxgap=1):
         """
-        Add light curve data to the object.
-        New data is added both to an array of light curves, and also to a combined light curve.
+        Add light curve data to the object..
 
         Parameters
         ----------
-        curves : list of str
-           A list of file paths pointing to the light curve fits files.
-
-        detrend : bool, optional
-           A boolean flag which determines whether light curves should be detrended.
-           Defaults to False.
-
-        nbins : int, optional
+        curvefile : string
+           The file path file pointing to a light curve fits files.
+        detrend : bool, optional, default: False
+           A boolean flag which determines whether light curve should be detrended using the
+           Savitsky-Golay filter (:func:`.savitzky_golay`).
+        nbins : int, optional, default: 101
            The width of the detrending window in bins of the light curve.
-           Defaults to 101.
-
-        order : int, optional
-           The order of the detrending filter.
-           Defaults to 3.
-
-        maxgap : int, optional
-           The largest gap size allowed before the light curve is deemed to contain gaps.
-           Defaults to 1.
+        order : int, optional, default: 3
+           The polynomial order of the detrending filter.
+        maxgap : int, optional, default+1
+           The largest gap size (in bins) allowed before the light curve is deemed to contain gaps.
 
         Exceptions
         ----------
@@ -223,63 +212,64 @@ class Lightcurve():
            This needs to be replaced with an exception specific to the package!
            Error is raised if there is an I/O error while accessing a light curve file.
         """
-        for a in np.arange(len(curves)):
-            try:
-                curve = pyfits.open(curves[a])
-            except IOError:
-                raise NameError("[Error] An IO error occured when trying to access", str(curves[a]) )
-                mis_file = open('ioerror-files.log', 'a')
-                mis_file.write(str(curves[a])+'\n')
-                mis_file.close()
-                return
+        if curve == None:
+            raise NameError("[Error] No light curve file given")
 
-            if len(self.clc) == 0:
-                self.id = curve[0].header['KEPLERID']
-            elif curve[0].header['KEPLERID'] != self.id:
-                raise NameError("Tried to add data from KIC"+str(curve[0].header['KEPLERID'])+" to KIC"+str(self.id))
+        try:
+            dcurve = pyfits.open(curve)
+        except IOError:
+            raise NameError("[Error] An IO error occured when trying to access "+curve )
+            mis_file = open('ioerror-files.log', 'a')
+            mis_file.write(curve+'\n')
+            mis_file.close()
+            return
 
-            if curve[0].header['OBSMODE'] == 'long cadence':
-                self.cadence = 'long'
-            else:
-                self.cadence = 'short'
+        if len(self.clc) == 0:
+            self.id = dcurve[0].header['KEPLERID']
+        elif dcurve[0].header['KEPLERID'] != self.id:
+            raise NameError("Tried to add data from KIC"+str(dcurve[0].header['KEPLERID'])+" to KIC"+str(self.id))
 
-            self.quarter = str(self.quarter)+str(curve[0].header['QUARTER'])
+        if dcurve[0].header['OBSMODE'] == 'long cadence':
+            self.cadence = 'long'
+        else:
+            self.cadence = 'short'
 
-            # Assemble the new data into the class
-            self.clc = np.append(self.clc, copy.deepcopy(curve[1].data['PDCSAP_FLUX']))
-            self.cts = np.append(self.cts, copy.deepcopy(curve[1].data['TIME']*24*3600))
-            self.cle = np.append(self.cle, copy.deepcopy(curve[1].data['PDCSAP_FLUX_ERR']))
+        self.quarter = str(self.quarter)+str(dcurve[0].header['QUARTER'])
 
-            curve.close()
-            self.datagap = self.gap_checker(self.clc, maxgap=maxgap)
-            self.interpolate()
-            self.dcoffset()
-            #self.combine()
-            if detrend:
-                self.detrend(nbins, order)
+        # Assemble the new data into the class
+        self.clc = np.append(self.clc, copy.deepcopy(dcurve[1].data['PDCSAP_FLUX']))
+        self.cts = np.append(self.cts, copy.deepcopy(dcurve[1].data['TIME']*24*3600))
+        self.cle = np.append(self.cle, copy.deepcopy(dcurve[1].data['PDCSAP_FLUX_ERR']))
 
-            del curve
+        dcurve.close()
+        self.datagap = self.gap_checker(self.clc, maxgap=maxgap)
+        self.interpolate()
+        self.dcoffset() # remove a DC offset (calculated as the median of the light curve)
+
+        if detrend:
+            self.detrend(nbins, order)
+
+        del dcurve
 
     def dcoffset(self):
         """
-        Method to remove a DC offset from a lightcurve by subtracting the median value of the
-        lightcurve from all values.
+        Method to remove a DC offset from a light curve by subtracting the median value of the
+        light curve from all values.
         """
         self.dc  = np.median(self.clc)
         self.clc = self.clc - self.dc
 
     def gap_checker(self, d, maxgap=1):
         """
-        Check for NaN gaps in the data greater than a given value
+        Check for NaN gaps in the data greater than a given value.
 
         Parameters
         ----------
-        d : ndarray
+        d : :class:`numpy.ndarray`
            The array to check for gaps in the data.
-        
-        maxgap : int, optional
-           The maximum allowed size of gaps in the data
-           Defaults to 1.
+
+        maxgap : int, optional, default: 1
+           The maximum allowed size of gaps in the data.
 
         Returns
         -------
@@ -309,11 +299,10 @@ class Lightcurve():
           An array containing the indices of NaNs
         index : function
           A function, to convert logical indices of NaNs to 'equivalent' indices
-        
+
         Examples
         --------
 
-        
            >>> # linear interpolation of NaNs
            >>> spam = np.ones(100)
            >>> spam[10] = np.nan
@@ -321,14 +310,14 @@ class Lightcurve():
            >>> nans, x = camelot.nan_helper(spam)
            >>> spam[nans]= np.interp(x(nans), x(~nans), spam[~nans])
 
-        
+
         """
 
         return np.isnan(y), lambda z: z.nonzero()[0]
 
     def interpolate(self):
         """
-        A method for interpolating the lightcurves, to compensate for NAN values.
+        A method for interpolating the light curves, to compensate for NaN values.
 
         Examples
         --------
@@ -359,14 +348,14 @@ class Lightcurve():
         See also
         --------
         detrend
-        
+
         """
         self.detrend_length=nbins
         self.detrend_order
 
     def detrend(self, nbins, order):
         """
-        A method to detrend the light curve using a Savitsky-Golay filter.
+        A method to detrend the light curve using a Savitsky-Golay filter (:func:`.savitzky_golay`).
 
         Parameters
         ----------
@@ -387,7 +376,8 @@ class Lightcurve():
 
     def running_median(self, dt):
         """
-        A method to subtract a running median for smoothing the lightcurve
+        A method to subtract a running median for smoothing the light curve (for example as an
+        alternative to the Savitsky-Golay detrending).
 
         Parameters
         ----------
@@ -415,7 +405,6 @@ class Lightcurve():
         figsize : tuple
            The size of the output plot.
 
-        
         """
         fig, ax = pl.subplots(1)
         pl.title('Lightcurve for KIC'+str(self.id))

@@ -4,10 +4,10 @@
 from math import log
 import numpy as np
 from copy import copy, deepcopy
-from ..noise import estimate_noise_ps, estimate_noise_tv, detrend_lightcurve, savitzky_golay
+from ..noise import estimate_noise_ps, estimate_noise_tv, highpass_filter_lightcurve, savitzky_golay
 from ..models import *
 from .general import *
-from .thresholding import Thresholder
+#from .thresholding import Thresholder
 from math import *
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as pl
@@ -20,20 +20,17 @@ class Bayes():
 
     Parameters
     ----------
-    lightcurve : Lightcurve object
-       An instance of a Lightcurve which the Bayesian odds ratios will be calculated for.
+    lightcurve : :class:`.Lightcurve` object
+       An instance of a :class:`.Lightcurve` which the Bayesian odds ratios will be calculated for.
     model : Model object
        An instance of a Model object which will be used to generate odds ratios.
-    confidence : float, optional
-       The cut-off confidence level, percentage. Defaults to 0.999 (i.e. 99.9%).
-    results_root : str, optional
-       The filepath where the results should be stored.
     """
 
     # Object data
     premarg = {}         # Place to store the pre-marginalised bayes factor arrays
 
-    def __init__(self, lightcurve, model, confidence=0.999, results_root=None):
+    #def __init__(self, lightcurve, model, confidence=0.999, results_root=None):
+    def __init__(self, lightcurve, model):
         """
         The initiator method
         """
@@ -60,6 +57,8 @@ class Bayes():
         space containing the additional model parameters, as defined by the model. All these will
         require subsequent marginalisation if necessary.
 
+        If the light curve has had detrending applied then the model will also get detrended in the
+        same way.
         """
 
         model = self.model
@@ -121,7 +120,8 @@ class Bayes():
         bglen : int, default: 55
             The length, in bins, of the background variation polynomial window. This must be odd.
         bgorder : int, default: 4
-            The order of the polynomial background variation.
+            The order of the polynomial background variation. If `bgorder` is -1 then no polynomial
+            background variation is used, and this functions defaults to use :func:`bayes_factors`.
         noiseestmethod : string, default: 'powerspectrum'
             The method for estimating the noise standard deviation. This can either be
             'powerspectrum' (which estimates the noise from the power spectrum of the data) or
@@ -145,7 +145,7 @@ class Bayes():
             model amplitude will have a prior range of 0.5 and if it is 'False' will have a
             prior range also of 1. If `amppriorrange` is a single valued list then that value will
             be used for all amplitudes, and again if `halfrange` is 'True' that value will be
-            halved for the signal model amplitude. If `amppriorrange` has a length of `bgorder`+2
+            halved for the signal model amplitude. If `amppriorrange` has a length of `bgorder+2`
             (i.e. a value for all the amplitudes) then those values will be used as the priors.
         ncpus : int, default: None
             The number of parallel CPUs to run the likelihood calculation on using
@@ -154,6 +154,7 @@ class Bayes():
 
         See Also
         --------
+        bayes_factors : This function performs no analytical marginalisation over a polynomial background model
         bayes_factors_marg_poly_bgd_only : Similar to this function, but without the signal model.
         bayes_factors_marg_poly_bgd_chunk : Similar to this function, but only computing the Bayes
                                             factor for a small chunk of the light curve data.
@@ -333,13 +334,13 @@ class Bayes():
         Get the log Bayes factor for the data matching a sliding polynomial background window (of
         length `bglen` and polynomial order `bgorder`) compared to Gaussian noise. This marginalises
         over the polynomial amplitude coefficients analytically. The difference between this
-        function and :func:bayes_factors_marg_poly_bgd is that this function does not include the
+        function and :func:`bayes_factors_marg_poly_bgd` is that this function does not include the
         signal model.
 
         `amppriorrange` should be a list of the prior extents of each polynomial amplitude
         coefficient. If it is an empty list (default) each amplitude will be given a prior range of
-        1, if it is just a single value then that value will be used for all (`bgorder`+1)
-        amplitudes, otherwise if should be a list `bgorder`+1 long.
+        1, if it is just a single value then that value will be used for all (`bgorder+1`)
+        amplitudes, otherwise if should be a list `bgorder+1` long.
 
         See Also
         --------
@@ -452,7 +453,7 @@ class Bayes():
         """
         Get the logarithm of the Bayes factor, marginalised over signal and background polynomial
         amplitudes, and signal model parameters, for data centred on index `idx` in the light curve
-        timeseries. The timeseries that will be used will a be a chunk of length `bglen` around
+        time series. The time series that will be used will a be a chunk of length `bglen` around
         `idx` (or shorter if at the edges).
 
         Parameters
@@ -629,8 +630,8 @@ class Bayes():
 
     def marginalise(self, axis):
         """
-        Function to reduce the dimensionality of the `lnBmargAmp` :class:`numpy.ndarray` from N to
-        N-1 through numerical marginalisation (integration) over a given parameter.
+        Function to reduce the dimensionality of the `lnBmargAmp` :class:`numpy.ndarray` from `N` to
+        `N-1` through numerical marginalisation (integration) over a given parameter.
 
         Parameters
         ----------
@@ -679,15 +680,15 @@ class Bayes():
     def noise_evidence(self):
         """
         Calculate the evidence that the data consists of Gaussian noise. This calculates the noise
-        standard deviation using the 'tailveto' method of :func:`pyFlare.estimate_noise_tv`.
+        standard deviation using the 'tailveto' method of :func:`.estimate_noise_tv`.
 
         Returns
         -------
         The log of the noise evidence value.
 
         .. note::
-            In this the :func:`pyFlare.estimate_noise_tv` method is hardcoded to use a `tvsigma`
-            value of 1.0.
+            In this the :func:`.estimate_noise_tv` method is hardcoded to use a `tvsigma` value of
+            1.0.
         """
         var = estimate_noise_tv(self.lightcurve.clc, 1.0)[0]**2
         noise_ev = -0.5*len(self.lightcurve.clc)*np.log(2.*pi*var) - np.sum(self.lightcurve.clc**2)/(2.*var)
@@ -699,14 +700,14 @@ class Bayes():
 #            return thresholder.threshold
 #        else:
 #            return calculate_threshold(self, self.confidence)
-
+#
 #    def clip(self, thresholder):
 #        self.clipped = np.clip(self.lnBmargAmp, self.calculate_threshold(thresholder=thresholder),
 #1000000000)
-
+#
 #    def plot(self, figsize=(10,3)):
-        #gs = gridspec.GridSpec(2,1)
-
+#        #gs = gridspec.GridSpec(2,1)
+#
 #        pl.title('Bayes factors for KIC'+str(self.lightcurve.id))
 #        axLC = pl.subplot2grid((2,1),(0, 0))
 #        axLC.plot(self.lightcurve.cts/(24*3600.0), self.lightcurve.clc)
@@ -720,15 +721,15 @@ class Bayes():
 
 def log_marg_amp_full_model_wrapper(params):
     """
-    Wrapper to :func:`log_marg_amp_full_model` and :func:`log_marg_amp_full_2Dmodel` function that
+    Wrapper to :func:`.log_marg_amp_full_model` and :func:`.log_marg_amp_full_2Dmodel` function that
     takes in a tuple of all the required parameters. This is required to use the
-    :func:`multiprocessing.Pool.map_async` function.
+    :mod:`multiprocessing` `Pool.map_async` function.
 
     Parameters
     ----------
     params : tuple
-        A tuple of parameters required by :func:`pyFlare.log_marg_amp_full_2Dmodel` or
-        :func:`pyFlare.log_marg_amp_full_model`
+        A tuple of parameters required by :func:`.log_marg_amp_full_2Dmodel` or
+        :func:`.log_marg_amp_full_model`
 
     Returns
     -------
@@ -748,13 +749,13 @@ def log_marg_amp_full_model_wrapper(params):
 
 def log_likelihood_marg_background_wrapper(params):
     """
-    Wrapper to :func:`pyFlare.log_likelihood_marg_background` that takes a tuple of all the required
-    parameters. This is required to use the :func:`multiprocessing.Pool.map_async` function.
+    Wrapper to :func:`.log_likelihood_marg_background` that takes a tuple of all the required
+    parameters. This is required to use the :mod:`multiprocessing` `Pool.map_async` function.
 
     Parameters
     ----------
     params : tuple
-        A tuple of parameters required by :func:`pyFlare.log_likelihood_marg_background`.
+        A tuple of parameters required by :func:`.log_likelihood_marg_background`.
 
     Returns
     -------
@@ -772,32 +773,30 @@ class ParameterEstimationGrid():
 
     Parameters
     ----------
-    modelType : BayesFlare :class:`Model` instance
-       An object containing the model which is to be tested.
-    lightcurve : BayesFlare :class:`LightCurve` instance
-       The lightcurve to be tested.
-    
-    Attributes
-    ----------
+    modelType : string
+        The model for which the parameters are to be estimated (e.g. 'flare')
+    lightcurve : :class:`.Lightcurve`
+       The light curve data with which to estimate the model parameters.
+
     """
 
-    modelType = None         # model type
-    model = None             # a model class
-    paramNames = None        # a list of the parameter names for a model
-    paramValues = {}         # a dictionary of the parameter values used to create the grid
-    lightcurve = None        # the light curve data to be fitted
-    noiseSigma = None        # the noise standard deviation
-    prior = None             # the prior function to be used
-    posterior = None         # the full log posterior (a numpy nd array)
-    margposteriors = {}      # a dictionary of the marginalised posterior for each parameter
-    maxposterior = None      # the maximum posterior value
-    maxpostparams = {}       # a dictionary of the parameters of the maximum posterior value
+    modelType = None         #: A string giving the model type
+    model = None             #: A model class e.g. :class:`.Flare`
+    paramNames = None        #: A list of the parameter names for a model
+    paramValues = {}         #: A dictionary of the parameter values used to create the grid
+    lightcurve = None        #: The light curve data to be fitted
+    noiseSigma = None        #: The light curve noise standard deviation
+    prior = None             #: The prior function to be used
+    posterior = None         #: The full log posterior (a :class:`numpy.ndarray`)
+    margposteriors = {}      #: A dictionary of the marginalised posterior for each parameter
+    maxposterior = None      #: The maximum posterior value
+    maxpostparams = {}       #: A dictionary of the parameters of the maximum posterior value
 
     def __init__(self, modelType=None, lightcurve=None):
         """
         Initialise with the model type (currently this can be either 'flare' or 'transit'
-        (for the :class:`Flare` model or :class:`Transit` model respectively), and a
-        :class:`Lightcurve`.
+        (for the :class:`.Flare` model or :class:`.Transit` model respectively), and a
+        :class:`.Lightcurve`.
         """
         if lightcurve == None:
             print "A lightcurve is required as input"
@@ -823,7 +822,7 @@ class ParameterEstimationGrid():
         Parameters
         ----------
         modelType : string
-            A string giving the model type (currently either 'flare' or 'transit'
+            A string giving the model type (currently either 'flare' or 'transit').
         """
         self.modelType = modelType.lower()
         if self.modelType == 'flare':
@@ -928,7 +927,7 @@ class ParameterEstimationGrid():
         """
         The prior for the flare model parameters. Currently this just returns an unnormalised
         constant prior value of unity (zero in terms of the log prior value) for positive amplitude
-        values, or zero (-infinity in terms of the log prior value) for negative amplitude values.
+        values, or zero :math:`-\infty` in terms of the log prior value) for negative amplitude values.
 
         Parameters
         ----------
@@ -987,17 +986,17 @@ class ParameterEstimationGrid():
         """
         Calculate and set the noise standard deviation to be used in the parameter estimation. This
         uses the whole of the input light curve for the calculation. The calculation can either use
-        the 'powerspectrum' method from :func:`pyFlare.estimate_noise_ps`, the 'tailveto' method
-        from :func:`pyFlare.estimate_noise_tv`, or just the standard calculation used by
+        the 'powerspectrum' method from :func:`.estimate_noise_ps`, the 'tailveto' method from
+        :func:`.estimate_noise_tv`, or just the standard calculation used by
         :func:`numpy.std`.
 
         Parameters
         ----------
-        lightcurve : :class:`pyFlare.Lightcurve`
+        lightcurve : :class:`.Lightcurve`
             The lightcurve for which to calculate the noise standard devaition.
         detrend : boolean, default: True
             If 'True' the light curve will be detrended before noise estimation using the method in
-            :func:`pyFlare.Lightcurve.detrend`.
+            :meth:`.Lightcurve.detrend`.
         dtlen : int, default: 55
             The running window length for detrending the data.
         dtorder : int, default: 4
@@ -1031,8 +1030,8 @@ class ParameterEstimationGrid():
         Calculate the unnormalised log posterior probability distribution function over the grid of
         parameters assuming a Gaussian likelihood function. If requiring that a background
         polynomial variation is present and to be marginalised over then this function will use
-        :func:`pyFlare.log_likelihood_marg_background` for the likelihood calculation, otherwise it
-        will use :func:`pyFlare.log_likelihood_ratio`.
+        :func:`.log_likelihood_marg_background` for the likelihood calculation, otherwise it
+        will use :func:`.log_likelihood_ratio`.
 
         Unless the below input parameters are specified the values defined already int the class
         are used.
@@ -1042,7 +1041,7 @@ class ParameterEstimationGrid():
         paramValues : dict
             A user specified dictionary containing the parameter values that can be used instead of
             the one defined in the class.
-        lightcurve : :class:`pyFlare.Lightcurve`
+        lightcurve : :class:`.Lightcurve`
             A user specified lightcurve that can be used instead of the one defined in the class.
         sigma : float
             A user specified data noise standard deviation that can be used instead of the one
@@ -1358,6 +1357,7 @@ class ParameterEstimationGrid():
         maximum posterior value.
 
         The signal-to-noise ratio is calculated as:
+
         .. math::
             \\rho = \\frac{1}{\\sigma}\\sqrt{\\sum_i m_i^2},
 
@@ -1388,13 +1388,14 @@ class ParameterEstimationGrid():
 
 
         We define the equivalent width as:
-        
+
         .. math::
            EW = \\frac{1}{b}\\int m \ {\\textrm d}t,
 
         where :math:`b` is the underlying noise floor level (calculated by subtracting the best fit
         model from the light curve, re-adding any previously subtracted DC offset, and getting the
-        median value) and :math:`m` is the model evaluated at the maximum posterior values.
+        median value) and :math:`m` is the model evaluated at the maximum posterior values. The
+        integral is calculated using the trapezium rule.
 
         Returns
         -------

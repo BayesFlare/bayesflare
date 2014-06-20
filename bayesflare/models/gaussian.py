@@ -5,7 +5,23 @@ import bayesflare as pf
 
 class Gaussian():
     """
-    A generic Gaussian model.
+    A generic Gaussian profile model.
+
+    Parameters
+    ----------
+    ts : :class:`numpy.ndarray`
+        A vector containing time stamps.
+    amp : float, optional, default: 1
+        The amplitude of the model at its peak.
+    t0 : float, optional
+        The time of peak of the Gaussian profile. Defaults to the centre of ``ts``.
+    reverse : bool, optional
+        A boolean flag. Set this to reverse the decay into a rise.
+
+    Returns
+    -------
+    f : :class:`numpy.ndarray`
+       An array containing the flare model.
     """
 
     amp = 0
@@ -87,9 +103,17 @@ class Gaussian():
         return f
 
     def filter_model(self, m, nbins=101, order=3):
-      """ use the Savitzky-Golay smoothing to high-pass filter the model m:
-            -- nbins - an odd integer width (in bins) for the filtering
-            -- order - the polynomial order for the filtering
+      """
+        Use the Savitzky-Golay smoothing (:func:`.savitzky_golay`) to high-pass filter the model `m`.
+
+        Parameters
+        ----------
+        m : ndarray
+            An array containing the model.
+        nbins : int, optional, default: 101
+            An odd integer width (in bins) for the filtering.
+        order : int, optional, default: 3
+            The polynomial order for the filtering.
       """
       return (m - pf.savitzky_golay(m, nbins, order))
 

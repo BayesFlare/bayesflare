@@ -1,7 +1,7 @@
-Flare Indentification
+Flare Identification
 #####################
 
-Having extracted the Bayes functions these classes and methods complete the analysis to identify flares in the arrays.
+These classes provide methods to identify flares in light curve data.
 
 .. automodule:: bayesflare.finder.find
    :members:

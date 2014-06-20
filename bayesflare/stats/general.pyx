@@ -32,13 +32,12 @@ cdef double LOG2 = 0.6931471805599453094172321214581766
 
 cpdef log_one_plus_erf(np.ndarray[DTYPE_t, ndim=1] x):
     """
-    Calculate :math:`\log{(1+\textrm{erf}(x))}`. This uses the numerical approximation to erf
-    given in [1]_ or [2]_
-    page 221 of Numerical Recipes in C (http://apps.nrbook.com/c/index.html)
+    Calculate :math:`\log{(1+\\textrm{erf}(x))}`. This uses the numerical approximation to erf
+    given in [1]_ or [2]_.
 
     .. note::
-        This was implemented to see if it removed -infinities when using `x` << 0, but due to the
-        `z`*`z` component it does not help. It is kept here for posterity, but does not need to be
+        This was implemented to see if it removed -infinities when using ``x << 0``, but due to the
+        ``z*z`` component it does not help. It is kept here for posterity, but does not need to be
         used.
 
     Parameters
@@ -49,7 +48,7 @@ cpdef log_one_plus_erf(np.ndarray[DTYPE_t, ndim=1] x):
     Returns
     -------
     lome : double
-        The value of :math:`\log{(1+\textrm{erf}(x))}`.
+        The value of :math:`\log{(1+\\textrm{erf}(x))}`.
 
     References
     ----------
@@ -151,8 +150,8 @@ cpdef log_marg_amp_full_model(i, shape, sk, bgorder, lastHalfRange, np.ndarray[D
     calculate this for a given position in the model parameter value space and for each time step in
     the data. The polynomial background amplitude coefficients will be analytically marginalised
     over. The model amplitude will also be analytically marginalised over, but the
-    marginalisation can be specified to either be between -infinity and infinity, or 0 and
-    infinity.
+    marginalisation can be specified to either be between :math:`-\infty` and :math:`\infty`, or 0 and
+    :math:`\infty`.
 
     Parameters
     ----------
@@ -165,8 +164,8 @@ cpdef log_marg_amp_full_model(i, shape, sk, bgorder, lastHalfRange, np.ndarray[D
     bgorder : int
         The order of the polynomial background variations
     lastHalfRange : bool
-        If True then the model amplitude will be analytically integrated between 0 and infinity, if
-        False it will be integrated between -infinity and infinity.
+        If True then the model amplitude will be analytically integrated between 0 and :math:`\infty`, if
+        False it will be integrated between :math:`-\infty` and :math:`\infty`.
     
     d : :class:`numpy.ndarray`
         A 1D array containing the light curve time series data.
@@ -198,8 +197,8 @@ cpdef log_marg_amp_full_model(i, shape, sk, bgorder, lastHalfRange, np.ndarray[D
     See also
     --------
     log_marg_amp_full_2Dmodel : A version of this function specifically for a 2D model.
-    log_marg_amp_full_C : The kernel of this function, which calculates the
-                                    marginalised likelihood ratio for a single model.
+    :func:`log_marg_amp_full_C` : The kernel of this function, which calculates the
+                                  marginalised likelihood ratio for a single model.
     """
     q = np.unravel_index(i, shape) # get tuple of index positions
 
@@ -296,10 +295,9 @@ cpdef log_marg_amp_full_2Dmodel(i, shape, sk, bgorder, lastHalfRange, np.ndarray
     return B
 
 
-cpdef log_marg_amp_full_background(sk, dlen, bgorder, np.ndarray[DTYPE_t, ndim=3] bgcross,
-                                   np.ndarray[DTYPE_t, ndim=2] dbgr):
+cpdef log_marg_amp_full_background(sk, dlen, bgorder, np.ndarray[DTYPE_t, ndim=3] bgcross, np.ndarray[DTYPE_t, ndim=2] dbgr):
     """
-    Run `log_marg_amp_full_C` to get the background (a polynomial noise variation)
+    Run :func:`log_marg_amp_full_C` to get the background (a polynomial noise variation)
     versus Gaussian noise log likelihood ratio.
 
     The background polynomial is of the form:
@@ -320,11 +318,11 @@ cpdef log_marg_amp_full_background(sk, dlen, bgorder, np.ndarray[DTYPE_t, ndim=3
     
     bgcross : :class:`numpy.ndarray`
         A matrix of cross-terms of the models from each polynomial power term [size:
-        (`bgorder`+1)-by-(`bgorder`+1)].
+        (`bgorder+1`)-by-(`bgorder+1`)].
     
     dbgr : :class:`numpy.ndarray`
        A matrix of the data crossed with each of the polynomial power terms (as a
-       sliding window of `bglen` across the data `dlen`) [size: (`bgorder`+)-by-`dlen`].
+       sliding window of `bglen` across the data `dlen`) [size: (`bgorder+1`)-by-`dlen`].
 
     Returns
     -------
@@ -355,11 +353,11 @@ cpdef log_marg_amp_full(Nmodels, np.ndarray[DTYPE_t, ndim=2] modelModel,
     Calculates the log-likelihood ratio for a signal model (consisting of a number `Nmodels`
     components, each with an amplitude that is marginalised over) compared to a pure Gaussian noise
     model. For all bar the last model component the amplitudes are analytically marginalised
-    between -infinity and +infinity, whilst if `lastHalfRange` is true the final amplitude
+    between :math:`-\infty` and :math:`\infty`, whilst if `lastHalfRange` is true the final amplitude
     will be marginalised between 0 and infinity (i.e. it must be positive).
 
-    .. note:: This function is several times SLOWER than the equivalent straight C version
-        `log_marg_amp_full_C`, which should generally be used instead. In that function the
+    .. note:: This function is several times *slower* than the equivalent straight C version
+        :func:`log_marg_amp_full_C`, which should generally be used instead. In that function the
         `modelModel` array is flattened.
     
     Parameters
@@ -376,7 +374,7 @@ cpdef log_marg_amp_full(Nmodels, np.ndarray[DTYPE_t, ndim=2] modelModel,
         The underlying Gaussian noise standard deviation
     lastHalfRange : bool
         A boolean saying whether the final model component amplitudes should be marginalised over
-        the full -infinity to infinity range (False), or between 0 and inf (True).
+        the full :math:`-\infty` to :math:`\infty` range (False), or between 0 and inf (True).
 
     Returns
     -------
@@ -461,7 +459,7 @@ cpdef log_marg_amp_original(d, m, ss):
 
 
     .. note::
-        This uses the :func:`scipy.special.erf` function and is slower than :func:`log_marg_amp`,
+        This uses the :mod:`scipy.special` `erf` function and is slower than :func:`log_marg_amp`,
         so in general is deprecated.
     
     Parameters
@@ -518,7 +516,7 @@ cpdef logplus(double x, double y):
 
     See also
     --------
-    logminus : A similar calculation, but for
+    logminus : A similar calculation, but for subtracting two values.
     
     """
     cdef double z = np.inf
@@ -544,6 +542,10 @@ cpdef logminus(double x, double y):
     -------
     z : double
         The value of :math:`\log{(e^x - e^y)}`.
+
+    See also
+    --------
+    logplus : A similar calculation, but for adding two values.
     """
     cdef double z = np.inf
     if isinf(x) and isinf(y) and (x < 0) and (y < 0):
@@ -591,7 +593,7 @@ cpdef double logtrapz(np.ndarray[DTYPE_t, ndim=1] lx, np.ndarray[DTYPE_t, ndim=1
 
 cpdef log_likelihood_marg_background(np.ndarray mmcross, np.ndarray[DTYPE_t, ndim=1] dmcross, nmodels, sk):
    """
-   This is a wrapper to `log_marg_amp_except_final_C`, which calculates the Gaussian
+   This is a wrapper to :c:func:`log_marg_amp_except_final_C`, which calculates the Gaussian
    likelihood for data containing a model versus just Gaussian noise. In this case the model
    consists of a signal (e.g. a flare) and a background variation described by a polynomial, and
    the function marginalises over the unknown polynomial amplitude coefficients, but not the
@@ -603,7 +605,7 @@ cpdef log_likelihood_marg_background(np.ndarray mmcross, np.ndarray[DTYPE_t, ndi
       An array (`nmodels`-by-`nmodels`) consisting of the sums of the model terms (each of the
       polynomial model terms and the signal model) cross with each other. Terms involving the
       signal model must be in the final rows and columns of the array. This is flattened for use
-      in `log_marg_amp_except_final_C`
+      in :c:func:`log_marg_amp_except_final_C`.
 
    dmcross : :class:`numpy.ndarray`
       A 1D array consisting of the sums of the model terms crossed with the data. This must

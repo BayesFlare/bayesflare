@@ -37,14 +37,15 @@ from .models.flare import Flare
 from .models.transit import Transit
 from .models.impulse import Impulse
 from .models.expdecay import Expdecay
+from .models.gaussian import Gaussian
 
-from .finder.find import Finder, SigmaThresholdMethod, OddsRatioDetector
+from .finder.find import SigmaThresholdMethod, OddsRatioDetector
 
-from .noise.noise import estimate_noise_ps, estimate_noise_tv, make_noise_lightcurve, addNoise, detrend_lightcurve, savitzky_golay
+from .noise.noise import estimate_noise_ps, estimate_noise_tv, make_noise_lightcurve, addNoise, highpass_filter_lightcurve, savitzky_golay
 
 from .stats import *
 from .stats.bayes import Bayes, ParameterEstimationGrid
-from .stats.thresholding import Thresholder
+#from .stats.thresholding import Thresholder
 
 from .misc.misc import nextpow2, mkdir
 from .inject.inject import inject_model
