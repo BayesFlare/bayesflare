@@ -41,7 +41,7 @@ setup(
   ext_modules = cythonize(ext_modules, gdb_debug=False),
   classifiers=[
       'Development Status :: 5 - Production/Stable',
-      'Intended Audience :: Science/Research'
+      'Intended Audience :: Science/Research',
       'License :: OSI Approved :: GNU General Public License (GPL)',
       'Operating System :: POSIX :: Linux',
       'Programming Language :: Python',
