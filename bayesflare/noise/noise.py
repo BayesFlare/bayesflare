@@ -315,4 +315,4 @@ def running_median(self, y, window):
         v = (idxs < (idxs[i]+halfwin)) & (idxs > (idxs[i]-halfwin))
         ffit = np.append(ffit, np.median(y[v]))
 
-     return ffit
+    return ffit

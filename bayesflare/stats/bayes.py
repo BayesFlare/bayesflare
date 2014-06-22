@@ -159,7 +159,7 @@ class Bayes():
 
         # get noise estimate on a filtered lightcurve to better represent just the noise
         tmpcurve = copy(self.lightcurve)
-        tmpcurve.detrend(bglen, bgorder)
+        tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
         if noiseestmethod == 'powerspectrum':
           sk = estimate_noise_ps(tmpcurve, estfrac=psestfrac)[0]
         elif noiseestmethod == 'tailveto':
@@ -223,7 +223,7 @@ class Bayes():
         mdcross = np.ndarray(tuple(model.shape)+(N,))
 
         for i in range(np.product(model.shape)):
-            m = model(i, mts, filt=False) # use the original model without the shape having been changed
+            m = model(i, ts=mts, filt=False) # use the original model without the shape having been changed
 
             q = np.unravel_index(i, model.shape)
 
@@ -309,7 +309,7 @@ class Bayes():
             # get Bayes factors and apply priors
             self.lnBmargAmp[q] = Ms[i] + priors[q] + ampprior
 
-        self.premarg[model.identity_type()] = self.lnBmargAmp
+        self.premarg = np.copy(self.lnBmargAmp)
 
     def bayes_factors_marg_poly_bgd_only(self,
                                          bglen=55,
@@ -344,7 +344,7 @@ class Bayes():
 
         """ get noise estimate on a filtered lightcurve to better represent just the noise """
         tmpcurve = copy(self.lightcurve)
-        tmpcurve.detrend(bglen, bgorder)
+        tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
         if noiseestmethod == 'powerspectrum':
           sk = estimate_noise_ps(tmpcurve, estfrac=psestfrac)[0]
         elif noiseestmethod == 'tailveto':
@@ -750,7 +750,7 @@ class ParameterEstimationGrid():
         """
         tmpcurve = copy(lightcurve)
         if detrend:
-            tmpcurve.detrend(dtlen, dtorder)
+            tmpcurve.detrend(method='savitzkygolay', nbins=dtlen, order=dtorder)
 
         if noiseestmethod == 'powerspectrum':
             sigma = estimate_noise_ps(tmpcurve, estfrac=estfrac)[0]
@@ -873,7 +873,7 @@ class ParameterEstimationGrid():
             m = self.model.modeldict(ps, ts=lc.cts)
 
             # check if lightcurve has been detrended
-            if lc.detrended:
+            if lc.detrended and lc.detrend_method=='savitzkygolay':
                 # do the same detrending to the model
                 mfit = savitzky_golay(m, lc.detrend_nbins, lc.detrend_order)
                 m = m-mfit

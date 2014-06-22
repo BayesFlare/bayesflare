@@ -45,6 +45,8 @@ class Model():
     timeseries = []
     reverse=False
 
+    modelname=None
+    
     def __init__(self, ts, mtype, amp=1, t0=None, reverse=False, paramnames=None, paramranges=None):
 
         if t0 == None:
@@ -91,7 +93,7 @@ class Model():
             
             self.shape.append(len(self.ranges[p]))
 
-    def filter_model(self, m, filtermethod='savitzkygolay', nbins=101, order=3, filterknee=(1./(0.3.*86400.))):
+    def filter_model(self, m, filtermethod='savitzkygolay', nbins=101, order=3, filterknee=(1./(0.3*86400.))):
         """
         Use the Savitzky-Golay smoothing (:func:`.savitzky_golay`) to high-pass filter the model m.
 
@@ -127,7 +129,7 @@ class Model():
             filtm = bf.highpass_filter_lightcurve(ml, knee=filterknee)
             del ml
             return filtm 
-        else
+        else:
             raise ValueError('Unrecognised filter method (%s) given' % filtermethod)
 
     def __call__(self, q, ts=None, filt=False, filtermethod='savitzkygolay', nbins=101, order=3, filterknee=(1./(0.3*86400.))):
@@ -137,13 +139,13 @@ class Model():
         idxtuple = np.unravel_index(q, self.shape)
         
         pdict = {}
-        for i, p in enumerate(paramnames):
+        for i, p in enumerate(self.paramnames):
             pdict[p] = self.ranges[p][idxtuple[i]]
         
         if ts == None:
             ts = self.ts
         
-        f = self.model(pdict)
+        f = self.model(pdict, ts=ts)
         
         if filt:
             f = self.filter_model(f, filtermethod=filtermethod, nbins=nbins, order=order, filterknee=filterknee)
@@ -189,10 +191,12 @@ class Flare(Model):
 
     def __init__(self, ts, paramranges=None, amp=1, t0=None, reverse=False):
         Model.__init__(self, ts, mtype='flare', amp=amp, t0=t0, reverse=reverse,
-                       paramnames=['t0' 'tauexp', 'taugauss', 'amp'],
+                       paramnames=['t0', 'tauexp', 'taugauss', 'amp'],
                        paramranges=paramranges)
         
-    def model(self, pdict):
+        self.modelname = 'flare'
+        
+    def model(self, pdict, ts=None):
         """
         The flare model.
     
@@ -200,6 +204,8 @@ class Flare(Model):
         ----------
         pdict : dict,
            A dictionary of the flare model parameters ('t0', 'amp', 'taugauss', 'tauexp').
+        ts : :class:`numpy.ndarray`, default: None
+           A 1D set of time stamps (if 'None' the value of ts defined in the model is used).
        
         Returns
         -------
@@ -217,26 +223,29 @@ class Flare(Model):
         if not pdict.has_key('tauexp'):
             raise ValueError("Error... no 'tauexp' value in dictionary!")
     
+        if ts == None:
+            ts = self.ts
+    
         t0 = pdict['t0']
         amp = pdict['amp']
         tauGauss = pdict['taugauss']
         tauExp = pdict['tauexp']
 
-        f = np.zeros(len(self.ts))
-        f[self.ts == t0] = amp
+        f = np.zeros(len(ts))
+        f[ts == t0] = amp
 
         # avoid division by zero errors
         if tauGauss > 0:
             if self.reverse:
-                f[self.ts > t0] = amp*np.exp(-(self.ts[self.ts > t0] - t0)**2 / (2*float(tauGauss)**2))
+                f[ts > t0] = amp*np.exp(-(ts[ts > t0] - t0)**2 / (2*float(tauGauss)**2))
             else:
-                f[self.ts < t0] = amp*np.exp(-(self.ts[self.ts < t0] - t0)**2 / (2*float(tauGauss)**2))
+                f[ts < t0] = amp*np.exp(-(ts[ts < t0] - t0)**2 / (2*float(tauGauss)**2))
 
         if tauExp > 0:
             if self.reverse:
-                f[self.ts < t0] = amp*np.exp((self.ts[self.ts < t0] - t0)/float(tauExp))
+                f[ts < t0] = amp*np.exp((ts[ts < t0] - t0)/float(tauExp))
             else:
-                f[self.ts > t0] = amp*np.exp(-(self.ts[self.ts > t0] - t0)/float(tauExp))
+                f[ts > t0] = amp*np.exp(-(ts[ts > t0] - t0)/float(tauExp))
 
         return f
 
@@ -357,6 +366,8 @@ class Transit(Model):
                        paramnames=['t0', 'sigmag', 'tauf', 'amp'],
                        paramranges=paramranges)
 
+        self.modelname = 'transit'
+                       
     def set_max_duration(self, maxdur=np.inf):
         """
         Set the maximum duration of the transit. This will be used when
@@ -371,7 +382,7 @@ class Transit(Model):
         
         self.maxdur = maxdur
                        
-    def model(self, pdict):    
+    def model(self, pdict, ts=None):    
         """
         The transit model.
 
@@ -379,7 +390,9 @@ class Transit(Model):
         ----------
         pdict : dict,
            A dictionary of the transit model parameters ('t0', 'amp', 'sigmag', 'tauf').
-       
+        ts : :class:`numpy.ndarray`, default: None
+           A 1D set of time stamps (if 'None' the value of ts defined in the model is used).
+           
         Returns
         -------
         f : :class:`numpy.ndarray`
@@ -395,6 +408,9 @@ class Transit(Model):
             raise ValueError("Error... no 'sigmag' value in dictionary!")
         if not pdict.has_key('tauf'):
             raise ValueError("Error... no 'tauf' value in dictionary!")
+    
+        if ts == None:
+            ts = self.ts
     
         t0 = pdict['t0']
         amp = pdict['amp']
@@ -529,11 +545,13 @@ class Expdecay(Model):
     """
 
     def __init__(self, ts, amp=1, t0=None, reverse=False, paramranges=None):
-        Model.__init__(self, ts, mtype='transit', amp=amp, t0=t0, reverse=reverse,
+        Model.__init__(self, ts, mtype='expdecay', amp=amp, t0=t0, reverse=reverse,
                        paramnames=['t0', 'amp', 'tauexp'],
                        paramranges=paramranges)
 
-    def model(self, pdict):
+        self.modelname = 'expdecay'
+                       
+    def model(self, pdict, ts=None):
         """
         The exponential decay model.
     
@@ -541,7 +559,9 @@ class Expdecay(Model):
         ----------
         pdict : dict,
            A dictionary of the exponential decay model parameters ('t0', 'amp', 'tauexp').
-    
+        ts : :class:`numpy.ndarray`, default: None
+           A 1D set of time stamps (if 'None' the value of ts defined in the model is used).
+           
         Returns
         -------
         f : :class:`numpy.ndarray`
@@ -555,6 +575,9 @@ class Expdecay(Model):
             raise ValueError("Error... no 'amp' value in dictionary!")
         if not pdict.has_key('tauexp'):
             raise ValueError("Error... no 'tauexp' value in dictionary!")
+  
+        if ts == None:
+            ts = self.ts
   
         t0 = pdict['t0']
         amp = pdict['amp']
@@ -656,7 +679,9 @@ class Impulse(Model):
                        paramnames=['t0', 'amp'],
                        paramranges=paramranges)
 
-    def model(self, pdict):
+        self.modelname = 'impulse'
+                       
+    def model(self, pdict, ts=None):
         """
         The impulse model.
     
@@ -664,6 +689,8 @@ class Impulse(Model):
         ----------
         pdict : dict,
            A dictionary of the exponential decay model parameters ('t0', 'amp').
+        ts : :class:`numpy.ndarray`, default: None
+           A 1D set of time stamps (if 'None' the value of ts defined in the model is used).
     
         Returns
         -------
@@ -676,6 +703,9 @@ class Impulse(Model):
             raise ValueError("Error... no 't0' value in dictionary!")
         if not pdict.has_key('amp'):
             raise ValueError("Error... no 'amp' value in dictionary!")
+  
+        if ts == None:
+            ts = self.ts
   
         t0 = pdict['t0']
         amp = pdict['amp']
@@ -762,7 +792,9 @@ class Gaussian(Model):
                        paramnames=['t0', 'sigma', 'amp'],
                        paramranges=paramranges)
         
-    def model(self, pdict):
+        self.modelname = 'gaussian'
+        
+    def model(self, pdict, ts=None):
         """
         The Gaussian model.
     
@@ -770,6 +802,8 @@ class Gaussian(Model):
         ----------
         pdict : dict,
            A dictionary of the Gaussian model parameters ('t0', 'amp', 'sigma').
+        ts : :class:`numpy.ndarray`, default: None
+           A 1D set of time stamps (if 'None' the value of ts defined in the model is used).
        
         Returns
         -------
@@ -784,6 +818,9 @@ class Gaussian(Model):
             raise ValueError("Error... no 'amp' value in dictionary!")
         if not pdict.has_key('sigma'):
             raise ValueError("Error... no 'sigma' value in dictionary!")
+    
+        if ts == None:
+            ts = self.ts
     
         t0 = pdict['t0']
         amp = pdict['amp']
@@ -882,7 +919,9 @@ class Step(Model):
                        paramnames=['t0', 'amp'],
                        paramranges=paramranges)
 
-    def model(self, pdict):
+        self.modelname = 'step'
+                       
+    def model(self, pdict, ts=None):
         """
         The step function model. A step from zero to amp.
     
@@ -890,6 +929,8 @@ class Step(Model):
         ----------
         pdict : dict,
            A dictionary of the exponential decay model parameters ('t0', 'amp').
+        ts : :class:`numpy.ndarray`, default: None
+           A 1D set of time stamps (if 'None' the value of ts defined in the model is used).
 
         Returns
         -------
@@ -902,6 +943,9 @@ class Step(Model):
             raise ValueError("Error... no 't0' value in dictionary!")
         if not pdict.has_key('amp'):
             raise ValueError("Error... no 'amp' value in dictionary!")
+  
+        if ts == None:
+            ts = self.ts
   
         t0 = pdict['t0']
         amp = pdict['amp']

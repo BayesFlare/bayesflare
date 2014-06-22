@@ -484,8 +484,8 @@ class OddsRatioDetector():
         the standard deviation equivalent to the probability volume required for the noise estimate
         e.g. a value of 1.0 means the estimate is formed from the central 68% of the data's
         cumulative probability distribution. This value must be greater than 0.
-    flareparams : dict, default: {'taug': (0, 1.5*60*60, 10), 'taue': (0.5*60*60, 3.*60*60, 10)}
-        A dictionary containing the flare parameters 'taue' and 'taug' giving tuples of each of
+    flareparams : dict, default: {'taugauss': (0, 1.5*60*60, 10), 'tauexp': (0.5*60*60, 3.*60*60, 10)}
+        A dictionary containing the flare parameters 'tauexp' and 'taugauss' giving tuples of each of
         their lower and upper values (in seconds) along with the number of grid points spanning that
         range (if the tuple contains only a single value then this will be the fixed value of that
         parameter). These will be numerically marginalised over to produce the log odds ratio.
@@ -504,8 +504,8 @@ class OddsRatioDetector():
     noiseexpdecay : bool, default: True
         If True then the noise model will include a purely exponential decay model
         (:class:`Expdecay`) on top of a polynomial background variation.
-    noiseexpdecayparams : dict, default: {'taue': (0.0, 0.25*60*60, 3)}
-        A dictionary containing the exponential decay parameter 'taue' giving a tuples of its lower
+    noiseexpdecayparams : dict, default: {'tauexp': (0.0, 0.25*60*60, 3)}
+        A dictionary containing the exponential decay parameter 'tauexp' giving a tuples of its lower
         and upper values (in seconds) and the number of grid points spanning that range (if the
         tuple contains only a single value then this will be the fixed value of that parameter).
         This will be numerically marginalised over to produce the log odds ratio.
@@ -543,12 +543,12 @@ class OddsRatioDetector():
                  noiseestmethod='powerspectrum',
                  psestfrac=0.5,
                  tvsigma=1.0,
-                 flareparams={'taug': (0, 1.5*60*60, 10), 'taue': (0.5*60*60, 3.*60*60, 10)},
+                 flareparams={'taugauss': (0, 1.5*60*60, 10), 'tauexp': (0.5*60*60, 3.*60*60, 10)},
                  noisepoly=True,
                  noiseimpulse=True,
                  noiseimpulseparams={'t0': (0.,)},
                  noiseexpdecay=True,
-                 noiseexpdecayparams={'taue': (0.0, 0.25*60*60, 3)},
+                 noiseexpdecayparams={'tauexp': (0.0, 0.25*60*60, 3)},
                  noiseexpdecaywithreverse=True,
                  noisestep=False,
                  noisestepparams={'t0': (0.,)},
@@ -585,41 +585,31 @@ class OddsRatioDetector():
         """
         self.ignoreedges = ignoreedges
 
-    def set_flare_params(self, flareparams={'taug': (0, 1.5*60*60, 10), 'taue': (0.5*60*60, 3.*60*60, 10)}):
+    def set_flare_params(self, flareparams={'taugauss': (0, 1.5*60*60, 10), 'tauexp': (0.5*60*60, 3.*60*60, 10)}):
         """
-        Set the Gaussian rise ('taug') and exponential decay ('taue') timescale parameters for the
-        flare parameter grid.
+        Set the Gaussian rise ('taugauss') and exponential decay ('tauexp') timescale parameters for the
+        flare parameter grid. This can also contain parameter ranges for 't0' if required,
+        but otherwise this will default to 0 (i.e. the centre of the time series).
 
         Parameters
         ----------
-        flareparams : dict, default: {'taug': (0, 1.5*60*60, 10), 'taue': (0.5*60*60, 3.*60*60, 10)}
-            A dictionary of tuples for the parameters 'taug' and 'taue'. Each must either be a
+        flareparams : dict, default: {'taugauss': (0, 1.5*60*60, 10), 'tauexp': (0.5*60*60, 3.*60*60, 10)}
+            A dictionary of tuples for the parameters 'taugauss' and 'tauexp'. Each must either be a
             single value of three values for the low end, high end (both in seconds) and number of
             parameter points.
         """
-        try:
-            taug = flareparams['taug']
-        except:
-            print "Error... no flare 'taug' parameter given"
+        
+        if not flareparams.has_key('taugauss'):
+            raise ValueError("Error... dictionary has no parameter 'taugauss'")
+        if not flareparams.has_key('taugauss'):
+            raise ValueError("Error... dictionary has no parameter 'taugauss'")
+        
+        if not flareparams.has_key('t0'):
+            flareparams['t0'] = (0.,)
 
-        if len(taug) == 1:
-            self.flare_taug = [taug[0], None, None]
-        elif len(taug) == 3:
-            self.flare_taug = [taug[0], taug[1], taug[2]]
-        else:
-            print "taug parameters improperly defined"
-
-        try:
-            taue = flareparams['taue']
-        except:
-            print "Error... no flare 'taue' parameter given"
-
-        if len(taue) == 1:
-            self.flare_taue = [taue[0], None, None]
-        elif len(taue) == 3:
-            self.flare_taue = [taue[0], taue[1], taue[2]]
-        else:
-            print "taug parameters improperly defined"
+        flareparams['amp'] = (1.,)
+        
+        self.flareparams = flareparams
 
     def set_noise_est_method(self, noiseestmethod='powerspectrum', psestfrac=0.5, tvsigma=1.0):
         """
@@ -677,26 +667,24 @@ class OddsRatioDetector():
             Otherwise it can have either sign and in marginalised between -infinity and infinity.
         """
         self.noiseimpulse = noiseimpulse
-        try:
-            params = noiseimpulseparams['t0']
-        except:
-            print "Error... no 't0' value specified for impulse."
-
-        if len(params) == 1:
-            self.noiseimpulseparams = [params[0], None, None]
-        elif len(params) == 3:
-            self.noiseimpulseparams = [params[0], params[1], params[2]]
-        else:
-            print "Impulse parameters improperly defined"
+        
+        if not noiseimpulseparams.has_key('t0'):
+            raise ValueError("Error... no 't0' value set")
+        
+        noiseimpulseparams['amp'] = (1.,)
+        
+        self.noiseimpulseparams = noiseimpulseparams
 
         self.noiseimpulsepositive = positive
 
-    def set_noise_expdecay(self, noiseexpdecay=True, noiseexpdecayparams={'taue': (0.0, 0.25*60*60, 3)}, withreverse=True):
+    def set_noise_expdecay(self, noiseexpdecay=True, noiseexpdecayparams={'tauexp': (0.0, 0.25*60*60, 3)}, withreverse=True):
         """
         Set the noise model to include an exponential decay (and potentially additionally, as an
         extra noise model, an exponential rise) on top of a polynomial background variation.
         Also, set the range of the time scale parameter 'taue' for the exponential decay (used for
-        both the decay and rise models), which will be analytically marginalised over.
+        both the decay and rise models), which will be analytically marginalised over. The
+        parameters can also take the't0' ranges values, but otherwise theis will be set to 0
+        (the centre of the time series).
 
         Parameters
         ----------
@@ -712,17 +700,15 @@ class OddsRatioDetector():
         self.noiseexpdecay = noiseexpdecay
         self.noiseexpdecaywithreverse = withreverse
 
-        try:
-            taue = noiseexpdecayparams['taue']
-        except:
-            print "Error... no exponential decay 'taue' parameter given"
+        if not noiseexpdecayparams.has_key('tauexp'):
+            raise ValueError("Error... 'tauexp' parameter range not given.")
 
-        if len(taue) == 1:
-            self.noise_expdecay_taue = [taue[0], None, None]
-        elif len(taue) == 3:
-            self.noise_expdecay_taue = [taue[0], taue[1], taue[2]]
-        else:
-            print "taug parameters improperly defined"
+        if not noiseexpdecayparams.has_key('t0'):
+            noiseexpdecayparams['t0'] = (0.,)
+        
+        noiseexpdecayparams['amp'] = (1.,)
+        
+        self.noiseexpdecayparams = noiseexpdecayparams
 
     def set_noise_step(self, noisestep=False, noisestepparams={'t0': (0.,)}, withreverse=False):
         """
@@ -743,17 +729,13 @@ class OddsRatioDetector():
         """
         self.noisestep = noisestep
         self.noisestepwithreverse = withreverse
-        try:
-            params = noiseimpulseparams['t0']
-        except:
-            print "Error... no 't0' value specified for impulse."
-
-        if len(params) == 1:
-            self.noisestepparams = [params[0], None, None]
-        elif len(params) == 3:
-            self.noisestepparams = [params[0], params[1], params[2]]
-        else:
-            print "Step parameters improperly defined"
+        
+        if not noisestepparams.has_key('t0'):
+            raise ValueError("Error... 't0' parameter range not set.")
+          
+        noisestepparams['amp'] = (1.,)
+        
+        self.noisestepparams = noisestepparams
     
     def oddsratio(self):
         """
@@ -776,13 +758,10 @@ class OddsRatioDetector():
         """
 
         # get flare odds ratio
-        Mf = Flare(self.lightcurve.cts, amp=1)
-        Mf.set_taus_gauss(self.flare_taug[0], self.flare_taug[1], self.flare_taug[2])
-        Mf.set_taus_exp(self.flare_taue[0], self.flare_taue[1], self.flare_taue[2])
+        Mf = Flare(self.lightcurve.cts, amp=1, paramranges=self.flareparams)
         Bf = Bayes(self.lightcurve, Mf)
         Bf.bayes_factors_marg_poly_bgd(bglen=self.bglen,
                                        bgorder=self.bgorder,
-                                       amppriorrange=self.amppriors,
                                        noiseestmethod=self.noiseestmethod,
                                        psestfrac=self.psestfrac,
                                        tvsigma=self.tvsigma)
@@ -793,7 +772,6 @@ class OddsRatioDetector():
         if self.noisepoly:
             Bg = Bf.bayes_factors_marg_poly_bgd_only(bglen=self.bglen,
                                                      bgorder=self.bgorder,
-                                                     amppriorrange=self.amppriors,
                                                      noiseestmethod=self.noiseestmethod,
                                                      psestfrac=self.psestfrac,
                                                      tvsigma=self.tvsigma)
@@ -802,13 +780,11 @@ class OddsRatioDetector():
 
         if self.noiseimpulse:
             # setup impulse model
-            M = Impulse(self.lightcurve.cts, amp=1)
-            M.set_t0s(self.noiseimpulseparams[0], self.noiseimpulseparams[1], self.noiseimpulseparams[2])
+            M = Impulse(self.lightcurve.cts, amp=1, paramranges=self.noiseimpulseparams)
             Bi = Bayes(self.lightcurve, M)
             Bi.bayes_factors_marg_poly_bgd(bglen=self.bglen,
                                            bgorder=self.bgorder,
                                            halfrange=self.noiseimpulsepositive,
-                                           amppriorrange=self.amppriors,
                                            noiseestmethod=self.noiseestmethod,
                                            psestfrac=self.psestfrac,
                                            tvsigma=self.tvsigma)
@@ -818,12 +794,10 @@ class OddsRatioDetector():
 
         if self.noiseexpdecay:
             # setup short flare-like model
-            M = Expdecay(self.lightcurve.cts, amp=1)
-            M.set_taus_exp(self.noise_expdecay_taue[0], self.noise_expdecay_taue[1], self.noise_expdecay_taue[2])
+            M = Expdecay(self.lightcurve.cts, amp=1, paramranges=self.noiseexpdecayparams)
             Be = Bayes(self.lightcurve, M)
             Be.bayes_factors_marg_poly_bgd(bglen=self.bglen,
                                            bgorder=self.bgorder,
-                                           amppriorrange=self.amppriors,
                                            noiseestmethod=self.noiseestmethod,
                                            psestfrac=self.psestfrac,
                                            tvsigma=self.tvsigma)
@@ -832,12 +806,10 @@ class OddsRatioDetector():
             del M
 
             if self.noiseexpdecaywithreverse:
-                M = Expdecay(self.lightcurve.cts, amp=1, reverse=True)
-                M.set_taus_exp(self.noise_expdecay_taue[0], self.noise_expdecay_taue[1], self.noise_expdecay_taue[2])
+                M = Expdecay(self.lightcurve.cts, amp=1, reverse=True, paramranges=self.noiseexpdecayparams)
                 Ber = Bayes(self.lightcurve, M)
                 Ber.bayes_factors_marg_poly_bgd(bglen=self.bglen,
                                                 bgorder=self.bgorder,
-                                                amppriorrange=self.amppriors,
                                                 noiseestmethod=self.noiseestmethod,
                                                 psestfrac=self.psestfrac,
                                                 tvsigma=self.tvsigma)
@@ -847,12 +819,10 @@ class OddsRatioDetector():
 
         if self.noisestep:
             # setup step function model
-            M = Step(self.lightcurve.cts, amp=1)
-            M.set_t0s(self.noisestepparams[0], self.noisestepparams[1], self.noisestepparams[2])
+            M = Step(self.lightcurve.cts, amp=1, paramranges=self.noisestepparams)
             Bs = Bayes(self.lightcurve, M)
             Bs.bayes_factors_marg_poly_bgd(bglen=self.bglen,
                                            bgorder=self.bgorder,
-                                           amppriorrange=self.amppriors,
                                            noiseestmethod=self.noiseestmethod,
                                            psestfrac=self.psestfrac,
                                            tvsigma=self.tvsigma)
@@ -861,12 +831,10 @@ class OddsRatioDetector():
             del M
 
             if self.noisestepwithreverse:
-                M = Step(self.lightcurve.cts, amp=1, reverse=True)
-                M.set_t0s(self.noisestepparams[0], self.noisestepparams[1], self.noisestepparams[2])
+                M = Step(self.lightcurve.cts, amp=1, reverse=True, paramranges=self.noisestepparams)
                 Bsr = Bayes(self.lightcurve, M)
                 Bsr.bayes_factors_marg_poly_bgd(bglen=self.bglen,
                                                 bgorder=self.bgorder,
-                                                amppriorrange=self.amppriors,
                                                 noiseestmethod=self.noiseestmethod,
                                                 psestfrac=self.psestfrac,
                                                 tvsigma=self.tvsigma)

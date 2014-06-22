@@ -350,7 +350,7 @@ class Lightcurve():
         z[nans]= np.interp(za(nans), za(~nans), z[~nans]).astype('float32')
         self.clc = z
 
-    def set_detrend(method='none', nbins=None, order=None, knee=None):
+    def set_detrend(self, method='none', nbins=None, order=None, knee=None):
         """
         A method allowing the detrending parameters for the light curve to be changed.
 
@@ -393,7 +393,7 @@ class Lightcurve():
            The high-pass filter knee frequency (Hz).
 
         """
-        
+
         self.set_detrend(method=method, nbins=nbins, order=order, knee=knee)
         self.detrended = True
 
