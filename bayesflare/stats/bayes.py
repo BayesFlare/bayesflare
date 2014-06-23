@@ -224,7 +224,6 @@ class Bayes():
 
         for i in range(np.product(model.shape)):
             m = model(i, ts=mts, filt=False) # use the original model without the shape having been changed
-
             q = np.unravel_index(i, model.shape)
 
             # get prior
@@ -402,21 +401,19 @@ class Bayes():
 
         B = log_marg_amp_full_background(sk, N, bgorder, bgcross, dbgr)
 
-        B = B + ampprior
-
         self.lnBmargBackground = B
 
         return B
 
-    def marginalise(self, axis):
+    def marginalise(self, pname):
         """
         Function to reduce the dimensionality of the `lnBmargAmp` :class:`numpy.ndarray` from `N` to
         `N-1` through numerical marginalisation (integration) over a given parameter.
 
         Parameters
         ----------
-        axis: int
-            The axis of the array that is to be marginalised.
+        axis: string
+            The parameter name of the array that is to be marginalised.
 
         Returns
         -------
@@ -426,7 +423,8 @@ class Bayes():
         """
 
         arr = self.lnBmargAmp
-        places = self.ranges[axis]
+        places = self.ranges[pname]
+        axis = self.model.paramnames.index(pname)
         if len(places) > 1:
             x = np.apply_along_axis(logtrapz, axis, arr, places)
         elif len(places) == 1:
@@ -435,8 +433,16 @@ class Bayes():
             q = np.arange(0,len(z)).astype(int) != axis
             newshape = tuple((np.array(list(z)))[q])
             x = np.reshape(arr, newshape)
-        B = Bayes(self.lightcurve, self.model)
-        B.ranges = np.delete(self.ranges, axis, 0)
+        
+        model = copy(self.model)
+        model.paramnames.remove(pname)
+        
+        B = Bayes(self.lightcurve, model)
+        
+        ranges = copy(self.ranges)
+        del ranges[pname]
+        B.ranges = ranges
+        
         B.lnBmargAmp = x
         return B
 
@@ -452,9 +458,9 @@ class Bayes():
         """
 
         A = self
-        for i in np.arange(len(self.ranges)):
-            A = A.marginalise(0)
-
+        for p in self.ranges:
+            A = A.marginalise(p)
+            
         return A
 
     def noise_evidence(self):

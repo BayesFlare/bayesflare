@@ -778,6 +778,8 @@ class OddsRatioDetector():
 
             noiseodds.append(Bg)
 
+        del Mf
+            
         if self.noiseimpulse:
             # setup impulse model
             M = Impulse(self.lightcurve.cts, amp=1, paramranges=self.noiseimpulseparams)

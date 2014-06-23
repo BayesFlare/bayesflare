@@ -57,7 +57,9 @@ class Model():
         self.t0 = t0
         self.ts  = ts
         self.reverse = reverse
-
+        self.shape = []
+        self.ranges = {}
+        
         # set default ranges
         if paramranges != None:
             self.set_params(paramranges)
@@ -636,10 +638,10 @@ class Expdecay(Model):
             ampprior = -np.log(amprange[-1] - amprange[0])
     
         tauexpprior = 0.
-        if len(tauexpprior) > 1:
+        if len(tauexprange) > 1:
             tauexpprior = -np.log(tauexprange[-1] - tauexprange[0])
             
-        return (t0prior + amprior + tauexpprior)
+        return (t0prior + ampprior + tauexpprior)
 
 
 class Impulse(Model):
@@ -675,7 +677,7 @@ class Impulse(Model):
     """
     
     def __init__(self, ts, amp=1, t0=None, paramranges=None):
-        Model.__init__(self, ts, mtype='impulse', amp=amp, t0=t0, reverse=reverse,
+        Model.__init__(self, ts, mtype='impulse', amp=amp, t0=t0,
                        paramnames=['t0', 'amp'],
                        paramranges=paramranges)
 
@@ -788,7 +790,7 @@ class Gaussian(Model):
     """
 
     def __init__(self, ts, amp=1, t0=None, paramranges=None):
-        Model.__init__(self, ts, mtype='gaussian', amp=amp, t0=t0, reverse=reverse,
+        Model.__init__(self, ts, mtype='gaussian', amp=amp, t0=t0,
                        paramnames=['t0', 'sigma', 'amp'],
                        paramranges=paramranges)
         
