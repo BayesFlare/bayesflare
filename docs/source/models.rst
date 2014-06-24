@@ -5,9 +5,11 @@ Models
 These classes provide model functions and also set up grid over the parameters spaces of
 the models and provide log(prior) values for those parameter spaces.
 
-.. note::
-   In the future a general model class should be created containing the common methods. These
-   can then be inherited by specific model classes.
+A generic model class is provided that can set up model parameters, parameter ranges, and
+filtering functions. This class is inherited by all the other models, which provide model
+functions and priors.
+
+.. autoclass:: bayesflare.models.Model
 
 .. toctree::
    :maxdepth: 2
@@ -33,7 +35,7 @@ amplitude.
 
 In this class the parameter space grid and prior is set up such that :math:`\tau_e > \tau_g`.
 
-.. automodule:: bayesflare.models.flare
+.. autoclass:: bayesflare.models.Flare
    :members:
 
 The Transit Model
@@ -45,7 +47,7 @@ a simple model with Gaussian wings and a flat trough.
 The parameter space grid and prior is set up such that the total length on the transit does not
 exceed a given value.
 
-.. automodule:: bayesflare.models.transit
+.. autoclass:: bayesflare.models.Transit
    :members:
 
 General models
@@ -59,7 +61,7 @@ Exponential decay/rise
 
 A class giving a model with exponential decay or rise.
 
-.. automodule:: bayesflare.models.expdecay
+.. autoclass:: bayesflare.models.Expdecay
    :members:
 
 Impulse
@@ -67,7 +69,7 @@ Impulse
 
 A class giving a model with a delta-function-like (single bin) impulse.
 
-.. automodule:: bayeflare.models.impulse
+.. autoclass:: bayeflare.models.Impulse
    :members:
 
 Gaussian
@@ -75,8 +77,15 @@ Gaussian
 
 A class giving a model with a Gaussian profile.
 
-.. automodule:: bayeflare.models.gaussian
+.. autoclass:: bayeflare.models.Gaussian
    :members:
+
+Step
+----
+
+A class giving a `step function <http://en.wikipedia.org/wiki/Heaviside_step_function>`_  profile.
+
+.. autoclass:: bayesflare.models.Step
 
 References
 ==========

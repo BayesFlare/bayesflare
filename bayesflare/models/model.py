@@ -24,11 +24,7 @@ class Model():
        A list with the names of each model parameter.
     paramranges : dict of tuples
        A dictionary of tuples defining the model parameter ranges.
-       
-    Returns
-    -------
-    f : :class:`numpy.ndarray`
-       An array containing the flare model.
+
     """
 
     amp = 0
@@ -177,14 +173,14 @@ class Flare(Model):
     paramnames : list, default: ['t0' 'tauexp', 'taugauss', 'amp']
        The names of the flare model parameters
     
-    Example
-    -------
+    Examples
+    --------
     The flare model could be set up with the following parameter ranges (note
-    that for the 't0' parameter a value of 0 represents the centre of the
+    that for the 't0' parameter a value of inf will just default to the centre of the
     time series):
     
        >>> ts = np.linspace(0., 30.*86400., 1500) # a time series (in seconds)
-       >>> paramranges = { 't0': (0.,), ...
+       >>> paramranges = { 't0': (np.inf,), ...
        >>>   'tauexp': (0., 10.*3600., 10), ...
        >>>   'taugauss': (0., 10.*3600., 10), ...
        >>>   'amp': (1.,)}
@@ -233,6 +229,10 @@ class Flare(Model):
         tauGauss = pdict['taugauss']
         tauExp = pdict['tauexp']
 
+        # if t0 is inf then set it to the centre of the time series
+        if t0 == np.inf:
+            t0 = ts[int(len(ts)/2.)]
+        
         f = np.zeros(len(ts))
         f[ts == t0] = amp
 
@@ -254,7 +254,7 @@ class Flare(Model):
     def prior(self, pdict):
         """
         The prior function for the flare model parameters. This is a flat prior
-        over the parameter ranges, but with :math:`\tau_e \geq \tau_g`.
+        over the parameter ranges, but with :math:`\\tau_e \geq \\tau_g`.
     
         Parameters
         ----------
@@ -347,14 +347,14 @@ class Transit(Model):
     paramnames : list, default: ['t0' 'sigmag', 'tauf', 'amp']
        The names of the transit model parameters
     
-    Example
-    -------
+    Examples
+    --------
     The transit model could be set up with the following parameter ranges (note
-    that for the 't0' parameter a value of 0 represents the centre of the
+    that for the 't0' parameter a value of inf represents the centre of the
     time series):
     
        >>> ts = np.linspace(0., 30.*86400., 1500) # a time series (in seconds)
-       >>> paramranges = { 't0': (0.,), ...
+       >>> paramranges = { 't0': (np.inf,), ...
        >>>   'sigmag': (1.*3600., 7.*3600., 10), ...
        >>>   'tauf': (0., 7.*3600., 10), ...
        >>>   'amp': (1.,)}
@@ -418,6 +418,10 @@ class Transit(Model):
         amp = pdict['amp']
         sigmag = pdict['sigmag']
         tauf = pdict['tauf']
+    
+        # if t0 is inf then set it to the centre of the time series
+        if t0 == np.inf:
+            t0 = ts[int(len(ts)/2.)]
     
         # the transit model for given parameters
         f = -1.*amp*np.ones(len(ts))
@@ -533,14 +537,14 @@ class Expdecay(Model):
     paramnames : list, default: ['t0', 'amp', 'tauexp']
        The names of the exponential decay model parameters
     
-    Example
-    -------
+    Examples
+    --------
     The exponential decay model could be set up with the following parameter ranges (note
-    that for the 't0' parameter a value of 0 represents the centre of the
+    that for the 't0' parameter a value of inf represents the centre of the
     time series):
     
        >>> ts = np.linspace(0., 30.*86400., 1500) # a time series (in seconds)
-       >>> paramranges = { 't0': (0.,), ...
+       >>> paramranges = { 't0': (np.inf,), ...
        >>>   'tauexp': (0., 2.*3600., 10), ...
        >>>   'amp': (1.,)}
        >>> expdecay = Expdecay(ts, paramranges)
@@ -580,10 +584,14 @@ class Expdecay(Model):
   
         if ts == None:
             ts = self.ts
-  
+
         t0 = pdict['t0']
         amp = pdict['amp']
         tauExp = pdict['tauexp']
+  
+        # if t0 is inf then set it to the centre of the time series
+        if t0 == np.inf:
+            t0 = ts[int(len(ts)/2.)]
   
         f = np.zeros(len(ts))
         f[ts == t0] = amp
@@ -664,14 +672,14 @@ class Impulse(Model):
     paramnames : list, default: ['t0', 'amp']
        The names of the delta-function model parameters
     
-    Example
-    -------
+    Examples
+    --------
     The delta-function impulse model could be set up with the following parameter ranges (note
-    that for the 't0' parameter a value of 0 represents the centre of the
+    that for the 't0' parameter a value of inf represents the centre of the
     time series):
     
        >>> ts = np.linspace(0., 30.*86400., 1500) # a time series (in seconds)
-       >>> paramranges = { 't0': (0.,), ...
+       >>> paramranges = { 't0': (np.inf,), ...
        >>>   'amp': (1.,)}
        >>> impulse = Impulse(ts, paramranges)
     """
@@ -711,6 +719,10 @@ class Impulse(Model):
   
         t0 = pdict['t0']
         amp = pdict['amp']
+  
+        # if t0 is inf then set it to the centre of the time series
+        if t0 == np.inf:
+            t0 = ts[int(len(ts)/2.)]
   
         # the impulse (delta-function) model
         f = np.zeros_like(ts)
@@ -776,14 +788,14 @@ class Gaussian(Model):
     paramnames : list, default: ['t0', 'amp', 'sigma']
        The names of the Gaussian model parameters
     
-    Example
-    -------
+    Examples
+    --------
     The Gaussian profile model could be set up with the following parameter ranges (note
-    that for the 't0' parameter a value of 0 represents the centre of the
+    that for the 't0' parameter a value of inf represents the centre of the
     time series):
     
        >>> ts = np.linspace(0., 30.*86400., 1500) # a time series (in seconds)
-       >>> paramranges = { 't0': (0.,), ...
+       >>> paramranges = { 't0': (np.inf,), ...
        >>>   'sigma': (0., 3.*3600., 10), ...
        >>>   'amp': (1.,)}
        >>> gaussian = Gaussian(ts, paramranges)
@@ -823,10 +835,14 @@ class Gaussian(Model):
     
         if ts == None:
             ts = self.ts
-    
+
         t0 = pdict['t0']
         amp = pdict['amp']
         sigma = pdict['sigma']
+    
+        # if t0 is inf then set it to the centre of the time series
+        if t0 == np.inf:
+            t0 = ts[int(len(ts)/2.)]
     
         # the Gaussian model for given parameters
         if sigma == 0: # if sigma is 0 then have delta function at point closest to t0
@@ -904,14 +920,14 @@ class Step(Model):
     paramnames : list, default: ['t0', 'amp']
        The names of the delta-function model parameters
     
-    Example
-    -------
+    Examples
+    --------
     The step function impulse model could be set up with the following parameter ranges (note
-    that for the 't0' parameter a value of 0 represents the centre of the
+    that for the 't0' parameter a value of inf represents the centre of the
     time series):
     
        >>> ts = np.linspace(0., 30.*86400., 1500) # a time series (in seconds)
-       >>> paramranges = { 't0': (0.,), ...
+       >>> paramranges = { 't0': (np.inf,), ...
        >>>   'amp': (1.,)}
        >>> step = Step(ts, paramranges)
     """
@@ -948,9 +964,13 @@ class Step(Model):
   
         if ts == None:
             ts = self.ts
-  
+
         t0 = pdict['t0']
         amp = pdict['amp']
+  
+        # if t0 is inf then set it to the centre of the time series
+        if t0 == np.inf:
+            t0 = ts[int(len(ts)/2.)]
   
         reverse = self.reverse
   

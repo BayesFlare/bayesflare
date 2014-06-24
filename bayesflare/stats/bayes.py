@@ -248,7 +248,7 @@ class Bayes():
 
             # deal with edge effects
             for j in range(npoly):
-                if m != None:
+                if m != None and priors[q] != -np.inf:
                     mdbgcross[q+(j,)] = np.sum(ms[q]*polyms[j])*np.ones(N)
 
                     for k in range(nsteps):

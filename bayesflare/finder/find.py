@@ -546,12 +546,12 @@ class OddsRatioDetector():
                  flareparams={'taugauss': (0, 1.5*60*60, 10), 'tauexp': (0.5*60*60, 3.*60*60, 10)},
                  noisepoly=True,
                  noiseimpulse=True,
-                 noiseimpulseparams={'t0': (0.,)},
+                 noiseimpulseparams={'t0': (np.inf,)},
                  noiseexpdecay=True,
                  noiseexpdecayparams={'tauexp': (0.0, 0.25*60*60, 3)},
                  noiseexpdecaywithreverse=True,
                  noisestep=False,
-                 noisestepparams={'t0': (0.,)},
+                 noisestepparams={'t0': (np.inf,)},
                  noisestepwithreverse=False,
                  ignoreedges=True):
 
@@ -589,7 +589,7 @@ class OddsRatioDetector():
         """
         Set the Gaussian rise ('taugauss') and exponential decay ('tauexp') timescale parameters for the
         flare parameter grid. This can also contain parameter ranges for 't0' if required,
-        but otherwise this will default to 0 (i.e. the centre of the time series).
+        but otherwise this will default to inf (which gives the centre of the time series).
 
         Parameters
         ----------
@@ -605,7 +605,7 @@ class OddsRatioDetector():
             raise ValueError("Error... dictionary has no parameter 'taugauss'")
         
         if not flareparams.has_key('t0'):
-            flareparams['t0'] = (0.,)
+            flareparams['t0'] = (np.inf,)
 
         flareparams['amp'] = (1.,)
         
@@ -648,7 +648,7 @@ class OddsRatioDetector():
         """
         self.noisepoly = noisepoly
 
-    def set_noise_impulse(self, noiseimpulse=True, noiseimpulseparams={'t0': (0.,)}, positive=False):
+    def set_noise_impulse(self, noiseimpulse=True, noiseimpulseparams={'t0': (np.inf,)}, positive=False):
         """
         Set the noise model to include a delta function impulse (:class:`.Impulse`) on a polynomial
         background variation. Also set the range of times of the impulse, which will be numerically
@@ -658,10 +658,11 @@ class OddsRatioDetector():
         ----------
         noiseimpulse : bool, default: True
             Set to True if this model is used.
-        noiseimpulseparams : dict, default: {'t0': (0.,)}
+        noiseimpulseparams : dict, default: {'t0': (inf,)}
             A dictionary of tuples of the parameter ranges. 't0' is the only allowed parameter. The
             tuple should either be a single value or three values giving the low end, high end
-            and number of parameter points.
+            and number of parameter points. A default 't0' of inf will set it to the centre of the
+            time series.
         positive : bool, default: False
             If True then only have the impulse amplitude marginalised over positive values.
             Otherwise it can have either sign and in marginalised between -infinity and infinity.
@@ -681,17 +682,17 @@ class OddsRatioDetector():
         """
         Set the noise model to include an exponential decay (and potentially additionally, as an
         extra noise model, an exponential rise) on top of a polynomial background variation.
-        Also, set the range of the time scale parameter 'taue' for the exponential decay (used for
+        Also, set the range of the time scale parameter 'tauexp' for the exponential decay (used for
         both the decay and rise models), which will be analytically marginalised over. The
-        parameters can also take the't0' ranges values, but otherwise theis will be set to 0
+        parameters can also take the 't0' ranges values, but otherwise this will be set to 0
         (the centre of the time series).
 
         Parameters
         ----------
         noiseexpdecay : bool, default: True
             Set to True if this model is used.
-        noiseexpdecayparams : dict, default: {'taue': (0.0, 0.25*60*60, 3)}
-            A dictionary of tuples for the parameter 'taue'. It must either be a single value of
+        noiseexpdecayparams : dict, default: {'tauexp': (0.0, 0.25*60*60, 3)}
+            A dictionary of tuples for the parameter 'tauexp'. It must either be a single value of
             three values for the low end, high end (both in seconds) and number of parameter points.
         withreverse : bool, default: True
             Set to true if there should also be an exponential rise model including in the noise
@@ -704,13 +705,13 @@ class OddsRatioDetector():
             raise ValueError("Error... 'tauexp' parameter range not given.")
 
         if not noiseexpdecayparams.has_key('t0'):
-            noiseexpdecayparams['t0'] = (0.,)
+            noiseexpdecayparams['t0'] = (np.inf,)
         
         noiseexpdecayparams['amp'] = (1.,)
         
         self.noiseexpdecayparams = noiseexpdecayparams
 
-    def set_noise_step(self, noisestep=False, noisestepparams={'t0': (0.,)}, withreverse=False):
+    def set_noise_step(self, noisestep=False, noisestepparams={'t0': (np.inf,)}, withreverse=False):
         """
         Set the noise model to include a step function (:class:`.Step`) on a polynomial
         background variation. Also set the range of times of the step function, which will be numerically
@@ -720,10 +721,11 @@ class OddsRatioDetector():
         ----------
         noisestep : bool, default: False
             Set to True if this model is used.
-        noisestepparams : dict, default: {'t0': (0.,)}
+        noisestepparams : dict, default: {'t0': (inf,)}
             A dictionary of tuples of the parameter ranges. 't0' is the only allowed parameter. The
             tuple should either be a single value or three values giving the low end, high end
-            and number of parameter points.
+            and number of parameter points. A 't0' default of inf will set t0 to the centre of the
+            time series.
         withreverse : bool, default: False
             Set to true if there should also be a reverse of the step function noise model.
         """
