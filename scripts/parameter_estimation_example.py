@@ -38,8 +38,8 @@ flarelc.cadence = 'long'
 Mfi = bf.Flare(flarelc.cts, amp=1.)
 t0 = 400000.  # central time
 amp = 20.0    # amplitude
-taug = 1760.0 # Gaussian rise
-taue = 3768.0 # exponential decay
+taug = 1060.0 # Gaussian rise
+taue = 2168.0 # exponential decay
 injvals = {'amp': amp, 'taugauss': taug, 'tauexp': taue, 't0': t0}
 injdata = np.copy(Mfi.model(injvals))
 idxt0 = int(t0/flarelc.dt()) # get index of centre of flare
@@ -55,14 +55,12 @@ pe = bf.ParameterEstimationGrid('flare', flarelc)
 
 pe.lightcurve_chunk(idxt0, 55) # cut out chunk of light curve around the flare
 
-pe.lightcurve.plot()
-
 # set amp range (use max - min range of flare position to lightcurve chunk)
-amprange = (0., 1.4*(np.amax(pe.lightcurve.clc) - np.amin(pe.lightcurve.clc)), 60)
+amprange = (0., 1.6*(np.amax(pe.lightcurve.clc) - np.amin(pe.lightcurve.clc)), 40)
 # here the t0 parameter is not being estimated and is fixed at the injection value
-pe.set_grid(ranges={'taugauss': (0., 3600., 60), 'tauexp': (0., 12000., 60), 'amp': amprange, 't0': (t0,)})
+pe.set_grid(ranges={'taugauss': (0., 3600., 40), 'tauexp': (0., 12000., 40), 'amp': amprange, 't0': (t0,)})
 
-pe.calculate_posterior(bgorder=4)
+pe.calculate_posterior(bgorder=3) # just have a cubic polynomial background
 pe.marginalise_all()
 
 # calculate the injected signal-to-noise ratio
