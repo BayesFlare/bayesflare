@@ -654,6 +654,10 @@ class ParameterEstimationGrid():
             print "Must specify a dictionary of ranges"
             return
 
+        # set ranges in model if nothing is already set
+        if len(self.model.ranges) == 0:
+            self.model.set_params(ranges)
+
         # create vectors for each model parameter
         for i, p in enumerate(self.paramNames):
             # check item is a named parameter
@@ -876,7 +880,7 @@ class ParameterEstimationGrid():
                 ps[p] = pv[p][q[i]]
                 
             # get model by inputting dictionary of parameters
-            m = self.model.modeldict(ps, ts=lc.cts)
+            m = self.model.model(ps, ts=lc.cts)
 
             # check if lightcurve has been detrended
             if lc.detrended and lc.detrend_method=='savitzkygolay':
@@ -1121,7 +1125,7 @@ class ParameterEstimationGrid():
             self.maximum_posterior()
 
         # get model for maximum posterior values
-        m = self.model.modeldict(self.maxpostparams, self.lightcurve.cts)
+        m = self.model.model(self.maxpostparams, ts=self.lightcurve.cts)
 
         snr = np.sqrt(np.sum(m**2))/self.noiseSigma
 
@@ -1154,7 +1158,7 @@ class ParameterEstimationGrid():
             self.maximum_posterior()
 
         # get model for maximum posterior values
-        m = self.model.modeldict(self.maxpostparams, self.lightcurve.cts)
+        m = self.model.model(self.maxpostparams, ts=self.lightcurve.cts)
 
         # integrate model and divide underlying noise level (as estimated by
         # subtracting the best fit model from the data and taking the median value)
