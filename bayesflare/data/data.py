@@ -258,6 +258,20 @@ class Lightcurve():
         self.cts = np.append(self.cts, copy.deepcopy(dcurve[1].data['TIME']*24*3600))
         self.cle = np.append(self.cle, copy.deepcopy(dcurve[1].data['PDCSAP_FLUX_ERR']))
 
+        from astropy.time import Time
+        times = dcurve[1].data['time']+2454833.0
+        nans, x= self._nan_helper(times)
+        times[nans]= np.interp(x(nans), x(~nans), times[~nans])
+        times = Time(times, format='jd', scale='tcb')
+        flux = dcurve[1].data['PDCSAP_FLUX']
+        flux = flux / np.median(flux)
+        flux = flux.byteswap().newbyteorder()
+        file_data = DataFrame({'pdcsap_flux_norm': flux}, index=times.datetime)
+        for each in fits[0].header:
+            meta['pdcsap_flux_norm'][each] = fits[0].header[each]
+
+        self.import_data(file_data, meta)
+            
         dcurve.close()
         self.datagap = self.gap_checker(self.clc, maxgap=maxgap)
         self.interpolate()

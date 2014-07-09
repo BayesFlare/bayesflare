@@ -6,6 +6,7 @@ import matplotlib.mlab as ml
 from ..misc import nextpow2
 from ..simulate import SimLightcurve
 from math import factorial
+import copy
 
 def estimate_noise_ps(lightcurve, estfrac=0.5):
     """
@@ -44,7 +45,7 @@ def estimate_noise_ps(lightcurve, estfrac=0.5):
     return np.sqrt(sk), sk, noise_v
 
 
-def estimate_noise_tv(d, sigma=1.0):
+def estimate_noise_tv(d, sigma=1.0, **kwargs):
     """
     A method of estimating the noise, whilst ignoring large outliers.
 
@@ -71,7 +72,7 @@ def estimate_noise_tv(d, sigma=1.0):
     mean: float
         The value at the middle of the distribution
     """
-
+    d = np.copy(d)
     ld = len(d)
 
     # get normalised histogram
@@ -90,8 +91,28 @@ def estimate_noise_tv(d, sigma=1.0):
 
     interpf = interp1d(csu, binsu) # interpolation function
 
+    if (0.5 - cp/2.) < csu[0]:
+        # We've got a problem here with data sitting near the noise
+        # floor which we need to veto before we can proceed
+
+        d = np.delete(d, np.where(d<=bins[100]))
+        n, bins = np.histogram(d, bins=ld, density=True)
+        bincentres = (bins[:-1] + bins[1:])/2. # bin centres
+
+        # get the cumulative probability distribution
+        cs = np.cumsum(n*(bins[1]-bins[0]))
+
+        # get unique values (helps with interpolation)
+        csu, idx = np.unique(cs, return_index=True)
+        binsu = bincentres[idx]
+
+        # get the cumulative % probability covered by sigma
+        cp = erf(sigma/np.sqrt(2.))
+
+        interpf = interp1d(csu, binsu) # interpolation function
+    
     # get the upper and lower interpolated data values that bound the range
-    lowS = interpf(0.5 - cp/2.);
+    lowS = interpf(0.5 - cp/2.);        
     highS = interpf(0.5 + cp/2.);
 
     # get the value at the middle of the distribution
