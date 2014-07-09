@@ -76,6 +76,10 @@ with the default time step)].", type="int", default=55)
                     help="The polynomial order of the fitted background variability [default: %default].",
                     type="int", default=4)
 
+  parser.add_option("-S", "--num-sinusoids", dest="nsinusoids",
+                    help="The number of sinusoids to fit as a background [default: %default].",
+                    type="int", default=0)
+
   parser.add_option("-I", "--inject-flare", dest="injflare",
                     help="Inject a flare.", action="store_true", default=False)
 
@@ -162,7 +166,7 @@ of standard devaitons with which to estimate the noise [default: %default].",
       phase = 2.*np.pi*np.random.rand(1)
 
     # create times stamps for light curves (the same length as Kepler Q1 data)
-    ts = np.arange(0., opts.tlength, opts.tstep, dtype='float32')
+    ts = np.arange(0., opts.tlength, opts.tstep, dtype='float64')
 
     flarelc = bf.Lightcurve()
 
@@ -220,6 +224,7 @@ of standard devaitons with which to estimate the noise [default: %default].",
 
   bglen = opts.bglen
   bgorder = opts.bgorder
+  nsinusoids = opts.nsinusoids
 
   if bglen % 2 == 0:
     print >> sys.stderr, "Error... background length (bglen) must be an odd number"
@@ -272,6 +277,7 @@ of standard devaitons with which to estimate the noise [default: %default].",
     Or = bf.OddsRatioDetector( flarelc,
                                bglen=bglen,
                                bgorder=bgorder,
+                               nsinusoids=nsinusoids,
                                noiseestmethod=noiseest,
                                psestfrac=opts.psest,
                                tvsigma=opts.tvsigma,

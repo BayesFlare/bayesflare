@@ -473,6 +473,8 @@ class OddsRatioDetector():
         The length of the analysis window that slides across the data.
     bgorder : int, default: 4
         The order of the polynomial background variations used in the signal and noise models.
+    nsinusoids : int, default: 0
+        The number of sinusoids to find and use in the background variations.
     noiseestmethod : string, default: 'powerspectrum'
         The method used to estimate the noise standard deviation of the light curve data.
     psestfrac : float, default: 0.5
@@ -540,6 +542,7 @@ class OddsRatioDetector():
                  lightcurve,
                  bglen=55,
                  bgorder=4,
+                 nsinusoids=0,
                  noiseestmethod='powerspectrum',
                  psestfrac=0.5,
                  tvsigma=1.0,
@@ -558,6 +561,7 @@ class OddsRatioDetector():
         self.lightcurve = deepcopy(lightcurve)
         self.bglen = bglen
         self.bgorder = bgorder
+        self.nsinusoids = nsinusoids
 
         # set flare ranges
         self.set_flare_params(flareparams=flareparams)
@@ -764,6 +768,7 @@ class OddsRatioDetector():
         Bf = Bayes(self.lightcurve, Mf)
         Bf.bayes_factors_marg_poly_bgd(bglen=self.bglen,
                                        bgorder=self.bgorder,
+                                       nsinusoids=self.nsinusoids,
                                        noiseestmethod=self.noiseestmethod,
                                        psestfrac=self.psestfrac,
                                        tvsigma=self.tvsigma)
@@ -774,6 +779,7 @@ class OddsRatioDetector():
         if self.noisepoly:
             Bg = Bf.bayes_factors_marg_poly_bgd_only(bglen=self.bglen,
                                                      bgorder=self.bgorder,
+                                                     nsinusoids=self.nsinusoids,
                                                      noiseestmethod=self.noiseestmethod,
                                                      psestfrac=self.psestfrac,
                                                      tvsigma=self.tvsigma)
@@ -788,6 +794,7 @@ class OddsRatioDetector():
             Bi = Bayes(self.lightcurve, M)
             Bi.bayes_factors_marg_poly_bgd(bglen=self.bglen,
                                            bgorder=self.bgorder,
+                                           nsinusoids=self.nsinusoids,
                                            halfrange=self.noiseimpulsepositive,
                                            noiseestmethod=self.noiseestmethod,
                                            psestfrac=self.psestfrac,
@@ -802,6 +809,7 @@ class OddsRatioDetector():
             Be = Bayes(self.lightcurve, M)
             Be.bayes_factors_marg_poly_bgd(bglen=self.bglen,
                                            bgorder=self.bgorder,
+                                           nsinusoids=self.nsinusoids,
                                            noiseestmethod=self.noiseestmethod,
                                            psestfrac=self.psestfrac,
                                            tvsigma=self.tvsigma)
@@ -814,6 +822,7 @@ class OddsRatioDetector():
                 Ber = Bayes(self.lightcurve, M)
                 Ber.bayes_factors_marg_poly_bgd(bglen=self.bglen,
                                                 bgorder=self.bgorder,
+                                                nsinusoids=self.nsinusoids,
                                                 noiseestmethod=self.noiseestmethod,
                                                 psestfrac=self.psestfrac,
                                                 tvsigma=self.tvsigma)
@@ -827,6 +836,7 @@ class OddsRatioDetector():
             Bs = Bayes(self.lightcurve, M)
             Bs.bayes_factors_marg_poly_bgd(bglen=self.bglen,
                                            bgorder=self.bgorder,
+                                           nsinusoids=self.nsinusoids,
                                            noiseestmethod=self.noiseestmethod,
                                            psestfrac=self.psestfrac,
                                            tvsigma=self.tvsigma)
@@ -839,6 +849,7 @@ class OddsRatioDetector():
                 Bsr = Bayes(self.lightcurve, M)
                 Bsr.bayes_factors_marg_poly_bgd(bglen=self.bglen,
                                                 bgorder=self.bgorder,
+                                                nsinusoids=self.nsinusoids,
                                                 noiseestmethod=self.noiseestmethod,
                                                 psestfrac=self.psestfrac,
                                                 tvsigma=self.tvsigma)
@@ -860,7 +871,10 @@ class OddsRatioDetector():
             for n in noiseodds:
                 denom = logplus(denom, n[i])
 
-            lnO.append(Of.lnBmargAmp[i] - denom)
+            if len(noiseodds) > 0:
+                lnO.append(Of.lnBmargAmp[i] - denom)
+            else:
+                lnO.append(Of.lnBmargAmp[i])
 
         return lnO, ts
 

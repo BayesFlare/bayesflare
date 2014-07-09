@@ -93,7 +93,7 @@ cpdef log_marg_amp(np.ndarray[DTYPE_t, ndim=1] d, np.ndarray[DTYPE_t, ndim=1] m,
     contiguous and evenly spaced.
 
     .. note:: Use this instead of :func:`log_marg_amp_original` when required.
-    
+
     Parameters
     ----------
     d : :class:`numpy.array`
@@ -140,15 +140,15 @@ cpdef log_marg_amp(np.ndarray[DTYPE_t, ndim=1] d, np.ndarray[DTYPE_t, ndim=1] m,
     return B
 
 
-cpdef log_marg_amp_full_model(i, shape, sk, bgorder, lastHalfRange, np.ndarray[DTYPE_t, ndim=1] d,
-                              np.ndarray ms, np.ndarray[DTYPE_t, ndim=3] bgcross,
+cpdef log_marg_amp_full_model(i, shape, sk, nbackground, lastHalfRange, np.ndarray[DTYPE_t, ndim=1] d,
+                              np.ndarray ms, np.ndarray[DTYPE_t, ndim=2] bgcross,
                               np.ndarray mdbgcross, np.ndarray mdcross,
                               np.ndarray[DTYPE_t, ndim=2] dbgr):
     """
     Calculate the logarithm of the likelihood ratio for data consisting of a model (e.g. a flare
-    model) *and* polynomial background variations compared to Gaussian noise. This function will
+    model) *and* modelled background variations compared to Gaussian noise. This function will
     calculate this for a given position in the model parameter value space and for each time step in
-    the data. The polynomial background amplitude coefficients will be analytically marginalised
+    the data. The background model amplitude coefficients will be analytically marginalised
     over. The model amplitude will also be analytically marginalised over, but the
     marginalisation can be specified to either be between :math:`-\infty` and :math:`\infty`, or 0 and
     :math:`\infty`.
@@ -161,30 +161,29 @@ cpdef log_marg_amp_full_model(i, shape, sk, bgorder, lastHalfRange, np.ndarray[D
         A list of integers giving the size of each parameter range.
     sk : float
         The data's noise standard deviation.
-    bgorder : int
-        The order of the polynomial background variations
+    nbackground : int
+        The number of background models with amplitudes to be marginalised over
     lastHalfRange : bool
         If True then the model amplitude will be analytically integrated between 0 and :math:`\infty`, if
         False it will be integrated between :math:`-\infty` and :math:`\infty`.
-    
+
     d : :class:`numpy.ndarray`
         A 1D array containing the light curve time series data.
-    
+
     ms : :class:`numpy.ndarray`
         A matrix containing a time series for the model for each set of the model's parameters. The
         time series is the final dimension of the matrix.
-    
+
     bgcross : :class:`numpy.ndarray`
-        A 3D array containing the cross products of the background polynomial terms as a function
-        of time. This is given as a function of time to account for edge effects.
-    
+        A 2D array containing the cross products of the background polynomial terms.
+
     mdbgcross : :class:`numpy.ndarray`
         A matrix containing the cross product of the model with each of the background polynomial
         terms as a function of time.
-    
+
     mdcross : :class:`numpy.ndarray`
         A matrix containing the cross product of the model with the data as a function of time.
-    
+
     dbgr : :class:`numpy.ndarray`
         A matrix containing the cross product of the data with each background polynomial term as a
         function of time.
@@ -202,12 +201,12 @@ cpdef log_marg_amp_full_model(i, shape, sk, bgorder, lastHalfRange, np.ndarray[D
     """
     q = np.unravel_index(i, shape) # get tuple of index positions
 
-    cdef np.ndarray modelModel = np.zeros((bgorder+2)*(bgorder+2), dtype=DTYPE)
-    cdef np.ndarray dataModel = np.zeros(bgorder+2, dtype=DTYPE)
-    cdef unsigned int loopmax = 0, j = 0, k = 0, l = 0, endidx = bgorder+1, lhr = 0
+    cdef np.ndarray modelModel = np.zeros((nbackground+1)*(nbackground+1), dtype=DTYPE)
+    cdef np.ndarray dataModel = np.zeros(nbackground+1, dtype=DTYPE)
+    cdef unsigned int loopmax = 0, j = 0, k = 0, l = 0, endidx = nbackground, lhr = 0
 
     # get the model (e.g. flare) crossed with the data
-    dm = np.correlate(d, ms[q])
+    dm = np.correlate(d, ms[q], 'same')
 
     loopmax = len(dm)
 
@@ -217,28 +216,28 @@ cpdef log_marg_amp_full_model(i, shape, sk, bgorder, lastHalfRange, np.ndarray[D
         # fill in arrays for marginalisation function
         for k in range(endidx):
             for l in range(k, endidx):
-                modelModel[k*(bgorder+2)+l] = bgcross[k,l,j]
+                modelModel[k*(nbackground+1)+l] = bgcross[k,l]
 
         # fill in the model model and data model terms
-        for k in range(bgorder+2):
-            if k < bgorder+1:
-                modelModel[k*(bgorder+2)+endidx] = mdbgcross[q+(k,j)]
+        for k in range(nbackground+1):
+            if k < nbackground:
+                modelModel[k*(nbackground+1)+endidx] = mdbgcross[q+(k,j)]
                 dataModel[k] = dbgr[k,j]
             else:
-                modelModel[k*(bgorder+2)+endidx] = mdcross[q+(j,)]
+                modelModel[k*(nbackground+1)+endidx] = mdcross[q+(j,)]
                 dataModel[k] = dm[j]
 
         if lastHalfRange:
             lhr = 1
         else:
             lhr = 0
-        B[j] = log_marg_amp_full_C(bgorder+2, <double*> modelModel.data, <double*> dataModel.data, sk, lhr)
+        B[j] = log_marg_amp_full_C(nbackground+1, <double*> modelModel.data, <double*> dataModel.data, sk, lhr)
 
     return B
 
 
-cpdef log_marg_amp_full_2Dmodel(i, shape, sk, bgorder, lastHalfRange, np.ndarray[DTYPE_t, ndim=1] d,
-                                np.ndarray[DTYPE_t, ndim=3] ms, np.ndarray[DTYPE_t, ndim=3] bgcross,
+cpdef log_marg_amp_full_2Dmodel(i, shape, sk, nbackground, lastHalfRange, np.ndarray[DTYPE_t, ndim=1] d,
+                                np.ndarray[DTYPE_t, ndim=3] ms, np.ndarray[DTYPE_t, ndim=2] bgcross,
                                 np.ndarray[DTYPE_t, ndim=4] mdbgcross, np.ndarray[DTYPE_t, ndim=3] mdcross,
                                 np.ndarray[DTYPE_t, ndim=2] dbgr):
     """
@@ -256,12 +255,12 @@ cpdef log_marg_amp_full_2Dmodel(i, shape, sk, bgorder, lastHalfRange, np.ndarray
     """
     q = np.unravel_index(i, shape) # get tuple of index positions
 
-    cdef np.ndarray modelModel = np.zeros((bgorder+2)*(bgorder+2), dtype=DTYPE) # make array 1D
-    cdef np.ndarray dataModel = np.zeros(bgorder+2, dtype=DTYPE)
-    cdef unsigned int loopmax = 0, j = 0, k = 0, l = 0, endidx = bgorder+1, lhr = 0
+    cdef np.ndarray modelModel = np.zeros((nbackground+1)*(nbackground+1), dtype=DTYPE) # make array 1D
+    cdef np.ndarray dataModel = np.zeros(nbackground+1, dtype=DTYPE)
+    cdef unsigned int loopmax = 0, j = 0, k = 0, l = 0, endidx = nbackground, lhr = 0
 
     # get the model (e.g. flare) crossed with the data
-    dm = np.correlate(d, ms[q[0], q[1]])
+    dm = np.correlate(d, ms[q[0], q[1]], 'same')
 
     loopmax = len(dm)
 
@@ -271,41 +270,34 @@ cpdef log_marg_amp_full_2Dmodel(i, shape, sk, bgorder, lastHalfRange, np.ndarray
         # fill in arrays for marginalisation function
         for k in range(endidx):
             for l in range(k, endidx):
-                modelModel[k*(bgorder+2) + l] = bgcross[k,l,j]
+                modelModel[k*(nbackground+1) + l] = bgcross[k,l]
 
         # fill in the model model and data model terms
-        for k in range(bgorder+2):
-            if k < bgorder+1:
-                modelModel[k*(bgorder+2) + endidx] = mdbgcross[q[0],q[1],k,j]
+        for k in range(nbackground+1):
+            if k < nbackground:
+                modelModel[k*(nbackground+1) + endidx] = mdbgcross[q[0],q[1],k,j]
                 dataModel[k] = dbgr[k,j]
             else:
                 if np.isinf(mdcross[q[0],q[1],j]):
                     B = -np.inf*np.ones(loopmax, dtype=DTYPE)
                     return B
 
-                modelModel[k*(bgorder+2) + endidx] = mdcross[q[0],q[1],j]
+                modelModel[k*(nbackground+1) + endidx] = mdcross[q[0],q[1],j]
                 dataModel[k] = dm[j]
 
         if lastHalfRange:
             lhr = 1
         else:
             lhr = 0
-        B[j] = log_marg_amp_full_C(bgorder+2, <double*> modelModel.data, <double*> dataModel.data, sk, lhr)
+        B[j] = log_marg_amp_full_C(nbackground+1, <double*> modelModel.data, <double*> dataModel.data, sk, lhr)
 
     return B
 
 
-cpdef log_marg_amp_full_background(sk, dlen, bgorder, np.ndarray[DTYPE_t, ndim=3] bgcross, np.ndarray[DTYPE_t, ndim=2] dbgr):
+cpdef log_marg_amp_full_background(sk, dlen, nbackground, np.ndarray[DTYPE_t, ndim=2] bgcross, np.ndarray[DTYPE_t, ndim=2] dbgr):
     """
-    Run :func:`log_marg_amp_full_C` to get the background (a polynomial noise variation)
+    Run :func:`log_marg_amp_full_C` to get the background (modelled by `nbackground` functions)
     versus Gaussian noise log likelihood ratio.
-
-    The background polynomial is of the form:
-    
-    .. math::
-        p(t) = \\sum_{i=0}^\\mathtt{bgorder} t^i
-
-    where :math:`t` is a vector of time values.
 
     Parameters
     ----------
@@ -313,16 +305,16 @@ cpdef log_marg_amp_full_background(sk, dlen, bgorder, np.ndarray[DTYPE_t, ndim=3
         The noise standard deviation.
     dlen : int
         The length of the data.
-    bgorder : int
-        The polynomial order of the background variations.
-    
+    nbackground : int
+        The number of background functions with amplitudes to be marginalised.
+
     bgcross : :class:`numpy.ndarray`
-        A matrix of cross-terms of the models from each polynomial power term [size:
-        (`bgorder+1`)-by-(`bgorder+1`)].
-    
+        A matrix of cross-terms of the models from each background term [size:
+        (`nbackground`)-by-(`nbackground`)].
+
     dbgr : :class:`numpy.ndarray`
-       A matrix of the data crossed with each of the polynomial power terms (as a
-       sliding window of `bglen` across the data `dlen`) [size: (`bgorder+1`)-by-`dlen`].
+       A matrix of the data crossed with each of the background terms (as a
+       sliding window of `bglen` across the data `dlen`) [size: (`nbackground`)-by-`dlen`].
 
     Returns
     -------
@@ -332,17 +324,17 @@ cpdef log_marg_amp_full_background(sk, dlen, bgorder, np.ndarray[DTYPE_t, ndim=3
     cdef int j = 0, k = 0, n = 0
 
     cdef np.ndarray B = np.zeros(dlen, dtype=DTYPE)
-    cdef np.ndarray modelModel = np.zeros((bgorder+1)*(bgorder+1), dtype=DTYPE)
-    cdef np.ndarray dataModel = np.zeros(bgorder+1, dtype=DTYPE)
+    cdef np.ndarray modelModel = np.zeros(nbackground*nbackground, dtype=DTYPE)
+    cdef np.ndarray dataModel = np.zeros(nbackground, dtype=DTYPE)
 
     for j in range(dlen):
-        for k in range(bgorder+1):
+        for k in range(nbackground):
             dataModel[k] = dbgr[k,j]
 
-            for n in range(k, bgorder+1):
-                modelModel[k*(bgorder+1)+n] = bgcross[k,n,j]
+            for n in range(k, nbackground):
+                modelModel[k*nbackground+n] = bgcross[k,n]
 
-        B[j] = log_marg_amp_full_C(bgorder+1, <double *> modelModel.data, <double*> dataModel.data, sk, 0)
+        B[j] = log_marg_amp_full_C(nbackground, <double *> modelModel.data, <double*> dataModel.data, sk, 0)
 
     return B
 
@@ -359,17 +351,17 @@ cpdef log_marg_amp_full(Nmodels, np.ndarray[DTYPE_t, ndim=2] modelModel,
     .. note:: This function is several times *slower* than the equivalent straight C version
         :func:`log_marg_amp_full_C`, which should generally be used instead. In that function the
         `modelModel` array is flattened.
-    
+
     Parameters
     ----------
     Nmodels : int
         The number of model components.
     modelModel : :class:`numpy.ndarray`
         The summed cross terms for each model component [size: `Nmodels`-by-`Nmodels`].
-    
+
     dataModel : :class:`numpy.ndarray`
         The summed data crossed with each model component [size: `Nmodels`]
-    
+
     sigma : float
         The underlying Gaussian noise standard deviation
     lastHalfRange : bool
@@ -461,15 +453,15 @@ cpdef log_marg_amp_original(d, m, ss):
     .. note::
         This uses the :mod:`scipy.special` `erf` function and is slower than :func:`log_marg_amp`,
         so in general is deprecated.
-    
+
     Parameters
     ----------
     d : :class:`numpy.array`
         A 1D array containing the light curve time series data.
-    
+
     m : :class:`numpy.array`
         A 1D array (of the same length as `d`) containing the model function.
-    
+
     ss : float or double
         The noise variance of the data (assumed constant)
 
@@ -517,7 +509,7 @@ cpdef logplus(double x, double y):
     See also
     --------
     logminus : A similar calculation, but for subtracting two values.
-    
+
     """
     cdef double z = np.inf
     if isinf(x) and isinf(y) and (x < 0) and (y < 0):
@@ -655,10 +647,10 @@ cpdef log_likelihood_ratio(np.ndarray[DTYPE_t, ndim=1] model, np.ndarray[DTYPE_t
     ----------
     model : :class:`numpy.ndarray`
         A 1D array containing the signal model.
-    
+
     data : :class:`numpy.ndarray`
         A 1D array (of the same length as `model`) containing the data.
-    
+
     sk : float or double
         The noise standard deviation.
 

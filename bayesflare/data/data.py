@@ -202,14 +202,52 @@ class Lightcurve():
         # return power spectral density and array of frequencies
         return sk, f
 
+    def periodogram(self, oversample=1, flow=None, fhigh=None):
+        """
+        Calculate the Lomb-Scargle periodogram of the light curve using :func:`scipy.signal.lombscargle`.
+
+        Parameters
+        ----------
+        oversample : int, optional, default: 1
+           Create the periodogram frequency bin number as the length of the light curve
+           multiplied by this factor.
+        flow : float, optional, default: 'none'
+           The low frequency cut-off for the frequency range. If this is 'none' then a value
+           is taken as one tenth of the inverse of the total data span.
+        fhigh: float, optional, default: 'none'
+           The high frequency cut-off for the frequency range. If this is 'none' then the
+           Nyquist frequency will be used.
+        """
+
+        from scipy.signal import lombscargle
+
+        # set the frequency array
+        if flow is None: # set lower frequency for periodogram calculation
+            flow = 1./(10.*(self.cts[-1]-self.cts[0]))
+
+        if fhigh is None: # set the upper frequency
+            fhigh = 0.5/self.dt() # Nyquist frequency
+
+        if flow > fhigh:
+            raise ValueError("[Error] flow is greater than fhigh!")
+
+
+        freqs = np.linspace(flow, fhigh, len(self.clc)*oversample)
+        angfreqs = 2.*np.pi*freqs # Lomb-Scargle uses angular frequencies
+
+        # get periodogram
+        pgram = lombscargle(self.cts.astype(np.float64), self.clc.astype(np.float64), angfreqs)
+
+        return pgram, freqs
+
     def add_data(self, curve=None, detrend=False, detrendmethod='none', nbins=101, order=3, knee=None, maxgap=1):
         """
         Add light curve data to the object..
 
         Parameters
         ----------
-        curvefile : string
-           The file path file pointing to a light curve fits files.
+        curve : string
+           The file path file pointing to a light curve fits file.
         detrend : bool, optional, default: False
            A boolean flag which determines whether light curve should be detrended.
         detrendmethod : string, optional, default: 'none'
@@ -220,7 +258,7 @@ class Lightcurve():
            The width of the detrending window in bins of the light curve.
         order : int, optional, default: 3
            The polynomial order of the detrending filter.
-        maxgap : int, optional, default+1
+        maxgap : int, optional, default: 1
            The largest gap size (in bins) allowed before the light curve is deemed to contain gaps.
 
         Exceptions
@@ -405,25 +443,25 @@ class Lightcurve():
 
         # store un-detrending light curve
         self.ulc = np.copy(self.clc)
-        
+
         if method == 'savitzkygolay':
             if nbins is None or order is None:
                 raise ValueError("Number of bins, or polynomial order, for Savitsky-Golay filter not set")
-          
+
             ffit = bf.savitzky_golay(self.clc, nbins, order)
             self.clc = (self.clc - ffit)
             self.detrend_fit = np.copy(ffit)
         elif method == 'runningmedian':
             if nbins is None:
                 raise ValueError("Number of bins for running median filter not set")
-          
+
             ffit = bf.running_median(self.clc, nbins)
             self.clc = (self.clc - ffit)
             self.detrend_fit = np.copy(ffit)
         elif method == 'highpassfilter':
             if knee is None:
                 raise ValueError("Knee frequency for high-pass filter not set.")
-          
+
             dlc = bf.highpass_filter_lightcurve(self, knee=knee)
             self.clc = np.copy(dlc.clc)
         else:
