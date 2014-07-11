@@ -8,6 +8,7 @@ from math import log
 import pyfits
 import numpy as np
 from copy import copy, deepcopy
+import pylightcurve as lc
 
 def contiguous_regions(condition):
         """
@@ -553,7 +554,8 @@ class OddsRatioDetector():
                  noisestep=False,
                  noisestepparams={'t0': (np.inf,)},
                  noisestepwithreverse=False,
-                 ignoreedges=True):
+                 ignoreedges=True,
+                 **kwargs):
 
         self.lightcurve = deepcopy(lightcurve)
         self.bglen = bglen
@@ -562,6 +564,11 @@ class OddsRatioDetector():
         # set flare ranges
         self.set_flare_params(flareparams=flareparams)
 
+        if not "edgelength" in kwargs:
+            self.edgelength = None
+        else:
+            self.edgelength=kwargs['edgelength']
+        
         # set noise estimation method
         self.set_noise_est_method(noiseestmethod=noiseestmethod, psestfrac=psestfrac, tvsigma=tvsigma)
 
@@ -761,6 +768,7 @@ class OddsRatioDetector():
 
         # get flare odds ratio
         Mf = Flare(self.lightcurve.cts, amp=1, paramranges=self.flareparams)
+
         Bf = Bayes(self.lightcurve, Mf)
         Bf.bayes_factors_marg_poly_bgd(bglen=self.bglen,
                                        bgorder=self.bgorder,
@@ -768,17 +776,18 @@ class OddsRatioDetector():
                                        psestfrac=self.psestfrac,
                                        tvsigma=self.tvsigma)
         Of = Bf.marginalise_full()
+                    
 
         noiseodds = []
         # get noise odds ratios
         if self.noisepoly:
-            Bg = Bf.bayes_factors_marg_poly_bgd_only(bglen=self.bglen,
-                                                     bgorder=self.bgorder,
-                                                     noiseestmethod=self.noiseestmethod,
-                                                     psestfrac=self.psestfrac,
-                                                     tvsigma=self.tvsigma)
+                Bg = Bf.bayes_factors_marg_poly_bgd_only(bglen=self.bglen,
+                                                         bgorder=self.bgorder,
+                                                         noiseestmethod=self.noiseestmethod,
+                                                         psestfrac=self.psestfrac,
+                                                         tvsigma=self.tvsigma)
 
-            noiseodds.append(Bg)
+                noiseodds.append(Bg)
 
         del Mf
             
@@ -848,7 +857,12 @@ class OddsRatioDetector():
                 
         # get the total odds ratio
         if self.ignoreedges:
-            valrange = np.arange(int(self.bglen/2), len(Of.lnBmargAmp)-int(self.bglen/2))
+            if not self.edgelength == None:
+                valrange = np.arange(int(self.edgelength/2), len(Of.lnBmargAmp)-int(self.edgelength/2))
+            else:
+                valrange = np.arange(int(self.bglen/2), len(Of.lnBmargAmp)-int(self.bglen/2))
+            ts = np.copy(self.lightcurve.cts)
+
             ts = np.copy(self.lightcurve.cts[valrange])
         else:
             valrange = range(0, len(Of.lnBmargAmp))

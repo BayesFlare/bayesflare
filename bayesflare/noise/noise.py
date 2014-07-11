@@ -8,7 +8,7 @@ from ..simulate import SimLightcurve
 from math import factorial
 import copy
 
-def estimate_noise_ps(lightcurve, estfrac=0.5):
+def estimate_noise_ps(lightcurve, estfrac=0.5, **kwargs):
     """
     Use the high frequency part of the power spectrum of a light curve
     to estimate the time domain noise standard deviation of the
