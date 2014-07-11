@@ -861,9 +861,9 @@ class OddsRatioDetector():
                 valrange = np.arange(int(self.edgelength/2), len(Of.lnBmargAmp)-int(self.edgelength/2))
             else:
                 valrange = np.arange(int(self.bglen/2), len(Of.lnBmargAmp)-int(self.bglen/2))
-            ts = np.copy(self.lightcurve.cts)
 
             ts = np.copy(self.lightcurve.cts[valrange])
+            ts = np.pad(ts,(int(self.edgelength/2),int(self.edgelength/2)), mode='minimum')
         else:
             valrange = range(0, len(Of.lnBmargAmp))
             ts = np.copy(self.lightcurve.cts)

@@ -205,166 +205,166 @@ class Bayes():
             # If the supplied data is a pandas DataFrame we'll need to
             # decide if we're working on just one column, or all of them.
             for column in self.lightcurve.data.columns.values.tolist():
-                    print column
+                print column
 
-            # get noise estimate on a filtered lightcurve to better represent just the noise
-            tmpcurve = copy(self.lightcurve)
-            if not bgorder==-1:
-                tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
+                # get noise estimate on a filtered lightcurve to better represent just the noise
+                tmpcurve = copy(self.lightcurve)
+                if not bgorder==-1:
+                    tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
 
-            z = np.array(tmpcurve.data[column])
-            if noiseestmethod == 'powerspectrum':
-              sk = estimate_noise_ps(tmpcurve, estfrac=psestfrac, column=column)[0]
-            elif noiseestmethod == 'tailveto':
-              sk = estimate_noise_tv(z, sigma=tvsigma)[0]
-            else:
-              print "Noise estimation method must be 'powerspectrum' or 'tailveto'"
-              return None
-            del tmpcurve
+                z = np.array(tmpcurve.data[column])
+                if noiseestmethod == 'powerspectrum':
+                  sk = estimate_noise_ps(tmpcurve, estfrac=psestfrac, column=column)[0]
+                elif noiseestmethod == 'tailveto':
+                  sk = estimate_noise_tv(z, sigma=tvsigma)[0]
+                else:
+                  print "Noise estimation method must be 'powerspectrum' or 'tailveto'"
+                  return None
+                del tmpcurve
 
-            N = len(self.lightcurve.cts)
-            nsteps = int(bglen/2)
-            
-            npoly = bgorder+1 # number of polynomial coefficients
+                N = len(self.lightcurve.cts)
+                nsteps = int(bglen/2)
 
-            # create array of cross-model terms for each set of parameters
-            polyms = np.ndarray((npoly, bglen)) # background models
-            ts = np.linspace(0, 1, bglen)
-            for i in range(npoly):
-                polyms[i] = ts**i
+                npoly = bgorder+1 # number of polynomial coefficients
 
-            # background cross terms for each time step
-            bgcross = np.zeros((npoly, npoly, N))
-            for i in range(npoly):
-                for j in range(i, npoly):
-                    bgcross[i,j] = np.sum(polyms[i]*polyms[j])*np.ones(N)
+                # create array of cross-model terms for each set of parameters
+                polyms = np.ndarray((npoly, bglen)) # background models
+                ts = np.linspace(0, 1, bglen)
+                for i in range(npoly):
+                    polyms[i] = ts**i
+
+                # background cross terms for each time step
+                bgcross = np.zeros((npoly, npoly, N))
+                for i in range(npoly):
+                    for j in range(i, npoly):
+                        bgcross[i,j] = np.sum(polyms[i]*polyms[j])*np.ones(N)
+
+                        # deal with edge effects
+                        for k in range(nsteps):
+                            ts = np.linspace(0, 1, nsteps+k+1)
+                            polysum = np.sum((ts**i)*(ts**j))
+
+                            bgcross[i,j,k] = polysum
+                            bgcross[i,j,N-k-1] = polysum
+
+
+                model = self.model
+
+            # get the "model" and background cross terms
+                mdbgcross = np.ndarray(tuple(model.shape) + (npoly,N))
+                dt = model.ts[1]-model.ts[0]                # time step
+                idxt0 = int((model.t0-model.ts[0])/dt)+1    # index of t0 for the model
+
+                idx1 = idxt0 - nsteps
+                idx2 = idxt0 + nsteps + 1
+
+                if idx1 < 0:
+                    # shift times
+                    mts = model.ts[:bglen]
+                elif idx2 > N-1:
+                    mts = model.ts[-bglen:]
+                else:
+                    mts = model.ts[idx1:idx2] # time stamps for model creation
+
+                # store models, so not regenerating them (these are truncated to the length of bglen)
+                ms = np.ndarray(tuple(model.shape) + (bglen,))
+                priors = np.ndarray(tuple(model.shape))
+                mparams = {}
+
+                # squared model terms for each time step - generally these are the same, but at the
+                # edges the mode slides off the data, so the squared model terms will be different
+                mdcross = np.ndarray(tuple(model.shape)+(N,))
+
+                for i in range(np.product(model.shape)):
+                    m = model(i, ts=mts, filt=False) # use the original model without the shape having been changed
+                    q = np.unravel_index(i, model.shape)
+
+                    # get prior
+                    for k in range(len(model.shape)):
+                        # set parameter dict for prior function
+                        mparams[model.paramnames[k]] = self.ranges[model.paramnames[k]][q[k]]
+
+                    priors[q] = model.prior(mparams)
+
+                    if m == None or priors[q] == -np.inf:
+                        ms[q] = -np.inf*np.ones(bglen)
+                        mdcross[q] = -np.inf*np.ones(N)
+                    else:
+                        ms[q] = m.clc
+
+                        # deal with edge effects
+                        mdcross[q] = np.sum(m.clc**2)*np.ones(N)
+
+                        for k in range(nsteps+1):
+                            mdcross[q+(k,)] = np.sum(m.clc[-(nsteps+k+1):]**2)
+                            mdcross[q+(N-k-1,)] = np.sum(m.clc[:nsteps+k+1]**2)
+
+                    # deal with edge effects
+                    for j in range(npoly):
+                        if m != None and priors[q] != -np.inf:
+                            mdbgcross[q+(j,)] = np.sum(ms[q]*polyms[j])*np.ones(N)
+
+                            for k in range(nsteps):
+                                ts = np.linspace(0, 1, nsteps+k+1)
+                                poly = ts**j
+                                mdbgcross[q+(j,k)] = np.sum(m.clc[-(nsteps+k+1):]*poly)
+                                mdbgcross[q+(j,N-k-1)] = np.sum(m.clc[:nsteps+k+1]*poly)
+                        else:
+                            mdbgcross[q+(j,)] = np.zeros(N)
+
+                # get zero-padded version of the data to avoid edge effects in correlation (if not zero-padded
+                # you could use correlate with the "same" flag, but zero-padding, and using "valid" seems
+                # safer)
+                d = np.copy(self.lightcurve.data[column])
+                dz = np.zeros(N+bglen-1)
+                dz[(bglen-1)/2:N+((bglen-1)/2)] = d
+
+                # get the data crossed with the background polynomial terms
+                dbgr = np.ndarray((npoly, N))
+
+                for i in range(npoly):
+                    dbgr[i] = np.correlate(dz, polyms[i])
 
                     # deal with edge effects
                     for k in range(nsteps):
                         ts = np.linspace(0, 1, nsteps+k+1)
-                        polysum = np.sum((ts**i)*(ts**j))
+                        poly = ts**i
+                        dbgr[i,k] = np.sum(d[:nsteps+k+1]*poly)
+                        dbgr[i,N-k-1] = np.sum(d[-(nsteps+k+1):]*poly)
 
-                        bgcross[i,j,k] = polysum
-                        bgcross[i,j,N-k-1] = polysum
+                # initialise the log-likelihood ratio
+                s = tuple(model.shape) + (N,)
+                self.lnBmargAmp = -np.inf*np.ones(s)
 
+                # Parallel-ize it! Run different model parameter calculation in a parallel way if multiple CPUs
+                # are available.
+                l = np.product(model.shape)
 
-            model = self.model
+                pool = Pool(processes=ncpus)
+                Ms = pool.map_async(log_marg_amp_full_model_wrapper,
+                                    ((i, model.shape, sk, bgorder, halfrange, dz,
+                                      ms, bgcross, mdbgcross, mdcross, dbgr)
+                                      for i in range(l))).get()
+                # clean-up
+                pool.close()
+                pool.join()
 
-        # get the "model" and background cross terms
-            mdbgcross = np.ndarray(tuple(model.shape) + (npoly,N))
-            dt = model.ts[1]-model.ts[0]                # time step
-            idxt0 = int((model.t0-model.ts[0])/dt)+1    # index of t0 for the model
-
-            idx1 = idxt0 - nsteps
-            idx2 = idxt0 + nsteps + 1
-
-            if idx1 < 0:
-                # shift times
-                mts = model.ts[:bglen]
-            elif idx2 > N-1:
-                mts = model.ts[-bglen:]
-            else:
-                mts = model.ts[idx1:idx2] # time stamps for model creation
-
-            # store models, so not regenerating them (these are truncated to the length of bglen)
-            ms = np.ndarray(tuple(model.shape) + (bglen,))
-            priors = np.ndarray(tuple(model.shape))
-            mparams = {}
-
-            # squared model terms for each time step - generally these are the same, but at the
-            # edges the mode slides off the data, so the squared model terms will be different
-            mdcross = np.ndarray(tuple(model.shape)+(N,))
-
-            for i in range(np.product(model.shape)):
-                m = model(i, ts=mts, filt=False) # use the original model without the shape having been changed
-                q = np.unravel_index(i, model.shape)
-
-                # get prior
-                for k in range(len(model.shape)):
-                    # set parameter dict for prior function
-                    mparams[model.paramnames[k]] = self.ranges[model.paramnames[k]][q[k]]
-
-                priors[q] = model.prior(mparams)
-
-                if m == None or priors[q] == -np.inf:
-                    ms[q] = -np.inf*np.ones(bglen)
-                    mdcross[q] = -np.inf*np.ones(N)
+                # set amplitude priors
+                if halfrange:
+                    ampprior = np.log(0.5)
                 else:
-                    ms[q] = m.clc
+                    ampprior = 0.
 
-                    # deal with edge effects
-                    mdcross[q] = np.sum(m.clc**2)*np.ones(N)
+                for i in range(l):
+                    q = np.unravel_index(i, model.shape)
 
-                    for k in range(nsteps+1):
-                        mdcross[q+(k,)] = np.sum(m.clc[-(nsteps+k+1):]**2)
-                        mdcross[q+(N-k-1,)] = np.sum(m.clc[:nsteps+k+1]**2)
+                    # get Bayes factors and apply priors
+                    self.lnBmargAmp[q] = Ms[i] + priors[q] + ampprior
 
-                # deal with edge effects
-                for j in range(npoly):
-                    if m != None and priors[q] != -np.inf:
-                        mdbgcross[q+(j,)] = np.sum(ms[q]*polyms[j])*np.ones(N)
-
-                        for k in range(nsteps):
-                            ts = np.linspace(0, 1, nsteps+k+1)
-                            poly = ts**j
-                            mdbgcross[q+(j,k)] = np.sum(m.clc[-(nsteps+k+1):]*poly)
-                            mdbgcross[q+(j,N-k-1)] = np.sum(m.clc[:nsteps+k+1]*poly)
-                    else:
-                        mdbgcross[q+(j,)] = np.zeros(N)
-
-            # get zero-padded version of the data to avoid edge effects in correlation (if not zero-padded
-            # you could use correlate with the "same" flag, but zero-padding, and using "valid" seems
-            # safer)
-            d = np.copy(self.lightcurve.clc)
-            dz = np.zeros(N+bglen-1)
-            dz[(bglen-1)/2:N+((bglen-1)/2)] = d
-
-            # get the data crossed with the background polynomial terms
-            dbgr = np.ndarray((npoly, N))
-
-            for i in range(npoly):
-                dbgr[i] = np.correlate(dz, polyms[i])
-
-                # deal with edge effects
-                for k in range(nsteps):
-                    ts = np.linspace(0, 1, nsteps+k+1)
-                    poly = ts**i
-                    dbgr[i,k] = np.sum(d[:nsteps+k+1]*poly)
-                    dbgr[i,N-k-1] = np.sum(d[-(nsteps+k+1):]*poly)
-
-            # initialise the log-likelihood ratio
-            s = tuple(model.shape) + (N,)
-            self.lnBmargAmp = -np.inf*np.ones(s)
-
-            # Parallel-ize it! Run different model parameter calculation in a parallel way if multiple CPUs
-            # are available.
-            l = np.product(model.shape)
-
-            pool = Pool(processes=ncpus)
-            Ms = pool.map_async(log_marg_amp_full_model_wrapper,
-                                ((i, model.shape, sk, bgorder, halfrange, dz,
-                                  ms, bgcross, mdbgcross, mdcross, dbgr)
-                                  for i in range(l))).get()
-            # clean-up
-            pool.close()
-            pool.join()
-
-            # set amplitude priors
-            if halfrange:
-                ampprior = np.log(0.5)
-            else:
-                ampprior = 0.
-
-            for i in range(l):
-                q = np.unravel_index(i, model.shape)
-
-                # get Bayes factors and apply priors
-                self.lnBmargAmp[q] = Ms[i] + priors[q] + ampprior
-
-            if not len(self.premarg)==0:
-                self.premarg += np.copy(self.lnBmargAmp)
-            else:
-                self.premarg = np.copy(self.lnBmargAmp)
+                if not len(self.premarg)==0:
+                    self.premarg += np.copy(self.lnBmargAmp)
+                else:
+                    self.premarg = np.copy(self.lnBmargAmp)
             
 
     def bayes_factors_marg_poly_bgd_only(self,

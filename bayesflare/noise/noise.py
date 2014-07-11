@@ -7,7 +7,7 @@ from ..misc import nextpow2
 from ..simulate import SimLightcurve
 from math import factorial
 import copy
-
+import pylightcurve as lc
 def estimate_noise_ps(lightcurve, estfrac=0.5, **kwargs):
     """
     Use the high frequency part of the power spectrum of a light curve
@@ -33,9 +33,16 @@ def estimate_noise_ps(lightcurve, estfrac=0.5, **kwargs):
     noise_v : :class:`numpy.array`
         A vector of noise variance values
     """
-    l = len(lightcurve.clc)
+    if isinstance(lightcurve, lc.Lightcurve):
+        if "column" in kwargs:
+            column = kwargs['column']
+            l = len(lightcurve.data[column])
+            sk, f = lightcurve.psd(column=column)
+        else:
+            l = len(lightcurve.clc)
+            sk, f = lightcurve.psd()
     # get the power spectrum of the lightcurve data
-    sk, f = lightcurve.psd()
+    
     # get the mean of the final quarter of the data
     sk = np.mean(sk[np.floor((1.-estfrac)*len(sk)):])
     # scale to give noise variance
