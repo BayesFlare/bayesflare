@@ -35,6 +35,7 @@ class Bayes():
         """
         The initiator method
         """
+        
         self.lightcurve = lightcurve
         self.model      = deepcopy(model)
         self.ranges     = deepcopy(model.ranges)
@@ -238,7 +239,7 @@ class Bayes():
                 
                 # get noise estimate on a filtered lightcurve to better represent just the noise
                 tmpcurve = copy(self.lightcurve)
-                if not bgorder==-1:
+                if bgorder>=1:
                     tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
 
                 z = np.array(tmpcurve.data[column])
@@ -412,7 +413,6 @@ class Bayes():
 
                 for i in range(l):
                     q = np.unravel_index(i, model.shape)
-
                     # get Bayes factors and apply priors
                     self.lnBmargAmp[q] = Ms[i] + priors[q] + ampprior
 
@@ -455,7 +455,8 @@ class Bayes():
 
         """ get noise estimate on a filtered lightcurve to better represent just the noise """
         tmpcurve = copy(self.lightcurve)
-        tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
+        if bgorder>=1:
+            tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
         if noiseestmethod == 'powerspectrum':
           sk = estimate_noise_ps(tmpcurve, estfrac=psestfrac)[0]
         elif noiseestmethod == 'tailveto':
