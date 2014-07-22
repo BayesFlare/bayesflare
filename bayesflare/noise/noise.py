@@ -47,7 +47,7 @@ def estimate_noise_ps(lightcurve, estfrac=0.5, **kwargs):
     sk = np.mean(sk[np.floor((1.-estfrac)*len(sk)):])
     # scale to give noise variance
     sk = sk * lightcurve.fs() / 2.
-    noise_v = np.ones(nextpow2(2*len(lightcurve.clc)-1)) * sk
+    noise_v = np.ones(nextpow2(2*l-1)) * sk
 
     return np.sqrt(sk), sk, noise_v
 
@@ -257,7 +257,8 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):
         Cambridge University Press ISBN-13: 9780521880688
       .. [3] http://wiki.scipy.org/Cookbook/SavitzkyGolay
     """
-
+    if order==-1:
+        return np.zeros(len(y))
     try:
         window_size = np.abs(np.int(window_size))
         order = np.abs(np.int(order))

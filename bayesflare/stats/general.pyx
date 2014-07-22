@@ -83,7 +83,8 @@ cpdef log_one_plus_erf(np.ndarray[DTYPE_t, ndim=1] x):
     return lome
 
 
-cpdef log_marg_amp(np.ndarray[DTYPE_t, ndim=1] d, np.ndarray[DTYPE_t, ndim=1] m, ss):
+cpdef log_marg_amp(j, shape, ss, np.ndarray[float, ndim=1] d,
+                   np.ndarray m):
     """
     Calculate the logarithm of the likelihood ratio for the signal model compared to a pure
     Gaussian noise model, but analytically marginalised over the unknown model amplitude. This is
@@ -96,12 +97,19 @@ cpdef log_marg_amp(np.ndarray[DTYPE_t, ndim=1] d, np.ndarray[DTYPE_t, ndim=1] m,
     
     Parameters
     ----------
-    d : :class:`numpy.array`
+    i : int
+        The ravelled index within the model parameter space.
+    shape : list
+        A list of integers giving the size of each parameter range.
+    sk : float
+        The data's noise standard deviation.
+    
+    d : :class:`numpy.ndarray`
         A 1D array containing the light curve time series data.
-    m : :class:`numpy.array`
-        A 1D array (of the same length as `d`) containing the model function.
-    ss : float or double
-        The noise variance of the data (assumed constant)
+    
+    ms : :class:`numpy.ndarray`
+        A matrix containing a time series for the model for each set of the model's parameters. The
+        time series is the final dimension of the matrix.
 
     Returns
     -------
@@ -113,13 +121,13 @@ cpdef log_marg_amp(np.ndarray[DTYPE_t, ndim=1] d, np.ndarray[DTYPE_t, ndim=1] m,
     log_marg_amp_original : A slower version of this function.
 
     """
-
+    q = np.unravel_index(j, shape) # get tuple of index positions
     #get the data/model cross term
-    dm = np.correlate(d, m, mode='same')
+    dm = np.correlate(d, m[q], mode='same')
 
     # get the model autocorrelation term
-    cdef double m2 = np.sum(m*m)
-
+    cdef double m2 = np.sum(m[q]*m[q])
+    
     # get the likelihood marginalised over the signal amplitude
     cdef double inside_erf = sqrt(0.5/(ss*m2))
 

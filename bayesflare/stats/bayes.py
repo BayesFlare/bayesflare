@@ -63,41 +63,68 @@ class Bayes():
         s = np.append(s,N)
 
         self.lnBmargAmp = np.zeros(s)
-
+        data = self.lightcurve.data
+        
         if isinstance(self.lightcurve, lc.Lightcurve):
             # If the supplied data is a pandas DataFrame we'll need to
             # decide if we're working on just one column, or all of them.
             for column in data.columns.values.tolist():
                 x = self.lightcurve.cts
-                z = np.array(self.lightcurve.data[column])
-                sk = estimate_noise_tv(z, 2.5)[0]**2
+                z = np.array(data[column])
 
-                for i in np.arange(l):
-                    q = np.unravel_index(i, model.shape)
-                    # m = model(i)
-                    m = model(i,
-                              filt=self.lightcurve.detrended,
-                              filtermethod=self.lightcurve.detrend_method,
-                              nbins=self.lightcurve.detrend_nbins,
-                              order=self.lightcurve.detrend_order,
-                              filterknee=self.lightcurve.detrend_knee)
-                    if m == None:
-                        # if the model is not defined (e.g. for the flare model when tau_g > tau_e)
-                        # set probability to zero (log probability to -inf)
-                        self.lnBmargAmp[q][:] = np.ones(N)*-np.inf
-                        continue
-                    # Generate the model flare
-                    m = m.clc
+                # Estimate the noise in the light curve
+                if "noiseestmethod" in kwargs:
+                    method = kwargs['noiseestmethod']
+                else:
+                    method="powerspectrum"
 
-                    # Run the xcorr and perform the analytical marginalisation over amplitude
-                    B = log_marg_amp(z,m, sk)
-                    # Apply Bayes Formula
-                    self.lnBmargAmp[q][:] = B + np.sum(model.priors)
-
-                    if self.premarg[model.identity_type()]:
-                        self.premarg[model.identity_type()] += self.lnBmargAmp
+                if method=="powerspectrum":
+                    if "psestfrac" in kwargs:
+                        psestfrac = kwargs['psestfrac']
                     else:
-                        self.premarg[model.identity_type()] = self.lnBmargAmp
+                        psestfrac = 0.5
+                        
+                    sk = estimate_noise_ps(self.lightcurve,
+                                           estfrac=psestfrac,
+                                           column=column)[0]
+
+                elif method=="tailveto":
+                    if "tvsigma" in kwargs:
+                        tvsigma = kwargs['tvsigma']
+                    else:
+                        tvsigma = 1
+                        
+                    sk = estimate_noise_tv(z, tvsigma)[0]
+
+
+                # store models, so not regenerating them (these are truncated to the length of bglen)
+                model_store = np.ndarray(tuple(model.shape) + (bglen,))
+                prior_store = np.ndarray(tuple(model.shape))
+                mparams = {}
+
+                #
+                mts = model.ts
+
+                for i in range(np.product(model.shape)):
+                    m = model(i,
+                              ts=mts,
+                              filt=False)
+                    
+                    q = np.unravel_index(i, model.shape)
+
+                    # get prior
+                    for k in range(len(model.shape)):
+                        # set parameter dict for prior function
+                        mparams[model.paramnames[k]] = self.ranges[model.paramnames[k]][q[k]]
+
+                    priors[q] = model.prior(mparams)
+
+                    if m == None or priors[q] == -np.inf:
+                        ms[q] = -np.inf*np.ones(bglen)
+                        mdcross[q] = -np.inf*np.ones(N)
+                    else:
+                        ms[q] = m.clc
+
 
         else:
             x = self.lightcurve.cts
@@ -107,9 +134,15 @@ class Bayes():
 
             for i in np.arange(l):
                 q = np.unravel_index(i, model.shape)
-                # m = model(i)
-                m = model(i, filt=self.lightcurve.detrended, filtermethod=self.lightcurve.detrend_method, nbins=self.lightcurve.detrend_nbins,
-                          order=self.lightcurve.detrend_order, filterknee=self.lightcurve.detrend_knee)
+                if not self.lightcurve.detrended == None:
+                    m = model(i,
+                              filt=self.lightcurve.detrended,
+                              filtermethod=self.lightcurve.detrend_method,
+                              nbins=self.lightcurve.detrend_nbins,
+                              order=self.lightcurve.detrend_order,
+                              filterknee=self.lightcurve.detrend_knee)
+                else:
+                    m = model(i,filt=None)
                 if m == None:
                     # if the model is not defined (e.g. for the flare model when tau_g > tau_e)
                     # set probability to zero (log probability to -inf)
@@ -189,24 +222,20 @@ class Bayes():
         bayes_factors_marg_poly_bgd_chunk : Similar to this function, but only computing the Bayes
                                             factor for a small chunk of the light curve data.
         """
-
-        if bgorder == -1 :
-            #Default back to the old Bayes routine
-            self.bayesfactors(noiseestmethod==noiseestmethod)
-            return
-            
         
         # check bglen is odd
         if bglen % 2 == 0:
             print "Error... Background length (bglen) must be an odd number"
             return
 
+        #if bgorder == -1:
+        #    return self.bayes_factors(**kwargs)
+            
         if isinstance(self.lightcurve, lc.Lightcurve):
             # If the supplied data is a pandas DataFrame we'll need to
             # decide if we're working on just one column, or all of them.
             for column in self.lightcurve.data.columns.values.tolist():
-                print column
-
+                
                 # get noise estimate on a filtered lightcurve to better represent just the noise
                 tmpcurve = copy(self.lightcurve)
                 if not bgorder==-1:
@@ -223,53 +252,68 @@ class Bayes():
                 del tmpcurve
 
                 N = len(self.lightcurve.cts)
-                nsteps = int(bglen/2)
-
-                npoly = bgorder+1 # number of polynomial coefficients
-
-                # create array of cross-model terms for each set of parameters
-                polyms = np.ndarray((npoly, bglen)) # background models
-                ts = np.linspace(0, 1, bglen)
-                for i in range(npoly):
-                    polyms[i] = ts**i
-
-                # background cross terms for each time step
-                bgcross = np.zeros((npoly, npoly, N))
-                for i in range(npoly):
-                    for j in range(i, npoly):
-                        bgcross[i,j] = np.sum(polyms[i]*polyms[j])*np.ones(N)
-
-                        # deal with edge effects
-                        for k in range(nsteps):
-                            ts = np.linspace(0, 1, nsteps+k+1)
-                            polysum = np.sum((ts**i)*(ts**j))
-
-                            bgcross[i,j,k] = polysum
-                            bgcross[i,j,N-k-1] = polysum
-
-
                 model = self.model
 
-            # get the "model" and background cross terms
-                mdbgcross = np.ndarray(tuple(model.shape) + (npoly,N))
-                dt = model.ts[1]-model.ts[0]                # time step
-                idxt0 = int((model.t0-model.ts[0])/dt)+1    # index of t0 for the model
+ 
 
-                idx1 = idxt0 - nsteps
-                idx2 = idxt0 + nsteps + 1
-
-                if idx1 < 0:
-                    # shift times
-                    mts = model.ts[:bglen]
-                elif idx2 > N-1:
-                    mts = model.ts[-bglen:]
+                if bgorder == -1:
+                    bglen = len(z)
+                    nsteps = 1
+                    npoly = 1
+                    mts = model.ts
+                    # store models, so not regenerating them (these are truncated to the length of bglen)
+                    ms = np.ndarray(tuple(model.shape) + (bglen,))
+                    priors = np.ndarray(tuple(model.shape))
+                    mparams = {}
+                    
                 else:
-                    mts = model.ts[idx1:idx2] # time stamps for model creation
+                    nsteps = int(bglen/2)
+                    npoly = bgorder + 1
 
-                # store models, so not regenerating them (these are truncated to the length of bglen)
-                ms = np.ndarray(tuple(model.shape) + (bglen,))
-                priors = np.ndarray(tuple(model.shape))
-                mparams = {}
+                    # store models, so not regenerating them (these are truncated to the length of bglen)
+                    ms = np.ndarray(tuple(model.shape) + (bglen,))
+                    priors = np.ndarray(tuple(model.shape))
+                    mparams = {}
+                    
+                    # create array of cross-model terms for each set of parameters
+                    polyms = np.ndarray((npoly, bglen)) # background models
+                    ts = np.linspace(0, 1, bglen)
+                    for i in range(npoly):
+                        polyms[i] = ts**i
+
+                    # background cross terms for each time step
+                    bgcross = np.zeros((npoly, npoly, N))
+                    for i in range(npoly):
+                        for j in range(i, npoly):
+                            bgcross[i,j] = np.sum(polyms[i]*polyms[j])*np.ones(N)
+
+                            # deal with edge effects
+                            for k in range(nsteps):
+                                ts = np.linspace(0, 1, nsteps+k+1)
+                                polysum = np.sum((ts**i)*(ts**j))
+
+                                bgcross[i,j,k] = polysum
+                                bgcross[i,j,N-k-1] = polysum
+
+
+
+
+                    # get the "model" and background cross terms
+                    mdbgcross = np.ndarray(tuple(model.shape) + (npoly,N))
+
+                    dt = model.ts[1]-model.ts[0]                # time step
+                    idxt0 = int((model.t0-model.ts[0])/dt)+1    # index of t0 for the model
+                    idx1 = idxt0 - nsteps
+                    idx2 = idxt0 + nsteps + 1
+
+                    if idx1 < 0:
+                        # shift times
+                        mts = model.ts[:bglen]
+                    elif idx2 > N-1:
+                        mts = model.ts[-bglen:]
+                    else:
+                        mts = model.ts[idx1:idx2] # time stamps for model creation
+
 
                 # squared model terms for each time step - generally these are the same, but at the
                 # edges the mode slides off the data, so the squared model terms will be different
@@ -299,38 +343,41 @@ class Bayes():
                             mdcross[q+(k,)] = np.sum(m.clc[-(nsteps+k+1):]**2)
                             mdcross[q+(N-k-1,)] = np.sum(m.clc[:nsteps+k+1]**2)
 
-                    # deal with edge effects
-                    for j in range(npoly):
-                        if m != None and priors[q] != -np.inf:
-                            mdbgcross[q+(j,)] = np.sum(ms[q]*polyms[j])*np.ones(N)
+                    if not bgorder == -1:
+                        # deal with edge effects
+                        for j in range(npoly):
+                            if m != None and priors[q] != -np.inf:
+                                mdbgcross[q+(j,)] = np.sum(ms[q]*polyms[j])*np.ones(N)
 
-                            for k in range(nsteps):
-                                ts = np.linspace(0, 1, nsteps+k+1)
-                                poly = ts**j
-                                mdbgcross[q+(j,k)] = np.sum(m.clc[-(nsteps+k+1):]*poly)
-                                mdbgcross[q+(j,N-k-1)] = np.sum(m.clc[:nsteps+k+1]*poly)
-                        else:
-                            mdbgcross[q+(j,)] = np.zeros(N)
+                                for k in range(nsteps):
+                                    ts = np.linspace(0, 1, nsteps+k+1)
+                                    poly = ts**j
+                                    mdbgcross[q+(j,k)] = np.sum(m.clc[-(nsteps+k+1):]*poly)
+                                    mdbgcross[q+(j,N-k-1)] = np.sum(m.clc[:nsteps+k+1]*poly)
+                            else:
+                                mdbgcross[q+(j,)] = np.zeros(N)
 
-                # get zero-padded version of the data to avoid edge effects in correlation (if not zero-padded
-                # you could use correlate with the "same" flag, but zero-padding, and using "valid" seems
-                # safer)
-                d = np.copy(self.lightcurve.data[column])
-                dz = np.zeros(N+bglen-1)
-                dz[(bglen-1)/2:N+((bglen-1)/2)] = d
+                
+                if not bgorder == -1:
+                    # get zero-padded version of the data to avoid edge effects in correlation (if not zero-padded
+                    # you could use correlate with the "same" flag, but zero-padding, and using "valid" seems
+                    # safer)
+                    d = np.copy(self.lightcurve.data[column])
+                    dz = np.zeros(N+bglen-1)
+                    dz[(bglen-1)/2:N+((bglen-1)/2)] = d
 
-                # get the data crossed with the background polynomial terms
-                dbgr = np.ndarray((npoly, N))
+                    # get the data crossed with the background polynomial terms
+                    dbgr = np.ndarray((npoly, N))
 
-                for i in range(npoly):
-                    dbgr[i] = np.correlate(dz, polyms[i])
+                    for i in range(npoly):
+                        dbgr[i] = np.correlate(dz, polyms[i])
 
-                    # deal with edge effects
-                    for k in range(nsteps):
-                        ts = np.linspace(0, 1, nsteps+k+1)
-                        poly = ts**i
-                        dbgr[i,k] = np.sum(d[:nsteps+k+1]*poly)
-                        dbgr[i,N-k-1] = np.sum(d[-(nsteps+k+1):]*poly)
+                        # deal with edge effects
+                        for k in range(nsteps):
+                            ts = np.linspace(0, 1, nsteps+k+1)
+                            poly = ts**i
+                            dbgr[i,k] = np.sum(d[:nsteps+k+1]*poly)
+                            dbgr[i,N-k-1] = np.sum(d[-(nsteps+k+1):]*poly)
 
                 # initialise the log-likelihood ratio
                 s = tuple(model.shape) + (N,)
@@ -340,15 +387,23 @@ class Bayes():
                 # are available.
                 l = np.product(model.shape)
 
-                pool = Pool(processes=ncpus)
-                Ms = pool.map_async(log_marg_amp_full_model_wrapper,
-                                    ((i, model.shape, sk, bgorder, halfrange, dz,
-                                      ms, bgcross, mdbgcross, mdcross, dbgr)
-                                      for i in range(l))).get()
+                if bgorder==-1:
+                    pool = Pool(processes=ncpus)
+                    Ms = pool.map_async(log_marg_amp_full_model_nonoise_wrapper,
+                                        (
+                                            (i, model.shape, sk, z, ms)
+                                            for i in range(l)
+                                        )).get()
+                else:
+                    pool = Pool(processes=ncpus)
+                    Ms = pool.map_async(log_marg_amp_full_model_wrapper,
+                                        ((i, model.shape, sk, bgorder, halfrange, dz,
+                                          ms, bgcross, mdbgcross, mdcross, dbgr)
+                                         for i in range(l))).get()
                 # clean-up
                 pool.close()
                 pool.join()
-
+                
                 # set amplitude priors
                 if halfrange:
                     ampprior = np.log(0.5)
@@ -561,7 +616,25 @@ class Bayes():
 #        axB.plot(self.lightcurve.cts/(24*3600.0), self.lnBmargAmp)
 #        pl.show()
 
+def log_marg_amp_full_model_nonoise_wrapper(params):
+    """
+    A wrapper to :func:`log_marg_amp` which takes in a tuple of all of the required parameters,
+    for the use of the :mod:`multiprocessing` :func:`Pool.map_async` function.
 
+    Parameters
+    ----------
+    params : tuple
+       A tuple of parameters required by :func:`.log_marg_amp_full_2Dmodel` or
+       :func:`.log_marg_amp_full_model`
+
+    Returns
+    -------
+    margamp : :class:`numpy.ndarray`
+        An array containing the logarithm of the likelihood ratio.
+    """
+    return log_marg_amp(params[0], params[1], params[2],params[3], params[4])
+    
+        
 def log_marg_amp_full_model_wrapper(params):
     """
     Wrapper to :func:`.log_marg_amp_full_model` and :func:`.log_marg_amp_full_2Dmodel` function that
@@ -580,7 +653,7 @@ def log_marg_amp_full_model_wrapper(params):
         An array containing the logarithm of the likelihood ratio.
     """
     shape = params[1]
-
+    
     if len(shape) == 2: # specific case for a model with two parameters
         return log_marg_amp_full_2Dmodel(params[0], params[1], params[2], params[3], params[4],
                                          params[5], params[6], params[7], params[8], params[9],
@@ -655,7 +728,7 @@ class ParameterEstimationGrid():
 
         # set the noise standard deviation
 
-        self.set_sigma(self.lightcurve)
+        self.set_sigma(self.lightcurve, detrend=lightcurve.detrended)
 
     def set_model_type(self, modelType):
         """
@@ -731,7 +804,7 @@ class ParameterEstimationGrid():
                 if irange[0] < irange[1] and irange[2] > 1:
                     vals = np.linspace(irange[0], irange[1], int(irange[2]))
                 else:
-                    print "%s range has an upper bound smaller than the lower bound! Try again." % item
+                    print "%s range has an upper bound smaller than the lower bound! Try again." % p
                     return
             elif len(irange) == 1:
                 vals = np.array([irange[0]], dtype='float32')
@@ -766,7 +839,7 @@ class ParameterEstimationGrid():
         # just set the lightcurve to the required chunk
         self.lightcurve.cts = self.lightcurve.cts[startidx:endidx]
         self.lightcurve.clc = self.lightcurve.clc[startidx:endidx]
-        self.lightcurve.cle = self.lightcurve.cle[startidx:endidx]
+        #self.lightcurve.cle = self.lightcurve.cle[startidx:endidx]
 
     def lightcurve_dynamic_range(self):
         """
