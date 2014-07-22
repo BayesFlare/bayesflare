@@ -238,7 +238,7 @@ distribution. If the file name ends in \".gz\" then the output will be gzipped."
           f.write("\t%le\t%lf\n" % (freqs[i], amps[i]))
           print "Sinusoid frequency %lf (1/day), sinusoid amplitude %lf" % (freqs[i]*86400., amps[i])
         else:
-          fwrite("\n")
+          f.write("\n")
         f.close()
 
     # delete flare
