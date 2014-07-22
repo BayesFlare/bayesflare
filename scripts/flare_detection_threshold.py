@@ -20,7 +20,8 @@ from scipy.interpolate import interp1d
 import sys
 import os
 import gzip
-
+import pylightcurve as lc
+import pandas as pd
 from optparse import OptionParser
 
 __version__= "1.0"
@@ -190,10 +191,14 @@ distribution. If the file name ends in \".gz\" then the output will be gzipped."
         print >> sys.stderr, "Error... file in list (%s) does not exist." % kfiles[i].strip()
         sys.exit(-1)
     else:
-      flarelc = bf.Lightcurve()
+      flarelc = lc.Lightcurve()
 
-      flarelc.clc = nstd*np.random.randn(len(ts))
-      flarelc.cts = np.copy(ts)
+      flaredf = pd.DataFrame({'sim':nstd*np.random.randn(len(ts))},index=np.copy(ts))
+      flaremeta = {'sim':{}}
+      
+      flarelc.import_data(flaredf, flaremeta, cts=np.copy(ts))
+      flarelc.set_default('sim')
+      
       flarelc.cle = np.zeros(len(ts))
       flarelc.cadence = 'long'
 
@@ -203,8 +208,12 @@ distribution. If the file name ends in \".gz\" then the output will be gzipped."
     #pl.plot(flarelc.cts, flarelc.clc)
     #pl.show()
 
-        Or = bf.OddsRatioDetector( 
-                            data.interpolate(),
+
+    flareparams={'taugauss': (0,  20*60, 5), 
+                 'tauexp'  : (0, 5*60*60, 60)}
+    dt = ts[1]-ts[0]
+    odds = bf.OddsRatioDetector( 
+                            flarelc,
                             bglen=bglen,
                             bgorder=0,
                             noiseestmethod='powerspectrum',
@@ -213,15 +222,14 @@ distribution. If the file name ends in \".gz\" then the output will be gzipped."
                             flareparams=flareparams,
                             noisepoly=True,
                             noiseimpulse=True,
-                            noiseimpulseparams={'t0': (0, (bglen-1.)*data.dt(), bglen)},
+                            noiseimpulseparams={'t0': (0, (bglen-1.)*dt, bglen)},
                             noiseexpdecay=False,
                             noiseexpdecayparams={'tauexp': (600, 3*60*60, 6)},
                             noiseexpdecaywithreverse=True,
                             ignoreedges=False,
                             edgelength=10
                             )
-
-    lnO, tst = Or.oddsratio()
+    lnO, tst = odds.oddsratio()
 
     maxlnO = max(lnO) # get maximum value from time series
 
