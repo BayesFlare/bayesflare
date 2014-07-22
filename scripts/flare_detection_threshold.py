@@ -203,19 +203,23 @@ distribution. If the file name ends in \".gz\" then the output will be gzipped."
     #pl.plot(flarelc.cts, flarelc.clc)
     #pl.show()
 
-    Or = bf.OddsRatioDetector( flarelc,
-                               bglen=bglen,
-                               bgorder=bgorder,
-                               flareparams={'taugauss': (0, 1.5*60*60, 10), 'tauexp': (0.5*60*60, 3.*60*60, 10)},
-                               noisepoly=True,
-                               noiseimpulse=True,
-                               noiseimpulseparams={'t0': (0, (bglen-1.)*flarelc.dt(), bglen)},
-                               noiseexpdecay=True,
-                               noiseexpdecayparams={'tauexp': (0.0, 0.25*60*60, 3)},
-                               noiseexpdecaywithreverse=True,
-                               ignoreedges=True,
-                               noiseestmethod='tailveto',
-                               tvsigma=1.0 )
+        Or = bf.OddsRatioDetector( 
+                            data.interpolate(),
+                            bglen=bglen,
+                            bgorder=0,
+                            noiseestmethod='powerspectrum',
+                            tvsigma=1,
+                            psestfrac=0.5,
+                            flareparams=flareparams,
+                            noisepoly=True,
+                            noiseimpulse=True,
+                            noiseimpulseparams={'t0': (0, (bglen-1.)*data.dt(), bglen)},
+                            noiseexpdecay=False,
+                            noiseexpdecayparams={'tauexp': (600, 3*60*60, 6)},
+                            noiseexpdecaywithreverse=True,
+                            ignoreedges=False,
+                            edgelength=10
+                            )
 
     lnO, tst = Or.oddsratio()
 
