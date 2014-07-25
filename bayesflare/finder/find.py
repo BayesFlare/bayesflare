@@ -480,6 +480,9 @@ class OddsRatioDetector():
         If using the 'powerspectrum' method of noise estimation (:func:`.estimate_noise_ps`) this
         gives the fraction of the spectrum (starting from the high frequency end) used in the noise
         estimate. This value can be between 0 and 1.
+    reduced : float, optional
+       Reduces the number of points used for the noise calculation by excluding the points greater
+       than `reduced * mean(data)`.
     tvsigma : float, default: 1.0
         If using the 'tailveto' method of noise estimation (:func:`.estimate_noise_tv`) this given
         the standard deviation equivalent to the probability volume required for the noise estimate
@@ -543,6 +546,7 @@ class OddsRatioDetector():
                  bgorder=4,
                  noiseestmethod='powerspectrum',
                  psestfrac=0.5,
+                 reduced=10,
                  tvsigma=1.0,
                  flareparams={'taugauss': (0, 1.5*60*60, 10), 'tauexp': (0.5*60*60, 3.*60*60, 10)},
                  noisepoly=True,
@@ -560,6 +564,8 @@ class OddsRatioDetector():
         self.lightcurve = deepcopy(lightcurve)
         self.bglen = bglen
         self.bgorder = bgorder
+
+        self.reduced = reduced
 
         # set flare ranges
         self.set_flare_params(flareparams=flareparams)
@@ -770,9 +776,11 @@ class OddsRatioDetector():
         Mf = Flare(self.lightcurve.cts, amp=1, paramranges=self.flareparams)
 
         Bf = Bayes(self.lightcurve, Mf)
+        
         Bf.bayes_factors_marg_poly_bgd(bglen=self.bglen,
                                        bgorder=self.bgorder,
                                        noiseestmethod=self.noiseestmethod,
+                                       reduced=self.reduced,
                                        psestfrac=self.psestfrac,
                                        tvsigma=self.tvsigma)
         Of = Bf.marginalise_full()
@@ -780,7 +788,7 @@ class OddsRatioDetector():
 
         noiseodds = []
         # get noise odds ratios
-        if self.noisepoly:
+        if self.noisepoly and self.bgorder>0:
                 Bg = Bf.bayes_factors_marg_poly_bgd_only(bglen=self.bglen,
                                                          bgorder=self.bgorder,
                                                          noiseestmethod=self.noiseestmethod,

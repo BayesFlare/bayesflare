@@ -33,14 +33,23 @@ def estimate_noise_ps(lightcurve, estfrac=0.5, **kwargs):
     noise_v : :class:`numpy.array`
         A vector of noise variance values
     """
+
     if isinstance(lightcurve, lc.Lightcurve):
         if "column" in kwargs:
             column = kwargs['column']
             l = len(lightcurve.data[column])
-            sk, f = lightcurve.psd(column=column)
+            if "reduced" in kwargs:
+                reduced = kwargs['reduced']
+                sk, f = lightcurve.psd(column=column, reduced=reduced)
+            else:
+                sk, f = lightcurve.psd(column=column)
         else:
             l = len(lightcurve.clc)
-            sk, f = lightcurve.psd()
+            if "reduced" in kwargs:
+                reduced = kwargs['reduced']
+                sk, f = lightcurve.psd(reduced=reduced)
+            else:
+                sk, f = lightcurve.psd()
     # get the power spectrum of the lightcurve data
     
     # get the mean of the final quarter of the data
@@ -85,7 +94,6 @@ def estimate_noise_tv(d, sigma=1.0, **kwargs):
     # get normalised histogram
     n, bins = np.histogram(d, bins=ld, density=True)
     bincentres = (bins[:-1] + bins[1:])/2. # bin centres
-
     # get the cumulative probability distribution
     cs = np.cumsum(n*(bins[1]-bins[0]))
 
@@ -97,7 +105,6 @@ def estimate_noise_tv(d, sigma=1.0, **kwargs):
     cp = erf(sigma/np.sqrt(2.))
 
     interpf = interp1d(csu, binsu) # interpolation function
-
     if (0.5 - cp/2.) < csu[0]:
         # We've got a problem here with data sitting near the noise
         # floor which we need to veto before we can proceed
@@ -127,7 +134,7 @@ def estimate_noise_tv(d, sigma=1.0, **kwargs):
 
     # get the standard deviation estimate
     std = (highS - lowS)/(2.*sigma)
-
+    std = std
     return std, m
 
 
