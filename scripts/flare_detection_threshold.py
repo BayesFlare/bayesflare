@@ -219,6 +219,7 @@ distribution. If the file name ends in \".gz\" then the output will be gzipped."
                             noiseestmethod='powerspectrum',
                             tvsigma=1,
                             psestfrac=0.5,
+                            reduced=1.7,
                             flareparams=flareparams,
                             noisepoly=True,
                             noiseimpulse=True,

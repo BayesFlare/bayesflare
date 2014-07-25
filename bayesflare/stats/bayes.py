@@ -164,6 +164,7 @@ class Bayes():
                                     bgorder=4,              # background polynomial order
                                     noiseestmethod='powerspectrum',
                                     psestfrac=0.5,
+                                    reduced=10,
                                     tvsigma=1.0,
                                     halfrange=True,
                                     ncpus=None,
@@ -225,6 +226,7 @@ class Bayes():
         """
         
         # check bglen is odd
+        print self.model
         if bglen % 2 == 0:
             print "Error... Background length (bglen) must be an odd number"
             return
@@ -236,7 +238,6 @@ class Bayes():
             # If the supplied data is a pandas DataFrame we'll need to
             # decide if we're working on just one column, or all of them.
             for column in self.lightcurve.data.columns.values.tolist():
-                
                 # get noise estimate on a filtered lightcurve to better represent just the noise
                 tmpcurve = copy(self.lightcurve)
                 if bgorder>=1:
@@ -244,9 +245,9 @@ class Bayes():
 
                 z = np.array(tmpcurve.data[column])
                 if noiseestmethod == 'powerspectrum':
-                  sk = estimate_noise_ps(tmpcurve, estfrac=psestfrac, column=column)[0]
+                  sk = estimate_noise_ps(tmpcurve, estfrac=psestfrac, column=column, reduced=reduced)[0]
                 elif noiseestmethod == 'tailveto':
-                  sk = estimate_noise_tv(z, sigma=tvsigma)[0]
+                  sk = estimate_noise_tv(z, sigma=tvsigma)[0]*10
                 else:
                   print "Noise estimation method must be 'powerspectrum' or 'tailveto'"
                   return None
@@ -454,13 +455,15 @@ class Bayes():
             return
 
         """ get noise estimate on a filtered lightcurve to better represent just the noise """
-        tmpcurve = copy(self.lightcurve)
+        tmpcurve = copy(self.lightcurve.interpolate())
         if bgorder>=1:
             tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
         if noiseestmethod == 'powerspectrum':
           sk = estimate_noise_ps(tmpcurve, estfrac=psestfrac)[0]
         elif noiseestmethod == 'tailveto':
-          sk = estimate_noise_tv(tmpcurve.clc, sigma=tvsigma)[0]
+            print "Noise only", tvsigma, len(tmpcurve.clc), type(tmpcurve.clc)
+            pl.plot(tmpcurve.clc)
+            sk = estimate_noise_tv(tmpcurve.clc, sigma=tvsigma)[0]
         else:
           print "Noise estimation method must be 'powerspectrum' or 'tailveto'"
           return None
