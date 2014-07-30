@@ -94,9 +94,9 @@ for i in range(length):
         else:
             endtime = len(pe.lightcurve.clc)-1
         if app_cent-5 < 0:
-            starttime = app_cent-5
-        else:
             starttime = 0
+        else:
+            starttime = app_cent-5
 
         pe.set_grid(ranges={'taugauss': (2*60, max_len*0.25, 10), 
                             'tauexp'  : (1*60, max_len*0.5, 20),
