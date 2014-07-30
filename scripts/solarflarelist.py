@@ -29,7 +29,7 @@ start = '2014-03-01 00:00'
 end = '2014-07-01 00:00'
 
 # Establish a connection to the database
-list = bf.Flare_List('~/flare.db')
+list = bf.Flare_List('/home/danielw/flare.db')
 list.setup_flare_table()
 
 # A wee utility function I need to put somewhere better
