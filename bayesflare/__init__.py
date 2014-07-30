@@ -47,4 +47,4 @@ from .misc.misc import nextpow2, mkdir
 from .inject.inject import inject_model
 from .simulate.simulate import SimLightcurve, simulate_single
 
-
+from .database.flarelist import Flare_List

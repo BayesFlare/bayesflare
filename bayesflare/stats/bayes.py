@@ -226,7 +226,6 @@ class Bayes():
         """
         
         # check bglen is odd
-        print self.model
         if bglen % 2 == 0:
             print "Error... Background length (bglen) must be an odd number"
             return
