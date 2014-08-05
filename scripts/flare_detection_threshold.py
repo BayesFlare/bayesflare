@@ -106,14 +106,14 @@ distribution. If the file name ends in \".gz\" then the output will be gzipped."
   # read in arguments
   (opts, args) = parser.parse_args()
 
+  dosinusoids = opts.dosinusoids # say whether to add sinusoids
+
   # check if there's a list of Kepler light curve files
   if not opts.__dict__['filelist']: # no list so simulate the data
     kl = False # no Kepler file list
 
     # number of simulations
     Nsims = opts.Nsims
-
-    dosinusoids = opts.dosinusoids # say whether to add sinusoids
 
     nstd = opts.nstd # the noise standard deviation
 
@@ -178,8 +178,6 @@ distribution. If the file name ends in \".gz\" then the output will be gzipped."
 
   Bfs = [] # list to hold Bayes factors
 
-  tslen = len(ts)-bglen+1 # length of time series with edges removed
-
   # perform loop
   for i in range(Nsims):
     # create data containing a flare and white noise
@@ -238,7 +236,7 @@ distribution. If the file name ends in \".gz\" then the output will be gzipped."
           f.write("\t%le\t%lf\n" % (freqs[i], amps[i]))
           print "Sinusoid frequency %lf (1/day), sinusoid amplitude %lf" % (freqs[i]*86400., amps[i])
         else:
-          fwrite("\n")
+          f.write("\n")
         f.close()
 
     # delete flare

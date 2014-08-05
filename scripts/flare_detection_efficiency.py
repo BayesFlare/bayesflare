@@ -428,7 +428,7 @@ log-scale [default: %default].",
 
     # get noise standard deviation from a detrended lightcurve
     tmpcurve = copy(flarelc)
-    tmpcurve.detrend(bglen, bgorder)
+    tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
     #sk = bf.estimate_noise_ps(tmpcurve, estfrac=0.5)[0] # noise standard deviation
     sk = bf.estimate_noise_tv(tmpcurve.clc, sigma=1.0)[0]
     del tmpcurve
