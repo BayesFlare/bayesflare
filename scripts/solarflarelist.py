@@ -101,7 +101,7 @@ for i in range(length):
         pe.set_grid(ranges={'taugauss': (0, 300 , 10), 
                             'tauexp'  : (1*60, max_len*0.5, 20),
                             'amp': amprange, 
-                            't0': (pe.lightcurve.cts[starttime],pe.lightcurve.cts[endtime], 11)})
+                            't0': (pe.lightcurve.cts[starttime],pe.lightcurve.cts[endtime], (endtime - starttime))})
         pe.calculate_posterior(bgorder=0)
         pe.marginalise_all()
         pe.maximum_posterior_snr()
