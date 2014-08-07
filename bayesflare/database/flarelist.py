@@ -1,6 +1,7 @@
 import sqlite3
 from math import floor, log10
 import numpy as np
+import pandas as pd
 
 class Flare_List():
     
@@ -84,11 +85,51 @@ class Flare_List():
         subcat= floor(10*(energy/10**floor(log10(energy))))/10
         return categories[np.where(energies==energye)[0][0]]+str(subcat)
     
-    def dict_factory(self, cursor, row):
+    def dict_factory(self, row):
         d = {}
-        for idx, col in enumerate(cursor.description):
+        for idx, col in enumerate(self.c.description):
             d[col[0]] = row[idx]
         return d
+
+    def flare_select(self, **kwargs):
+        
+        if "start" in kwargs:
+            start = kwargs['start']
+        if "end" in kwargs:
+            end = kwargs['end']
+        
+        self.c.execute('SELECT * FROM flare \
+                       WHERE model_peak_time \
+                       BETWEEN "'+start+'" AND "'+end+'"\
+                       ORDER BY model_peak_time')
+        result = self.c.fetchall()
+        return result
+
+    def id_select(self, **kwargs):
+        
+        if "id" in kwargs:
+            start = kwargs['id']
+        
+        self.c.execute('SELECT * FROM flare \
+                       WHERE id = "'+id+'" \
+                       ORDER BY model_peak_time')
+        result = self.c.fetchall()
+        return result
+
+    def flare_dataframe(self, **kwargs):
+      if "start" in kwargs:
+        start = kwargs['start']
+      if "end" in kwargs:
+        end = kwargs['end']
+
+      self.c.execute('SELECT * FROM flare WHERE model_peak_time BETWEEN "'+start+'" AND "'+end+'" ORDER BY model_peak_time')
+      result = self.c.fetchall()
+        
+      my_flares = []
+      for flare in result: 
+        my_flares.append(self.dict_factory(flare))
+      my_flares = pd.DataFrame(my_flares)
+      return my_flares
     
     def flare_table(self, **kwargs):
         
@@ -121,7 +162,7 @@ class Flare_List():
                 """
         for i in range(len(result)):
             flare = result[i]
-            flare = self.dict_factory(self.c, flare)
+            flare = self.dict_factory(flare)
             line = """
                 <tr>
                     <td>%s</td>
@@ -146,6 +187,8 @@ class Flare_List():
                     flare['model_tau_gauss']
                   )
             lines = lines + line
-        display(HTML(lines))
-        bottom = HTML("""</tbody></table>""")
-        display(bottom)
+        #display(HTML(lines))
+        #bottom = HTML("""</tbody></table>""")
+        #display(bottom)
+
+        display( HTML(lines + """</tbody></table>""") )
