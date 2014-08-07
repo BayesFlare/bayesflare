@@ -26,10 +26,10 @@ import datetime
 # command-line options method later.
 
 start = '2014-03-01 00:00'
-end = '2014-07-01 00:00'
+end = '2014-04-01 00:00'
 
 # Establish a connection to the database
-list = bf.Flare_List('/home/danielw/flare.db')
+list = bf.Flare_List('/home/danielw/newflare.db')
 list.setup_flare_table()
 
 # A wee utility function I need to put somewhere better
@@ -98,7 +98,7 @@ for i in range(length):
         else:
             starttime = app_cent-5
 
-        pe.set_grid(ranges={'taugauss': (2*60, max_len*0.25, 10), 
+        pe.set_grid(ranges={'taugauss': (0, 300 , 10), 
                             'tauexp'  : (1*60, max_len*0.5, 20),
                             'amp': amprange, 
                             't0': (pe.lightcurve.cts[starttime],pe.lightcurve.cts[endtime], 11)})

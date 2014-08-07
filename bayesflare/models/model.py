@@ -720,9 +720,12 @@ class Impulse(Model):
         t0 = pdict['t0']
         amp = pdict['amp']
   
-        # if t0 is inf then set it to the centre of the time series
+        # if t0 is inf then set it to the centre of the time series otherwise t0 is assumed to
+        # be the time from the start of the time series
         if t0 == np.inf:
             t0 = ts[int(len(ts)/2.)]
+        else:
+            t0 = ts[0]+t0
   
         # the impulse (delta-function) model
         f = np.zeros_like(ts)
