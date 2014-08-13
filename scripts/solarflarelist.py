@@ -80,7 +80,7 @@ for i in range(length):
     for i in range(Nflares):
         flarelc = data[flarelist[i][0]-10:flarelist[i][1]+10]
         pe = bf.ParameterEstimationGrid('flare', flarelc)
-        app_cent = np.where(pe.lightcurve.clc==pe.lightcurve.clc.max())[0]
+        app_cent = np.where(pe.lightcurve.clc==np.nanmax(pe.lightcurve.clc))[0][0]
         max_len = ceil((3*flarelc.cts[-1]-flarelc.cts[0])/3600)*3600
         if max_len > 10800:
             max_len = 10800
@@ -98,11 +98,15 @@ for i in range(length):
         else:
             starttime = app_cent-5
 
-        pe.set_grid(ranges={'taugauss': (0, 300 , 10), 
-                            'tauexp'  : (1*60, max_len*0.5, 20),
-                            'amp': amprange, 
-                            't0': (pe.lightcurve.cts[starttime],pe.lightcurve.cts[endtime], (endtime - starttime))})
-        pe.calculate_posterior(bgorder=0)
+        print endtime - starttime, endtime, starttime
+        try:
+            pe.set_grid(ranges={'taugauss': (0, 300 , 10), 
+                                'tauexp'  : (1*60, max_len*0.5, 20),
+                                'amp': amprange, 
+                                't0': (pe.lightcurve.cts[starttime],pe.lightcurve.cts[endtime], (endtime - starttime)+1)})
+        except:
+            pass
+            pe.calculate_posterior(bgorder=0)
         pe.marginalise_all()
         pe.maximum_posterior_snr()
         convfac = {'amp': 1., 'taugauss': 1./3600, 
