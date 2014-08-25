@@ -2,14 +2,19 @@ import sqlite3
 from math import floor, log10
 import numpy as np
 import pandas as pd
+import datetime
+from math import sqrt, log
 
 class Flare_List():
     
     def __init__(self,filename):
         self.conn = sqlite3.connect(filename)
         self.c = self.conn.cursor()
-        
+      
     def setup_flare_table(self):
+      """
+      Constructs the flare table for the database.
+      """
         self.c.execute('''
           CREATE TABLE flare
             (
@@ -29,9 +34,15 @@ class Flare_List():
           ''')
 
     def commit(self):
+      """
+      Saves the database to file.
+      """
         self.conn.commit()
         
     def close(self):
+      """
+      Closes the database connection.
+      """
         self.conn.commit()
         self.conn.close()
         
@@ -105,7 +116,28 @@ class Flare_List():
         result = self.c.fetchall()
         return result
 
+    def latest(self, **kwargs):
+
+        self.c.execute('SELECT data_peak_time FROM flare ORDER BY \
+                       data_peak_time DESC LIMIT 1;')
+        result = self.c.fetchall()
+        return result[0][0]
+
     def id_select(self, **kwargs):
+      """Returns a single flare result from the database, selected by
+      its database id.
+
+      Parameters
+      ==========
+      id : int
+         The database ID number of the flare.
+
+      Returns
+      =======
+      result : np.ndarray
+         An array of flare properties.
+
+      """
         
         if "id" in kwargs:
             start = kwargs['id']
@@ -117,6 +149,25 @@ class Flare_List():
         return result
 
     def flare_dataframe(self, **kwargs):
+        """
+        Returns the flarelist selection as a Pandas dataframe.
+
+        Parameters
+        ==========
+        start : str
+           The datetime of the desired start of the returned results.
+           Should be in the format YYYY-MM-DD HH:MM:SS.
+           The time component may be omitted, and will then default
+           to 00:00:00
+        end : str
+           The datetime of the desired end of the returned results.
+           Should be in the format YYYY-MM-DD HH:MM:SS.
+           The time component may be omitted, and will then default
+           to 00:00:00
+
+        """
+
+      
       if "start" in kwargs:
         start = kwargs['start']
       if "end" in kwargs:
@@ -129,6 +180,19 @@ class Flare_List():
       for flare in result: 
         my_flares.append(self.dict_factory(flare))
       my_flares = pd.DataFrame(my_flares)
+
+      times = [datetime.datetime.strptime(a, '%Y-%m-%d %H:%M:%S') for a in my_flares['model_peak_time']]
+      startend = [self._flare_boundaries(times[i],
+                             my_flares['model_tau_gauss'][i]*3600,
+                             my_flares['model_tau_exp'][i]*3600) 
+                  for i in range(len(my_flares))]
+      start = np.array([i[0] for i in startend])
+      end = np.array([i[1] for i in startend])
+      length = end-start
+      length_sec = [i.total_seconds() for i in length ]
+      my_flares['start'] = pd.Series(start, index=my_flares.index)
+      my_flares['end'] = pd.Series(end, index=my_flares.index)
+      my_flares['length'] = pd.Series(length, index=my_flares.index)
       return my_flares
     
     def flare_table(self, **kwargs):
@@ -192,3 +256,94 @@ class Flare_List():
         #display(bottom)
 
         display( HTML(lines + """</tbody></table>""") )
+
+    def _flare_boundaries(self, t0, t_gauss, t_exp, amount = 0.95):
+        """
+
+        Calculates the start and end times of a flare given a
+            midpoint, a t_gauss value, and a t_exp value.
+
+        Parameters
+        ----------
+        t0 : datetime.datetime object
+            The midpoint time of the flare.
+        t_gauss : float
+            The gaussian rise parameter. In seconds.
+        t_exp : float
+            The exponential decay factor. In seconds.
+        amount : float
+            The amount of the flare which the start and 
+            end time should enclose. Defaults to 0.95 (per cent).
+
+        Returns
+        -------
+        start : datetime.datetime object
+            The datetime of the start of the flare.
+        end : datetime.datetime object
+            The datetime of the end of the flare.
+
+        """
+
+        ramount = 1 - amount
+
+        gauss_cut = sqrt(abs(log(ramount) * 2 * t_gauss**2))
+        exp_cut = abs(t_exp*log(ramount)) 
+        start = t0 - datetime.timedelta(seconds=gauss_cut)
+        end = t0 + datetime.timedelta(seconds=exp_cut)
+
+        return start, end
+
+    def to_csv(self, **kwargs):
+        """Returns the flarelist selection as a CSV (Comma Separated
+        Values) file
+
+        Parameters
+        ==========
+        start : str
+           The datetime of the desired start of the returned results.
+           Should be in the format YYYY-MM-DD HH:MM:SS.
+           The time component may be omitted, and will then default
+           to 00:00:00
+        end : str
+           The datetime of the desired end of the returned results.
+           Should be in the format YYYY-MM-DD HH:MM:SS.
+           The time component may be omitted, and will then default
+           to 00:00:00
+
+        """
+
+        if "start" in kwargs:
+          start = kwargs['start']
+        if "end" in kwargs:
+          end = kwargs['end']
+
+        frame = self.flare_dataframe(start=start,end=end)
+        return frame.to_csv()
+
+    def to_json(self, **kwargs):
+        """
+        Returns the flarelist selection as a JSON (Javascript
+        object notation) file
+
+        Parameters
+        ==========
+        start : str
+           The datetime of the desired start of the returned results.
+           Should be in the format YYYY-MM-DD HH:MM:SS.
+           The time component may be omitted, and will then default
+           to 00:00:00
+        end : str
+           The datetime of the desired end of the returned results.
+           Should be in the format YYYY-MM-DD HH:MM:SS.
+           The time component may be omitted, and will then default
+           to 00:00:00
+
+        """
+
+        if "start" in kwargs:
+          start = kwargs['start']
+        if "end" in kwargs:
+          end = kwargs['end']
+
+        frame = self.flare_dataframe(start=start,end=end)
+        return frame.to_json()
