@@ -11,7 +11,7 @@ import datetime
 
 __version__ = "1.0.0"
 
-parser = OptionParser( usage = usage, description = description, version = __version__ )
+parser = OptionParser()# usage = usage, description = description, version = __version__ )
 
 parser.add_option("-d", "--database", dest="database",
                   help="The SQLite database which will store the results.")
