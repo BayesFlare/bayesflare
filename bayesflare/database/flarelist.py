@@ -10,8 +10,11 @@ class Flare_List():
     def __init__(self,filename):
         self.conn = sqlite3.connect(filename)
         self.c = self.conn.cursor()
-        
+      
     def setup_flare_table(self):
+      """
+      Constructs the flare table for the database.
+      """
         self.c.execute('''
           CREATE TABLE flare
             (
@@ -31,9 +34,15 @@ class Flare_List():
           ''')
 
     def commit(self):
+      """
+      Saves the database to file.
+      """
         self.conn.commit()
         
     def close(self):
+      """
+      Closes the database connection.
+      """
         self.conn.commit()
         self.conn.close()
         
@@ -115,6 +124,20 @@ class Flare_List():
         return result[0][0]
 
     def id_select(self, **kwargs):
+      """Returns a single flare result from the database, selected by
+      its database id.
+
+      Parameters
+      ==========
+      id : int
+         The database ID number of the flare.
+
+      Returns
+      =======
+      result : np.ndarray
+         An array of flare properties.
+
+      """
         
         if "id" in kwargs:
             start = kwargs['id']
@@ -126,6 +149,25 @@ class Flare_List():
         return result
 
     def flare_dataframe(self, **kwargs):
+        """
+        Returns the flarelist selection as a Pandas dataframe.
+
+        Parameters
+        ==========
+        start : str
+           The datetime of the desired start of the returned results.
+           Should be in the format YYYY-MM-DD HH:MM:SS.
+           The time component may be omitted, and will then default
+           to 00:00:00
+        end : str
+           The datetime of the desired end of the returned results.
+           Should be in the format YYYY-MM-DD HH:MM:SS.
+           The time component may be omitted, and will then default
+           to 00:00:00
+
+        """
+
+      
       if "start" in kwargs:
         start = kwargs['start']
       if "end" in kwargs:
@@ -250,3 +292,58 @@ class Flare_List():
         end = t0 + datetime.timedelta(seconds=exp_cut)
 
         return start, end
+
+    def to_csv(self, **kwargs):
+        """Returns the flarelist selection as a CSV (Comma Separated
+        Values) file
+
+        Parameters
+        ==========
+        start : str
+           The datetime of the desired start of the returned results.
+           Should be in the format YYYY-MM-DD HH:MM:SS.
+           The time component may be omitted, and will then default
+           to 00:00:00
+        end : str
+           The datetime of the desired end of the returned results.
+           Should be in the format YYYY-MM-DD HH:MM:SS.
+           The time component may be omitted, and will then default
+           to 00:00:00
+
+        """
+
+        if "start" in kwargs:
+          start = kwargs['start']
+        if "end" in kwargs:
+          end = kwargs['end']
+
+        frame = self.flare_dataframe(start=start,end=end)
+        return frame.to_csv()
+
+    def to_json(self, **kwargs):
+        """
+        Returns the flarelist selection as a JSON (Javascript
+        object notation) file
+
+        Parameters
+        ==========
+        start : str
+           The datetime of the desired start of the returned results.
+           Should be in the format YYYY-MM-DD HH:MM:SS.
+           The time component may be omitted, and will then default
+           to 00:00:00
+        end : str
+           The datetime of the desired end of the returned results.
+           Should be in the format YYYY-MM-DD HH:MM:SS.
+           The time component may be omitted, and will then default
+           to 00:00:00
+
+        """
+
+        if "start" in kwargs:
+          start = kwargs['start']
+        if "end" in kwargs:
+          end = kwargs['end']
+
+        frame = self.flare_dataframe(start=start,end=end)
+        return frame.to_json()
