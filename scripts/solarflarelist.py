@@ -66,9 +66,12 @@ if opts.start == None:
   start = list.latest()
 else:
   start = opts.start
+  start = parser.parse(start)
 if opt.end == None:
   end = str(datetime.datetime.now())
-end = opts.end
+  end = parser.parse(end)
+else:
+  end = opts.end
 list.setup_flare_table()
 
 # A wee utility function I need to put somewhere better
@@ -78,8 +81,8 @@ def find_nearest(array,value):
 
 # Now to get on with the heavy lifting; a massive loop to progress the analysis two days at a time.
 
-start = parser.parse(start)
-end = parser.parse(end)
+
+
 step = datetime.timedelta(days=2)
 
 length = (end - start).days
