@@ -8,43 +8,43 @@ from math import sqrt, log
 class Flare_List():
     
     def __init__(self,filename):
-        self.conn = sqlite3.connect(filename)
-        self.c = self.conn.cursor()
+      self.conn = sqlite3.connect(filename)
+      self.c = self.conn.cursor()
       
     def setup_flare_table(self):
       """
       Constructs the flare table for the database.
       """
-        self.c.execute('''
-          CREATE TABLE flare
-            (
-              id INTEGER PRIMARY KEY ASC, 
-              thresh_start_time DATETIME NOT NULL,
-              data_peak_time DATETIME NOT NULL,
-              data_peak_amplitude DOUBLE NOT NULL,
-              thresh_end_time DATETIME NOT NULL,
-              
-              model_tau_gauss DOUBLE NOT NULL,
-              model_tau_exp DOUBLE NOT NULL,
-              model_peak_time DATETIME NOT NULL,
-              model_peak_amplitude DOUBLE NOT NULL,
-              
-              flags TEXT
-            )
-          ''')
+      self.c.execute('''
+      CREATE TABLE flare
+        (
+          id INTEGER PRIMARY KEY ASC, 
+          thresh_start_time DATETIME NOT NULL,
+          data_peak_time DATETIME NOT NULL,
+          data_peak_amplitude DOUBLE NOT NULL,
+          thresh_end_time DATETIME NOT NULL,
+
+          model_tau_gauss DOUBLE NOT NULL,
+          model_tau_exp DOUBLE NOT NULL,
+          model_peak_time DATETIME NOT NULL,
+          model_peak_amplitude DOUBLE NOT NULL,
+
+          flags TEXT
+        )
+      ''')
 
     def commit(self):
       """
       Saves the database to file.
       """
-        self.conn.commit()
+      self.conn.commit()
         
     def close(self):
       """
       Closes the database connection.
       """
-        self.conn.commit()
-        self.conn.close()
+      self.conn.commit()
+      self.conn.close()
         
     def save_flare(self, 
                    threshold_start_time, 
@@ -124,24 +124,24 @@ class Flare_List():
         return result[0][0]
 
     def id_select(self, **kwargs):
-      """Returns a single flare result from the database, selected by
-      its database id.
+        """Returns a single flare result from the database, selected by
+        its database id.
 
-      Parameters
-      ==========
-      id : int
-         The database ID number of the flare.
+        Parameters
+        ==========
+        id : int
+          The database ID number of the flare.
 
-      Returns
-      =======
-      result : np.ndarray
-         An array of flare properties.
+        Returns
+        =======
+        result : np.ndarray
+          An array of flare properties.
 
-      """
+        """
         
         if "id" in kwargs:
-            start = kwargs['id']
-        
+            id = kwargs['id']
+
         self.c.execute('SELECT * FROM flare \
                        WHERE id = "'+id+'" \
                        ORDER BY model_peak_time')
@@ -168,32 +168,32 @@ class Flare_List():
         """
 
       
-      if "start" in kwargs:
-        start = kwargs['start']
-      if "end" in kwargs:
-        end = kwargs['end']
+        if "start" in kwargs:
+            start = kwargs['start']
+        if "end" in kwargs:
+            end = kwargs['end']
 
-      self.c.execute('SELECT * FROM flare WHERE model_peak_time BETWEEN "'+start+'" AND "'+end+'" ORDER BY model_peak_time')
-      result = self.c.fetchall()
+        self.c.execute('SELECT * FROM flare WHERE model_peak_time BETWEEN "'+start+'" AND "'+end+'" ORDER BY model_peak_time')
+        result = self.c.fetchall()
         
-      my_flares = []
-      for flare in result: 
-        my_flares.append(self.dict_factory(flare))
-      my_flares = pd.DataFrame(my_flares)
+        my_flares = []
+        for flare in result: 
+            my_flares.append(self.dict_factory(flare))
+        my_flares = pd.DataFrame(my_flares)
 
-      times = [datetime.datetime.strptime(a, '%Y-%m-%d %H:%M:%S') for a in my_flares['model_peak_time']]
-      startend = [self._flare_boundaries(times[i],
-                             my_flares['model_tau_gauss'][i]*3600,
-                             my_flares['model_tau_exp'][i]*3600) 
-                  for i in range(len(my_flares))]
-      start = np.array([i[0] for i in startend])
-      end = np.array([i[1] for i in startend])
-      length = end-start
-      length_sec = [i.total_seconds() for i in length ]
-      my_flares['start'] = pd.Series(start, index=my_flares.index)
-      my_flares['end'] = pd.Series(end, index=my_flares.index)
-      my_flares['length'] = pd.Series(length, index=my_flares.index)
-      return my_flares
+        times = [datetime.datetime.strptime(a, '%Y-%m-%d %H:%M:%S') for a in my_flares['model_peak_time']]
+        startend = [self._flare_boundaries(times[i],
+                                           my_flares['model_tau_gauss'][i]*3600,
+                                           my_flares['model_tau_exp'][i]*3600) 
+                    for i in range(len(my_flares))]
+        start = np.array([i[0] for i in startend])
+        end = np.array([i[1] for i in startend])
+        length = end-start
+        length_sec = [i.total_seconds() for i in length ]
+        my_flares['start'] = pd.Series(start, index=my_flares.index)
+        my_flares['end'] = pd.Series(end, index=my_flares.index)
+        my_flares['length'] = pd.Series(length, index=my_flares.index)
+        return my_flares
     
     def flare_table(self, **kwargs):
         
