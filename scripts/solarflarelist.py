@@ -62,14 +62,15 @@ list = bf.Flare_List('/home/danielw/anotherflare.db')
 
 if opts.start == None:
   start = list.latest()
+  start = parser.parse(start)
 else:
   start = opts.start
   start = parser.parse(start)
 if opts.end == None:
-  end = str(datetime.datetime.now())
-  end = parser.parse(end)
+  end = datetime.datetime.now()
 else:
   end = opts.end
+  end = parser.parse(end)
 list.setup_flare_table()
 
 # A wee utility function I need to put somewhere better
