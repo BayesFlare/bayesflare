@@ -25,7 +25,6 @@ parser.add_option("-s", "--start", dest="start",
                   datetime string for the analysis. Format should be\
                   YYYY-MM-DD HH:MM:SS; time may be safely\
                   omitted. [default: %default].",
-                  type="float",
                   default=None)
 
 parser.add_option("-e", "--end", dest="end",
@@ -33,8 +32,7 @@ parser.add_option("-e", "--end", dest="end",
                   datetime string for the analysis. Format should be\
                   YYYY-MM-DD HH:MM:SS; time may be safely\
                   omitted. [default: %default].",
-                  type="float",
-                  default=str(datetime.datetime.now()))
+                  default=None)
 
 (opts, args) = parser.parse_args()
 
