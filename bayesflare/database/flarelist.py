@@ -16,7 +16,7 @@ class Flare_List():
       Constructs the flare table for the database.
       """
       self.c.execute('''
-      CREATE TABLE flare
+      CREATE TABLE IF NOT EXISTS flare
         (
           id INTEGER PRIMARY KEY ASC, 
           thresh_start_time DATETIME NOT NULL,
