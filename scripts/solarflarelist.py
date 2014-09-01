@@ -65,7 +65,7 @@ if opts.start == None:
 else:
   start = opts.start
   start = parser.parse(start)
-if opt.end == None:
+if opts.end == None:
   end = str(datetime.datetime.now())
   end = parser.parse(end)
 else:
