@@ -49,7 +49,7 @@ from dateutil import parser
 from sunpy.net import hek
 import pandas as pd
 from math import ceil
-
+import urllib2
 import dateutil.relativedelta as rd
 import datetime
 
