@@ -70,6 +70,9 @@ class Flare_List():
         model_peak_amplitude = str(model_peak_amplitude)
         flags = str(flags)
 
+        if self.check_duplicate(threshold_peak_time):
+            return
+        
         database.execute('''
             INSERT INTO flare VALUES
             (
@@ -102,6 +105,16 @@ class Flare_List():
             d[col[0]] = row[idx]
         return d
 
+    def check_duplicate(self, peak_time):
+        self.c.execute('SELECT * FROM flare \
+                       WHERE model_peak_time ="'+peak_time+'"\
+                       ORDER BY model_peak_time')
+        result = self.c.fetchall()
+        if len(result)!=0:
+            return True
+        else:
+            return False
+        
     def flare_select(self, **kwargs):
         
         if "start" in kwargs:
@@ -123,6 +136,13 @@ class Flare_List():
         result = self.c.fetchall()
         return result[0][0]
 
+    def time_to_index(self, times, time):
+      """
+      Returns the index location which corresponds to a given time.
+      """
+      from dateutil import parser
+      return times.searchsorted(parser.parse(time))
+        
     def id_select(self, **kwargs):
         """Returns a single flare result from the database, selected by
         its database id.
@@ -138,15 +158,25 @@ class Flare_List():
           An array of flare properties.
 
         """
-        
+        import bayesflare as bf
         if "id" in kwargs:
-            id = kwargs['id']
+            id = str(kwargs['id'])
 
         self.c.execute('SELECT * FROM flare \
                        WHERE id = "'+id+'" \
                        ORDER BY model_peak_time')
         result = self.c.fetchall()
-        return result
+        if "times" in kwargs:
+            times = kwargs['times']
+            flare = bf.Flare(times)
+            time = times.asof(result[0][7])
+            time = times.searchsorted(time)
+            time = times[time]
+            pdict={'t0':time, 'taugauss':result[0][5],
+                                   'tauexp':result[0][6], 'amp':result[0][8]}
+            return self.dict_factory(result[0]), pdict
+        else:
+            return self.dict_factory(result[0])
 
     def flare_dataframe(self, **kwargs):
         """
