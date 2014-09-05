@@ -90,9 +90,14 @@ for i in range(length):
     sec_start = start + step * i
     sec_end = start + step * (i+1)
     print sec_start, sec_end
-    data = pyscidata.solar.goes.GOESLightcurve(sec_start, sec_end, \
+    try:
+      data = pyscidata.solar.goes.GOESLightcurve(sec_start, sec_end, \
                                            title='GOES', default='xrsb', cadence='1min')
-
+    except urllib2.URLError:
+      import sys
+      print >>  sys.stderr, "Error downloading data from", sec_start
+      continue
+      
     bglen = 55
     noiseestmethod='powerspectrum'
     psestfrac=0.5
@@ -167,8 +172,8 @@ for i in range(length):
         best = find_nearest(pe.lightcurve.cts,maxi['t0'])[0]
         list.save_flare(
        	    data.data.index[flarelist[i][0]], \
-            data.data.index[maxlist[i][1]], \
-            data.data.xrsb[maxlist[i][1]], \
+            data.data.index[app_cent], \
+            data.data.xrsb[app_cent], \
             data.data.index[flarelist[i][1]], \
             maxi['taugauss']/3600,\
             maxi['tauexp']/3600,\
