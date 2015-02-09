@@ -119,6 +119,14 @@ The odds ratio calculation assumes
 The results (which includes a list of stars containing flare candidates and the times for each of the flares)
 are returned in a `JSON <http://json.org/>`_ format text file.
 
+``parameter_estimation_example.py``
+-----------------------------------
+
+This script shows an example of how to perform parameter estimation with the code. It sets up some fake
+data containing Gaussian noise and adds a simulated flare signal to it. It then sets up a grid in
+the flare parameter space upon which to calculate the posterior probability distribution. This is then
+marginalised to produce 1D distributions for each parameter.
+
 References
 ----------
 

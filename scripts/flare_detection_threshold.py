@@ -106,14 +106,14 @@ distribution. If the file name ends in \".gz\" then the output will be gzipped."
   # read in arguments
   (opts, args) = parser.parse_args()
 
+  dosinusoids = opts.dosinusoids # say whether to add sinusoids
+
   # check if there's a list of Kepler light curve files
   if not opts.__dict__['filelist']: # no list so simulate the data
     kl = False # no Kepler file list
 
     # number of simulations
     Nsims = opts.Nsims
-
-    dosinusoids = opts.dosinusoids # say whether to add sinusoids
 
     nstd = opts.nstd # the noise standard deviation
 
@@ -176,13 +176,7 @@ distribution. If the file name ends in \".gz\" then the output will be gzipped."
     print >> sys.stderr, "Error... background length (bglen) must be an odd number"
     sys.exit(-1)
 
-  # set amplitude priors to be large
-  largeprior = 1.e6 # 1 million!
-  amppriors = (np.ones(bgorder+2)*largeprior).tolist()
-
   Bfs = [] # list to hold Bayes factors
-
-  tslen = len(ts)-bglen+1 # length of time series with edges removed
 
   # perform loop
   for i in range(Nsims):
@@ -210,12 +204,12 @@ distribution. If the file name ends in \".gz\" then the output will be gzipped."
     Or = bf.OddsRatioDetector( flarelc,
                                bglen=bglen,
                                bgorder=bgorder,
-                               flareparams={'taug': (0, 1.5*60*60, 10), 'taue': (0.5*60*60, 3.*60*60, 10)},
+                               flareparams={'taugauss': (0, 1.5*60*60, 10), 'tauexp': (0.5*60*60, 3.*60*60, 10)},
                                noisepoly=True,
                                noiseimpulse=True,
                                noiseimpulseparams={'t0': (0, (bglen-1.)*flarelc.dt(), bglen)},
                                noiseexpdecay=True,
-                               noiseexpdecayparams={'taue': (0.0, 0.25*60*60, 3)},
+                               noiseexpdecayparams={'tauexp': (0.0, 0.25*60*60, 3)},
                                noiseexpdecaywithreverse=True,
                                ignoreedges=True,
                                noiseestmethod='tailveto',
@@ -242,7 +236,7 @@ distribution. If the file name ends in \".gz\" then the output will be gzipped."
           f.write("\t%le\t%lf\n" % (freqs[i], amps[i]))
           print "Sinusoid frequency %lf (1/day), sinusoid amplitude %lf" % (freqs[i]*86400., amps[i])
         else:
-          fwrite("\n")
+          f.write("\n")
         f.close()
 
     # delete flare

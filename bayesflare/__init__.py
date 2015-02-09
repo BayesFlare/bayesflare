@@ -33,15 +33,11 @@ from __future__ import absolute_import
 
 from .data.data import Loader, Lightcurve
 
-from .models.flare import Flare
-from .models.transit import Transit
-from .models.impulse import Impulse
-from .models.expdecay import Expdecay
-from .models.gaussian import Gaussian
+from .models import Model, Flare, Transit, Expdecay, Impulse, Gaussian, Step, ModelCurve
 
 from .finder.find import SigmaThresholdMethod, OddsRatioDetector
 
-from .noise.noise import estimate_noise_ps, estimate_noise_tv, make_noise_lightcurve, addNoise, highpass_filter_lightcurve, savitzky_golay
+from .noise.noise import estimate_noise_ps, estimate_noise_tv, make_noise_lightcurve, addNoise, highpass_filter_lightcurve, savitzky_golay, running_median
 
 from .stats import *
 from .stats.bayes import Bayes, ParameterEstimationGrid

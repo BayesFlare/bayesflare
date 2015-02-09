@@ -341,10 +341,6 @@ log-scale [default: %default].",
     print >> sys.stderr, "Error... background length (bglen) must be an odd number"
     sys.exit(-1)
 
-  # set amplitude priors to be large
-  largeprior = 1.e6 # 1 million!
-  amppriors = (np.ones(bgorder+2)*largeprior).tolist()
-
   detectedsignals = [] # a list of tuples for detected signals containing the snr (and if a flare were injected) the taugauss and tauexp values
   falsepositives = 0 # count the false positives
 
@@ -432,7 +428,7 @@ log-scale [default: %default].",
 
     # get noise standard deviation from a detrended lightcurve
     tmpcurve = copy(flarelc)
-    tmpcurve.detrend(bglen, bgorder)
+    tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
     #sk = bf.estimate_noise_ps(tmpcurve, estfrac=0.5)[0] # noise standard deviation
     sk = bf.estimate_noise_tv(tmpcurve.clc, sigma=1.0)[0]
     del tmpcurve
@@ -447,7 +443,8 @@ log-scale [default: %default].",
     # create injections
     if opts.injtransit: # create a transit
       Mti = bf.Transit(flarelc.cts, amp=1)
-      injdata = np.copy(Mti.model(1., sigmags[i], taufs[i], t0, flarelc.cts))
+      pdict = {'t0': t0, 'amp': 1., 'sigmag': sigmags[i], 'tauf': taufs[i]}
+      injdata = np.copy(Mti.model(pdict))
 
       # output the transit parameters
       if outd:
@@ -456,7 +453,8 @@ log-scale [default: %default].",
       del Mti
     elif opts.injimpulse: # create a delta-function impulse
       Mii = bf.Impulse(flarelc.cts, amp=1)
-      injdata = np.copy(Mii.model(impsign, t0, flarelc.cts))
+      pdict = {'t0': t0, 'amp': 1.*impsign}
+      injdata = np.copy(Mii.model(pdict))
 
       # output the impulse parameters
       if outd is not None:
@@ -465,7 +463,8 @@ log-scale [default: %default].",
       del Mii
     else:
       Mfi = bf.Flare(flarelc.cts, amp=1)
-      injdata = np.copy(Mfi.model(1., taugausss[i], tauexps[i], t0, flarelc.cts))
+      pdict = {'t0': t0, 'amp': 1., 'taugauss': taugausss[i], 'tauexp': tauexps[i]}
+      injdata = np.copy(Mfi.model(pdict))
 
       # output the flare parameters
       if outd is not None:
@@ -496,12 +495,12 @@ log-scale [default: %default].",
     Or = bf.OddsRatioDetector( flarelc,
                                bglen=bglen,
                                bgorder=bgorder,
-                               flareparams={'taug': (0, 1.5*60*60, 10), 'taue': (0.5*60*60, 3.*60*60, 10)},
+                               flareparams={'taugauss': (0, 1.5*60*60, 10), 'tauexp': (0.5*60*60, 3.*60*60, 10)},
                                noisepoly=True,
                                noiseimpulse=True,
                                noiseimpulseparams={'t0': (0, (bglen-1.)*flarelc.dt(), bglen)},
                                noiseexpdecay=True,
-                               noiseexpdecayparams={'taue': (0.0, 0.25*60*60, 3)},
+                               noiseexpdecayparams={'tauexp': (0.0, 0.25*60*60, 3)},
                                noiseexpdecaywithreverse=True,
                                ignoreedges=True,
                                noiseestmethod='tailveto',

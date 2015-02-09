@@ -242,7 +242,8 @@ of standard devaitons with which to estimate the noise [default: %default].",
       t0 = opts.t0
 
     # create flare
-    injdata = np.copy(Mfi.model(opts.injamp, opts.taug, opts.taue, t0, tmi))
+    pdict = {'t0': t0, 'amp': opts.injamp, 'taugauss': opts.taug, 'tauexp': opts.taue}
+    injdata = np.copy(Mfi.model(pdict))
 
     if opts.oinj:
       if oinj != None:
@@ -255,7 +256,7 @@ of standard devaitons with which to estimate the noise [default: %default].",
   # output different noise estimates
   noiseest = opts.noisemethod
   tmpcurve = copy(flarelc)
-  tmpcurve.detrend(bglen, bgorder)
+  tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
   if noiseest == 'powerspectrum':
     sig = bf.estimate_noise_ps(tmpcurve, estfrac=opts.psest)[0]
   elif noiseest == 'tailveto':
@@ -274,12 +275,12 @@ of standard devaitons with which to estimate the noise [default: %default].",
                                noiseestmethod=noiseest,
                                psestfrac=opts.psest,
                                tvsigma=opts.tvsigma,
-                               flareparams={'taug': (0, 1.5*60*60, 10), 'taue': (0.5*60*60, 3.*60*60, 10)},
+                               flareparams={'taugauss': (0, 1.5*60*60, 10), 'tauexp': (0.5*60*60, 3.*60*60, 10)},
                                noisepoly=True,
                                noiseimpulse=True,
                                noiseimpulseparams={'t0': (0, (bglen-1.)*flarelc.dt(), bglen)},
                                noiseexpdecay=True,
-                               noiseexpdecayparams={'taue': (0.0, 0.25*60*60, 3)},
+                               noiseexpdecayparams={'tauexp': (0.0, 0.25*60*60, 3)},
                                noiseexpdecaywithreverse=True,
                                ignoreedges=True )
 

@@ -37,15 +37,8 @@ class Bayes():
         self.lightcurve = lightcurve
         self.model      = deepcopy(model)
         self.ranges     = deepcopy(model.ranges)
-        self.id         = self.lightcurve.identity_string() + "_" + self.model.identity_string()
         self.confidence = 0.999
         self.noise_ev = self.noise_evidence()
-
-    def identity_string(self):
-        """
-        Returns a string which identifies the object.
-        """
-        return self.id
 
     def bayes_factors(self, **kwargs):
         """
@@ -78,8 +71,8 @@ class Bayes():
         for i in np.arange(l):
             q = np.unravel_index(i, model.shape)
             # m = model(i)
-            m = model(i, filt=self.lightcurve.detrended, nbins=self.lightcurve.detrend_nbins,
-                      order=self.lightcurve.detrend_order)
+            m = model(i, filt=self.lightcurve.detrended, filtermethod=self.lightcurve.detrend_method, nbins=self.lightcurve.detrend_nbins,
+                      order=self.lightcurve.detrend_order, filterknee=self.lightcurve.detrend_knee)
             if m == None:
                 # if the model is not defined (e.g. for the flare model when tau_g > tau_e)
                 # set probability to zero (log probability to -inf)
@@ -102,7 +95,6 @@ class Bayes():
                                     psestfrac=0.5,
                                     tvsigma=1.0,
                                     halfrange=True,
-                                    amppriorrange=[],
                                     ncpus=None):
         """
         Work out the logarithm of the Bayes factor for a signal consisting of the model (e.g. a
@@ -114,6 +106,15 @@ class Bayes():
         calculated over the parameter space containing the model parameters, as defined by the
         model. All these will require subsequent marginalisation if necessary. The background
         variation will be calculated as a running window around the main model time stamp.
+        
+        No priors are used on the amplitude parameters being marginalised over. These could 
+        subsequently be applied, so long as they are constant values that are large compared
+        to the expected parameter space over which the likelihood is non-negligable. However,
+        if comparing models for which the same amplitude parameters are used then these priors
+        would cancel anyway. The exception is if the model amplitude marginalisation, rather than
+        the background polynomial amplitude, covers the 0 to :math:`\infty` range rather than
+        the full :math:`-\infty` to :math:`\infty` range. In this case a prior of 0.5 is
+        applied.
 
         Parameters
         ----------
@@ -138,15 +139,6 @@ class Bayes():
             If this is 'True' then the defined signal model amplitude will be integrated over the
             ranges from 0 to infinity. If it is 'False' then the integral will be from -infinity to
             infinity.
-        amppriorrange : list or float, default: []
-            This specifies the flat prior ranges on the amplitude parameters being marginalised
-            over. If `amppriorrange` is an empty list then each amplitude for the polynomial
-            background fit will have a prior range of 1, whilst if `halfrange` is 'True' the signal
-            model amplitude will have a prior range of 0.5 and if it is 'False' will have a
-            prior range also of 1. If `amppriorrange` is a single valued list then that value will
-            be used for all amplitudes, and again if `halfrange` is 'True' that value will be
-            halved for the signal model amplitude. If `amppriorrange` has a length of `bgorder+2`
-            (i.e. a value for all the amplitudes) then those values will be used as the priors.
         ncpus : int, default: None
             The number of parallel CPUs to run the likelihood calculation on using
             :mod:`multiprocessing`. The default of None means that all available CPUs on a machine
@@ -167,7 +159,7 @@ class Bayes():
 
         # get noise estimate on a filtered lightcurve to better represent just the noise
         tmpcurve = copy(self.lightcurve)
-        tmpcurve.detrend(bglen, bgorder)
+        tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
         if noiseestmethod == 'powerspectrum':
           sk = estimate_noise_ps(tmpcurve, estfrac=psestfrac)[0]
         elif noiseestmethod == 'tailveto':
@@ -223,17 +215,25 @@ class Bayes():
 
         # store models, so not regenerating them (these are truncated to the length of bglen)
         ms = np.ndarray(tuple(model.shape) + (bglen,))
-
+        priors = np.ndarray(tuple(model.shape))
+        mparams = {}
+        
         # squared model terms for each time step - generally these are the same, but at the
         # edges the mode slides off the data, so the squared model terms will be different
         mdcross = np.ndarray(tuple(model.shape)+(N,))
 
         for i in range(np.product(model.shape)):
-            m = model(i, mts, filt=False) # use the original model without the shape having been changed
-
+            m = model(i, ts=mts, filt=False) # use the original model without the shape having been changed
             q = np.unravel_index(i, model.shape)
 
-            if m == None:
+            # get prior
+            for k in range(len(model.shape)):
+                # set parameter dict for prior function
+                mparams[model.paramnames[k]] = self.ranges[model.paramnames[k]][q[k]]
+            
+            priors[q] = model.prior(mparams)
+            
+            if m == None or priors[q] == -np.inf:
                 ms[q] = -np.inf*np.ones(bglen)
                 mdcross[q] = -np.inf*np.ones(N)
             else:
@@ -248,7 +248,7 @@ class Bayes():
 
             # deal with edge effects
             for j in range(npoly):
-                if m != None:
+                if m != None and priors[q] != -np.inf:
                     mdbgcross[q+(j,)] = np.sum(ms[q]*polyms[j])*np.ones(N)
 
                     for k in range(nsteps):
@@ -296,40 +296,26 @@ class Bayes():
         pool.close()
         pool.join()
 
+        # set amplitude priors
+        if halfrange:
+            ampprior = np.log(0.5)
+        else:
+            ampprior = 0.
+        
         for i in range(l):
             q = np.unravel_index(i, model.shape)
-            self.lnBmargAmp[q] = Ms[i]
+            
+            # get Bayes factors and apply priors
+            self.lnBmargAmp[q] = Ms[i] + priors[q] + ampprior
 
-        self.premarg[model.identity_type()] = self.lnBmargAmp
-
-        # set ampliude priors
-        lp = len(amppriorrange)
-        if lp == 0:
-            if halfrange:
-                ampprior = np.log(0.5)
-            else:
-                ampprior = 0.
-        elif lp == 1:
-            ampprior = -(npoly+1)*np.log(amppriorrange[0])
-
-            if halfrange:
-                ampprior = ampprior + np.log(amppriorrange[0]/2.)
-        elif lp == npoly+1:
-            ampprior = np.sum(np.log(np.divide(1., amppriorrange)))
-        else:
-            print "Error... amppriorrange must be either length 0, 1 or bgorder+2"
-            return
-
-        # apply priors
-        self.lnBmargAmp = self.lnBmargAmp + np.sum(model.priors) + ampprior
+        self.premarg = np.copy(self.lnBmargAmp)
 
     def bayes_factors_marg_poly_bgd_only(self,
                                          bglen=55,
                                          bgorder=4,
                                          noiseestmethod='powerspectrum',
                                          psestfrac=0.5,
-                                         tvsigma=1.0,
-                                         amppriorrange=[]):
+                                         tvsigma=1.0):
         """
         Get the log Bayes factor for the data matching a sliding polynomial background window (of
         length `bglen` and polynomial order `bgorder`) compared to Gaussian noise. This marginalises
@@ -337,17 +323,10 @@ class Bayes():
         function and :func:`bayes_factors_marg_poly_bgd` is that this function does not include the
         signal model.
 
-        `amppriorrange` should be a list of the prior extents of each polynomial amplitude
-        coefficient. If it is an empty list (default) each amplitude will be given a prior range of
-        1, if it is just a single value then that value will be used for all (`bgorder+1`)
-        amplitudes, otherwise if should be a list `bgorder+1` long.
-
         See Also
         --------
         bayes_factors_marg_poly_bgd : Similar to this function, but including a signal model, such
                                       as a flare.
-        bayes_factors_marg_poly_bgd_chunk : Similar to this function, but only computing the Bayes
-                                            factor for a small chunk of the light curve data.
         """
 
         # check bglen is odd
@@ -364,7 +343,7 @@ class Bayes():
 
         """ get noise estimate on a filtered lightcurve to better represent just the noise """
         tmpcurve = copy(self.lightcurve)
-        tmpcurve.detrend(bglen, bgorder)
+        tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
         if noiseestmethod == 'powerspectrum':
           sk = estimate_noise_ps(tmpcurve, estfrac=psestfrac)[0]
         elif noiseestmethod == 'tailveto':
@@ -374,7 +353,7 @@ class Bayes():
           return None
         del tmpcurve
 
-        npoly = bgorder+1 # numpber of polynomial coefficients
+        npoly = bgorder+1 # number of polynomial coefficients
 
         # get the background polynomial model cross terms for each t0
         polyms = np.ndarray((npoly, bglen)) # background models
@@ -422,221 +401,19 @@ class Bayes():
 
         B = log_marg_amp_full_background(sk, N, bgorder, bgcross, dbgr)
 
-        lp = len(amppriorrange)
-        if lp == 0:
-            ampprior = 0
-        elif lp == 1:
-            ampprior = -npoly*np.log(amppriorrange)
-        elif lp == npoly:
-            ampprior = np.sum(np.log(np.divide(1., amppriorrange)))
-        else:
-            print "Error... amppriorrange must be either length 0, 1 or bgorder+1"
-            return
-
-        B = B + ampprior
-
         self.lnBmargBackground = B
 
         return B
 
-    def bayes_factors_marg_poly_bgd_chunk(self,
-                                          idx, # index at the centre of the "chunk"
-                                          margt0=True,
-                                          bglen=25,
-                                          bgorder=3,
-                                          noiseestmethod='powerspectrum',
-                                          psestfrac=0.5,
-                                          tvsigma=2.5,
-                                          amppriorrange=[],
-                                          halfrange=True,
-                                          ncpus=None):
-        """
-        Get the logarithm of the Bayes factor, marginalised over signal and background polynomial
-        amplitudes, and signal model parameters, for data centred on index `idx` in the light curve
-        time series. The time series that will be used will a be a chunk of length `bglen` around
-        `idx` (or shorter if at the edges).
-
-        Parameters
-        ----------
-        margt0 : boolean, default: True
-            If margt0 is 'True' then the signal central time t0 will be marginalised over the span
-            of the data. Otherwise, this signal will be fixed to have t0 just as the time of index
-            idx and it should be equivalent of the (fully marginalised) value returned for that
-            index from :func:`bayes_factors_marg_poly_bgd`.
-
-        Returns
-        -------
-        :class:`numpy.array` of log Bayes factor values.
-
-        Other inputs are equivalent to those used for :func:`bayes_factors_marg_poly_bgd`.
-
-        See Also
-        --------
-        bayes_factors_marg_poly_bgd : Similar to this function, but using the whole light curve and
-                                      not including the option to marginalise over t0.
-        bayes_factors_marg_poly_bgd_only : Similar to this function, but using the whole light
-                                           curve and not including the signal model.
-        """
-
-        # check bglen is odd
-        if bglen % 2 == 0:
-            print "Error... Background length (bglen) must be an odd number"
-            return
-
-        # get noise estimate on a filtered lightcurve to better represent just the noise
-        tmpcurve = copy(self.lightcurve)
-        tmpcurve.detrend(bglen, bgorder)
-        if noiseestmethod == 'powerspectrum':
-          sk = estimate_noise_ps(tmpcurve, estfrac=psestfrac)[0]
-        elif noiseestmethod == 'tailveto':
-          sk = estimate_noise_tv(tmpcurve.clc, sigma=tvsigma)[0]
-        else:
-          print "Noise estimation method must be 'powerspectrum' or 'tailveto'"
-          return None
-        del tmpcurve
-
-        N = len(self.lightcurve.cts)
-
-        # get required "chunk" of lightcurve data
-        idxstart = idx-int(bglen/2)
-        idxend = idx+int(bglen/2)+1
-        if idxstart < 0: # if point overlaps with start of data then shorten the length of data
-            bglen = bglen + idxstart
-            idxstart = 0
-        elif idxend > (N-1):
-            bglen = bglen + (N - idxend)
-            idxend = N
-
-        d = np.copy(self.lightcurve.clc[idxstart:idxend])
-
-        # if needing to marginalise over the signal time then zero pad the data
-        if margt0:
-            t0len = bglen
-            t0s = np.copy(self.lightcurve.cts[idxstart:idxend])
-        else:
-            t0len = 1
-            t0s = [self.lightcurve.cts[idx]]
-
-        npoly = bgorder+1
-
-        # create array of cross-model terms for each set of parameters
-        polyms = np.ndarray((npoly, bglen)) # background models
-        ts = np.linspace(0, 1, bglen)
-        for i in range(npoly):
-            polyms[i] = ts**i
-
-        # background cross terms for each time step
-        bgcross = np.zeros((npoly, npoly, 1))
-        for i in range(npoly):
-            for j in range(i, npoly):
-                bgcross[i,j,0] = np.sum(polyms[i]*polyms[j])
-
-        model = self.model
-
-        # get the "model" and background cross terms
-        mdbgcross = np.ndarray((t0len,) + tuple(model.shape) + (npoly,1))
-        ms = np.ndarray((t0len,) + tuple(model.shape) + (bglen,))
-        mdcross = np.ndarray((t0len,) + tuple(model.shape)+(1,))  # squared model terms
-
-        mts = np.copy(self.lightcurve.cts[idxstart:idxend]) # time stamps for model creation
-
-        t0tmp = model.t0
-
-        for j, t0 in enumerate(t0s):
-            model.t0 = t0 # change t0
-
-            for i in range(np.product(model.shape)):
-                m = model(i, mts, filt=False) # use the original model without the shape having been changed
-
-                q = np.unravel_index(i, model.shape)
-
-                if m == None:
-                    ms[(j,)+q] = -np.inf*np.ones(bglen)
-                    mdcross[(j,)+q+(0,)] = -np.inf
-                else:
-                    ms[(j,)+q] = m.clc
-                    mdcross[(j,)+q+(0,)] = np.sum(m.clc**2)
-
-                for k in range(npoly):
-                    mdbgcross[(j,)+q+(k,0)] = np.correlate(ms[(j,)+q], polyms[k])
-
-        # reset model t0
-        model.t0 = t0tmp
-
-        # get the data crossed with the background model terms
-        dbgr = np.ndarray((npoly, 1))
-
-        for i in range(bgorder+1):
-            dbgr[i,0] = np.correlate(d, polyms[i])
-
-        # initialise the log-likelihood ratio
-        s = (t0len,)+tuple(model.shape)
-        Btmp = -np.inf*np.ones(s)
-
-        # Parallel-ize it! Run different model parameter calculation in a parallel way if multiple CPUs
-        # are available.
-        l = np.product(model.shape)
-
-        for j, t0 in enumerate(t0s):
-            pool = Pool(processes=ncpus)
-            Ms = pool.map_async(log_marg_amp_full_model_wrapper,
-                                ((i, model.shape, sk, bgorder, halfrange, d,
-                                  ms[j], bgcross, mdbgcross[j], mdcross[j], dbgr)
-                                 for i in range(l))).get()
-            pool.close()
-            pool.join()
-
-            for i in range(l):
-                q = np.unravel_index(i, model.shape)
-                Btmp[(j,)+q] = Ms[i]
-
-        self.premarg[model.identity_type()] = Btmp
-
-        lp = len(amppriorrange)
-        if lp == 0:
-            if halfrange:
-                ampprior = np.log(0.5)
-            else:
-                ampprior = 0.
-        elif lp == 1:
-            ampprior = -(bgorder+2)*np.log(amppriorrange[0])
-
-            if halfrange:
-                ampprior = ampprior + np.log(amppriorrange[0]/2.)
-        elif lp == bgorder+2:
-            ampprior = np.sum(np.log(np.divide(1., amppriorrange)))
-        else:
-            print "Error... amppriorrange must be either length 0, 1 or bgorder+2"
-            return
-
-        # add priors
-        Btmp = Btmp + np.sum(model.priors) + ampprior
-
-        # marginalise over the model parameters (including t0 if required)
-        if margt0:
-            # add t0 prior
-            Btmp = Btmp - np.log(mts[-1]-mts[0])
-
-            tmpself = Bayes(self.lightcurve, model)
-            tmpself.ranges.insert(0, mts) # insert the t0 parameters as the first range
-            tmpself.lnBmargAmp = np.copy(Btmp)
-            Btmp = tmpself.marginalise_full()
-            return Btmp.lnBmargAmp
-        else:
-            tmpself = Bayes(self.lightcurve, model)
-            tmpself.lnBmargAmp = np.copy(Btmp[0])
-            Btmp = tmpself.marginalise_full()
-            return np.squeeze(Btmp.lnBmargAmp)
-
-    def marginalise(self, axis):
+    def marginalise(self, pname):
         """
         Function to reduce the dimensionality of the `lnBmargAmp` :class:`numpy.ndarray` from `N` to
         `N-1` through numerical marginalisation (integration) over a given parameter.
 
         Parameters
         ----------
-        axis: int
-            The axis of the array that is to be marginalised.
+        axis: string
+            The parameter name of the array that is to be marginalised.
 
         Returns
         -------
@@ -646,7 +423,8 @@ class Bayes():
         """
 
         arr = self.lnBmargAmp
-        places = self.ranges[axis]
+        places = self.ranges[pname]
+        axis = self.model.paramnames.index(pname)
         if len(places) > 1:
             x = np.apply_along_axis(logtrapz, axis, arr, places)
         elif len(places) == 1:
@@ -655,8 +433,16 @@ class Bayes():
             q = np.arange(0,len(z)).astype(int) != axis
             newshape = tuple((np.array(list(z)))[q])
             x = np.reshape(arr, newshape)
-        B = Bayes(self.lightcurve, self.model)
-        B.ranges = np.delete(self.ranges, axis, 0)
+        
+        model = copy(self.model)
+        model.paramnames.remove(pname)
+        
+        B = Bayes(self.lightcurve, model)
+        
+        ranges = copy(self.ranges)
+        del ranges[pname]
+        B.ranges = ranges
+        
         B.lnBmargAmp = x
         return B
 
@@ -672,9 +458,9 @@ class Bayes():
         """
 
         A = self
-        for i in np.arange(len(self.ranges)):
-            A = A.marginalise(0)
-
+        for p in self.ranges:
+            A = A.marginalise(p)
+            
         return A
 
     def noise_evidence(self):
@@ -826,16 +612,28 @@ class ParameterEstimationGrid():
         """
         self.modelType = modelType.lower()
         if self.modelType == 'flare':
-            from ..models.flare import Flare
+            from ..models import Flare
             self.model = Flare(self.lightcurve.cts)
-            self.paramNames = ['t0', 'taugauss', 'tauexp', 'amp']
-            self.prior = self.flare_prior
+            self.paramNames = self.model.paramnames
         elif self.modelType == 'transit':
-            from ..models.transit import Transit
+            from ..models import Transit
             self.model = Transit(self.lightcurve.cts)
-            self.paramNames = ['t0', 'sigmag', 'tauf', 'amp']
-            self.prior = self.transit_prior
-
+        elif self.modelType == 'gaussian':
+            from ..models import Gaussian
+            self.model = Gaussian(self.lightcurve.cts)
+        elif self.modelType == 'expdecay':
+            from ..models import Expdecay
+            self.model = Expdecay(self.lightcurve.cts)
+        elif self.modelType == 'impulse':
+            from ..models import Impulse
+            self.model = Impulse(self.lightcurve.cts)
+        elif self.modelType == 'step':
+            from ..models import Step
+            self.model = Step(self.lightcurve.cts)
+            
+        self.paramNames = self.model.paramnames
+        self.prior = self.model.prior
+            
     def set_grid(self, ranges={}):
         """
         Set the parameter grid on which parameter estimation will be performed. E.g. for the flare
@@ -855,6 +653,10 @@ class ParameterEstimationGrid():
         if len(ranges) == 0:
             print "Must specify a dictionary of ranges"
             return
+
+        # set ranges in model if nothing is already set
+        if len(self.model.ranges) == 0:
+            self.model.set_params(ranges)
 
         # create vectors for each model parameter
         for i, p in enumerate(self.paramNames):
@@ -923,58 +725,6 @@ class ParameterEstimationGrid():
 
         return (np.amin(self.lightcurve.clc), np.amax(self.lightcurve.clc))
 
-    def flare_prior(self, paramVals):
-        """
-        The prior for the flare model parameters. Currently this just returns an unnormalised
-        constant prior value of unity (zero in terms of the log prior value) for positive amplitude
-        values, or zero :math:`-\infty` in terms of the log prior value) for negative amplitude values.
-
-        Parameters
-        ----------
-        paramVals : dict
-            A dictionary containing the four flare parameter values
-
-        Returns
-        -------
-        logprior : float
-            The log(prior) for the given set of parameter values for the flare model.
-        """
-
-        if len(paramVals) != 4:
-            raise "Error... must have 4 values in the flare prior function"
-
-        #tauGauss = paramVals['taugauss']
-        #tauExp = paramVals['tauexp']
-        amp = paramVals['amp']
-
-        #if tauGauss > tauExp: # Remove this as I don't want this constraint for parameter estimation
-        #    return -np.inf # tauGauss must be less than tauExp
-        #elif amp < 0.:
-        if amp < 0.:
-            return -np.inf # amplitude must be positive
-        else:
-            return 0. # just return a constant as we're not going to evaluate the evidence
-
-    def transit_prior(self, paramVals):
-        """
-        The prior for the transit model.
-
-        Parameters
-        ----------
-        paramVals : dict
-            A dictionary of the four transit parameter values
-
-        Returns
-        -------
-        logprior : float
-            The log(prior) (float) - currently a constant value of zero.
-
-        .. note::
-            This is currently just a dummy function and returns a constant prior for any input.
-        """
-
-        return 0. # just return a constant as we're not going to evaluate the evidence
-
     def set_sigma(self,
                   lightcurve,
                   detrend=True,
@@ -1010,7 +760,7 @@ class ParameterEstimationGrid():
         """
         tmpcurve = copy(lightcurve)
         if detrend:
-            tmpcurve.detrend(dtlen, dtorder)
+            tmpcurve.detrend(method='savitzkygolay', nbins=dtlen, order=dtorder)
 
         if noiseestmethod == 'powerspectrum':
             sigma = estimate_noise_ps(tmpcurve, estfrac=estfrac)[0]
@@ -1091,7 +841,7 @@ class ParameterEstimationGrid():
             sp.append(len(pv[p]))
 
         l = np.product(sp) # total size of parameter space
-
+        
         # calculate posterior if marginalising over a polynomial background
         if margbackground:
             npoly = bgorder+1 # number of polynomial coefficients
@@ -1114,7 +864,7 @@ class ParameterEstimationGrid():
                 for j in range(i, npoly):
                     submm[i,j] = np.sum(polyms[i]*polyms[j])
             mmcross[:] = submm
-
+            
             priorval = np.zeros(l)
 
         # get size of posterior
@@ -1128,12 +878,12 @@ class ParameterEstimationGrid():
             ps = {}
             for i, p in enumerate(self.paramNames):
                 ps[p] = pv[p][q[i]]
-
+                
             # get model by inputting dictionary of parameters
-            m = self.model.modeldict(ps, ts=lc.cts)
+            m = self.model.model(ps, ts=lc.cts)
 
             # check if lightcurve has been detrended
-            if lc.detrended:
+            if lc.detrended and lc.detrend_method=='savitzkygolay':
                 # do the same detrending to the model
                 mfit = savitzky_golay(m, lc.detrend_nbins, lc.detrend_order)
                 m = m-mfit
@@ -1375,7 +1125,7 @@ class ParameterEstimationGrid():
             self.maximum_posterior()
 
         # get model for maximum posterior values
-        m = self.model.modeldict(self.maxpostparams, self.lightcurve.cts)
+        m = self.model.model(self.maxpostparams, ts=self.lightcurve.cts)
 
         snr = np.sqrt(np.sum(m**2))/self.noiseSigma
 
@@ -1408,7 +1158,7 @@ class ParameterEstimationGrid():
             self.maximum_posterior()
 
         # get model for maximum posterior values
-        m = self.model.modeldict(self.maxpostparams, self.lightcurve.cts)
+        m = self.model.model(self.maxpostparams, ts=self.lightcurve.cts)
 
         # integrate model and divide underlying noise level (as estimated by
         # subtracting the best fit model from the data and taking the median value)

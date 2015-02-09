@@ -15,11 +15,7 @@ ext_modules = [ Extension("stats.general", ["bayesflare/stats/general.pyx", "bay
 directives = {'embedsignature': True} # embed cython function signature in docstring
 
 packs = ['bayesflare.data.data', 
-         'bayesflare.models.flare', 
-         'bayesflare.models.transit', 
-         'bayesflare.models.impulse',
-         'bayesflare.models.gaussian',
-         'bayesflare.models.expdecay',
+         'bayesflare.models.model',
          'bayesflare.noise.noise',
          'bayesflare.misc.misc',
          'bayesflare.simulate.simulate',
