@@ -350,6 +350,12 @@ class Lightcurve():
         z[nans]= np.interp(za(nans), za(~nans), z[~nans]).astype('float32')
         self.clc = z
 
+        # interpolate error values too
+        ze = self.cle
+        nans, za= self.nan_helper(ze)
+        ze[nans] = np.interp(za(nans), za(~nans), z[~nans]).astype('float32')
+        self.cle = ze
+
     def set_detrend(self, method='none', nbins=None, order=None, knee=None):
         """
         A method allowing the detrending parameters for the light curve to be changed.
