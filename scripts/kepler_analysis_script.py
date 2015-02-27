@@ -72,11 +72,11 @@ Williams, Fletcher and Grant (2014).
 
   parser.add_option("-E", "--Teff", dest="Teff",
                     help="The acceptance condition on stellar effective temperature to include in search [default: %default],",
-                    default="'<=5150'")
+                    default="<=5150")
 
   parser.add_option("-l", "--logg", dest="logg",
                     help="The acceptance condition on stellar log(surface gravity) to include in search [default: %default],",
-                    default="'>=4.2'")
+                    default=">=4.2")
 
   parser.add_option("-Q", "--quarter", dest="quarter",
                     help="The Kepler Quarter to include in search [default: %default],",
@@ -89,15 +89,15 @@ Williams, Fletcher and Grant (2014).
   (opts, args) = parser.parse_args()
 
   # check output file is given
-  if not opts.__dict['outfile']:
+  if not opts.__dict__['outfile']:
     print "Error... no output file specified!"
     sys.exit(0)
   else:
     outfile = opts.outfile
 
   print """
-If file %s exists then the analysis will restart with the final star\
-in that files and append the data. If you want to restart from scratch\
+If file %s exists then the analysis will restart with the final star \
+in that files and append the data. If you want to restart from scratch \
 then delete the file.
       """ % outfile
 
@@ -120,7 +120,7 @@ then delete the file.
   # params["ordercolumn1"] = "kic_teff" # example of how you might sort by Teff
 
   # set required search criterion
-  params["kic_teff"] = opts.teff              # Teff condition
+  params["kic_teff"] = opts.Teff              # Teff condition
   params["kic_logg"] = opts.logg              # log(g) condition
   params["ktc_target_type"] = "LC"            # long cadence
   params["sci_data_quarter"] = opts.quarter   # quarter
