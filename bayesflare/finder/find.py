@@ -605,8 +605,8 @@ class OddsRatioDetector():
         
         if not flareparams.has_key('taugauss'):
             raise ValueError("Error... dictionary has no parameter 'taugauss'")
-        if not flareparams.has_key('taugauss'):
-            raise ValueError("Error... dictionary has no parameter 'taugauss'")
+        if not flareparams.has_key('tauexp'):
+            raise ValueError("Error... dictionary has no parameter 'tauexp'")
         
         if not flareparams.has_key('t0'):
             flareparams['t0'] = (np.inf,)

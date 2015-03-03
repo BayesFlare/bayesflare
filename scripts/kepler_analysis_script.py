@@ -386,8 +386,8 @@ then delete the file.
       outdict["Noise estimation method"] = odds.noiseestmethod # method for noise estimation
       outdict["Running window length"] = odds.bglen # number of time bins used for running window
       outdict["Polynomial background order"] = odds.bgorder # polynomial order
-      outdict["Flare taug"] = odds.flare_taug # range in taug
-      outdict["Flare taue"] = odds.flare_taue # range in taue
+      outdict["Flare taug"] = odds.flareparams['taugauss'] # range in taug
+      outdict["Flare taue"] = odds.flareparams['tauexp']   # range in taue
       outdict["Amplitude priors"] = odds.amppriors
 
     # write out flare info for star
