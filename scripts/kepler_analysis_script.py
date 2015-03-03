@@ -388,7 +388,7 @@ then delete the file.
       outdict["Polynomial background order"] = odds.bgorder # polynomial order
       outdict["Flare taug"] = odds.flareparams['taugauss'] # range in taug
       outdict["Flare taue"] = odds.flareparams['tauexp']   # range in taue
-      outdict["Amplitude priors"] = odds.amppriors
+      outdict["Amplitude priors"] = odds.flareparams['amp']
 
     # write out flare info for star
     if Nflares > 0:
@@ -418,7 +418,7 @@ then delete the file.
 
       # get the noise estimate
       tmpcurve = copy(flarelc)
-      tmpcurve.detrend(odds.bglen, odds.bgorder)
+      tmpcurve.detrend(method='savitzkygolay', odds.bglen, odds.bgorder)
       if odds.noiseestmethod == 'powerspectrum':
         sk = bf.estimate_noise_ps(tmpcurve, estfrac=odds.psestfrac)[0]
       elif odds.noiseestmethod == 'tailveto':

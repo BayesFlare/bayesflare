@@ -301,8 +301,8 @@ class Lightcurve():
         self.interpolate()
         self.dcoffset() # remove a DC offset (calculated as the median of the light curve)
 
-        if detrend:
-            self.detrend(nbins, order)
+        if detrend and detrendmethod != 'none':
+            self.detrend(detrendmethod, nbins, order)
 
         del dcurve
 
