@@ -518,7 +518,7 @@ class OddsRatioDetector():
     noisestep : bool, default: False
         If True then the noise model will include a step function model (:class:`.Step`) on top of a
         polynomial background variation.
-    noiseimpulseparams : dict, default: {'t0', (0.,)}
+    noisestepparams : dict, default: {'t0', (0.,)}
         A dictionary containing the step function parameters 't0' giving a tuple of its lower, and upper
         values (in seconds) and the number of grid points spanning that range (if a single value is
         given in the tuple then the parameter will be fixed at that value). This range will be
