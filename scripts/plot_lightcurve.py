@@ -35,7 +35,7 @@ if __name__=='__main__':
   parser = OptionParser( usage = usage, description = description, version = __version__ )
 
   parser.add_option("-L", "--kepler-dir", dest="filedir",
-                    help="A directory of Kepler data files.")
+                    help="A directory of Kepler data files or an individual file.")
 
   parser.add_option("-k", "--kepler-id", dest="kid", help="A Kepler star ID", type="int")
 
@@ -182,36 +182,42 @@ of standard devaitons with which to estimate the noise [default: %default].",
         oinj = np.copy(sinewave)
 
       flarelc.clc = flarelc.clc + sinewave
-  else: # there is a file list
+  else: # there is a directory or file
     kl = True
 
-    try:
-      filelist = os.listdir(opts.filedir)
-    except:
-      print >> sys.stderr, "Error... no Kepler data directory found"
-      sys.exit(0)
+    if os.path.isdir(opts.filedir): # a directory of files
+      try:
+        filelist = os.listdir(opts.filedir)
+      except:
+        print >> sys.stderr, "Error... no Kepler data directory found"
+        sys.exit(0)
 
-    # find lightcurve for given Kepler ID
-    if not opts.kid:
-      print >> sys.stderr, "Error... no Kepler star ID given"
-      sys.exit(0)
+      # find lightcurve for given Kepler ID
+      if not opts.kid:
+        print >> sys.stderr, "Error... no Kepler star ID given"
+        sys.exit(0)
 
-    kids = '%09d' % opts.kid
-    kfile = ''
-    for f in filelist:
-      if kids in f:
-        # check for cadence of data file
-        if opts.cadence == 'long':
-          if 'llc' in f:
-            kfile = os.path.join(opts.filedir, f)
-            break
-        elif opts.cadence == 'short':
-          if 'slc' in f:
-            kfile = os.path.join(opts.filedir, f)
-            break
+      kids = '%09d' % opts.kid
+      kfile = ''
+      for f in filelist:
+        if kids in f:
+          # check for cadence of data file
+          if opts.cadence == 'long':
+            if 'llc' in f:
+              kfile = os.path.join(opts.filedir, f)
+              break
+          elif opts.cadence == 'short':
+            if 'slc' in f:
+              kfile = os.path.join(opts.filedir, f)
+              break
 
-    if kfile == '':
-      print >> sys.stderr, "Error... no light curve file found for KID%d" % kids
+      if kfile == '':
+        print >> sys.stderr, "Error... no light curve file found for KID%d" % kids
+        sys.exit(0)
+    elif os.path.isfile(opts.filedir): # there is just a file
+      kfile = opts.filedir
+    else:
+      print >> sys.stderr, "Error... lightcurve directory or file does not exist"
       sys.exit(0)
 
     try:
