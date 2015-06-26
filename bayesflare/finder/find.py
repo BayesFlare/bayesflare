@@ -524,9 +524,6 @@ class OddsRatioDetector():
         given in the tuple then the parameter will be fixed at that value). This range will be
         numerically marginalised over. For the default values `0.` corresponds to the step being
         at the centre of the analysis window.
-    noisestepwithreverse : bool, default: False
-        If True then the noise model will include an reversed step function on top of a polynomial
-        background variation. This will have the same parameters as defined in `noisestepparams`.
     ignoreedges : bool, default: True
         If this is true then any output log odds ratio will have the initial and final `bglen` /2
         values removed. This removes values for which the odds ratio has been calculated using
@@ -555,7 +552,6 @@ class OddsRatioDetector():
                  noiseexpdecaywithreverse=True,
                  noisestep=False,
                  noisestepparams={'t0': (np.inf,)},
-                 noisestepwithreverse=False,
                  ignoreedges=True):
 
         self.lightcurve = deepcopy(lightcurve)
@@ -573,8 +569,7 @@ class OddsRatioDetector():
         self.set_noise_poly(noisepoly=noisepoly) # polynomial background
         self.set_noise_impulse(noiseimpulse=noiseimpulse, noiseimpulseparams=noiseimpulseparams) # impulse background
         self.set_noise_expdecay(noiseexpdecay=noiseexpdecay, noiseexpdecayparams=noiseexpdecayparams, withreverse=noiseexpdecaywithreverse)
-        self.set_noise_step(noisestep=noisestep, noisestepparams=noisestepparams, withreverse=noisestepwithreverse)
-        
+        self.set_noise_step(noisestep=noisestep, noisestepparams=noisestepparams)
         self.set_ignore_edges(ignoreedges=ignoreedges)
 
     def set_ignore_edges(self, ignoreedges=True):
@@ -715,7 +710,7 @@ class OddsRatioDetector():
         
         self.noiseexpdecayparams = noiseexpdecayparams
 
-    def set_noise_step(self, noisestep=False, noisestepparams={'t0': (np.inf,)}, withreverse=False):
+    def set_noise_step(self, noisestep=False, noisestepparams={'t0': (np.inf,)}):
         """
         Set the noise model to include a step function (:class:`.Step`) on a polynomial
         background variation. Also set the range of times of the step function, which will be numerically
@@ -730,11 +725,8 @@ class OddsRatioDetector():
             tuple should either be a single value or three values giving the low end, high end
             and number of parameter points. A 't0' default of inf will set t0 to the centre of the
             time series.
-        withreverse : bool, default: False
-            Set to true if there should also be a reverse of the step function noise model.
         """
         self.noisestep = noisestep
-        self.noisestepwithreverse = withreverse
         
         if not noisestepparams.has_key('t0'):
             raise ValueError("Error... 't0' parameter range not set.")
@@ -843,19 +835,6 @@ class OddsRatioDetector():
             Os = Bs.marginalise_full()
             noiseodds.append(Os.lnBmargAmp)
             del M
-
-            if self.noisestepwithreverse:
-                M = Step(self.lightcurve.cts, amp=1, reverse=True, paramranges=self.noisestepparams)
-                Bsr = Bayes(self.lightcurve, M)
-                Bsr.bayes_factors_marg_poly_bgd(bglen=self.bglen,
-                                                bgorder=self.bgorder,
-                                                nsinusoids=self.nsinusoids,
-                                                noiseestmethod=self.noiseestmethod,
-                                                psestfrac=self.psestfrac,
-                                                tvsigma=self.tvsigma)
-                Osr = Bsr.marginalise_full()
-                noiseodds.append(Osr.lnBmargAmp)
-                del M
                 
         # get the total odds ratio
         if self.ignoreedges:
