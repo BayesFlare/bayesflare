@@ -6,6 +6,7 @@ import glob
 import numpy as np
 import bayesflare as bf
 import scipy.signal as signal
+from scipy.interpolate import interp1d
 import matplotlib.mlab as ml
 import matplotlib.pyplot as pl
 import copy
@@ -112,6 +113,7 @@ class Lightcurve():
     clc = np.array([])
     cts = np.array([])
     cle = np.array([])
+    datamask = np.array([]) # a mask to give back only finite numbers
 
     ulc = np.array([])    # Place to store the unsmoothed curve.
 
@@ -130,14 +132,15 @@ class Lightcurve():
 
     running_median_dt = 0
     running_median_fit = np.array([])
-    datagap = False
 
-    def __init__(self, curve=None, detrend=False, detrendmethod='savitzkygolay', nbins=101, order=3, knee=(1./(0.3*86400)), maxgap=1):
+    sinusoid_freqs = None # periodogram peak frequencies
+
+    def __init__(self, curve=None, detrend=False, detrendmethod='savitzkygolay', nbins=101, order=3, knee=(1./(0.3*86400))):
 
         clc = None
         clc = np.array([])
         if curve != None:
-            self.add_data(curve=curve, detrend=detrend, detrendmethod=detrendmethod, nbins=nbins, order=order, knee=knee, maxgap=1)
+            self.add_data(curve=curve, detrend=detrend, detrendmethod=detrendmethod, nbins=nbins, order=order, knee=knee)
 
     def __str__(self):
         return "<bayesflare Lightcurve for KIC "+str(self.id)+">"
@@ -231,16 +234,15 @@ class Lightcurve():
         if flow > fhigh:
             raise ValueError("[Error] flow is greater than fhigh!")
 
-
         freqs = np.linspace(flow, fhigh, len(self.clc)*oversample)
         angfreqs = 2.*np.pi*freqs # Lomb-Scargle uses angular frequencies
 
         # get periodogram
-        pgram = lombscargle(self.cts.astype(np.float64), self.clc.astype(np.float64), angfreqs)
+        pgram = lombscargle(self.cts[np.nonzero(self.clc)].astype(np.float64), self.clc[np.nonzero(self.clc)].astype(np.float64), angfreqs)
 
         return pgram, freqs
 
-    def add_data(self, curve=None, detrend=False, detrendmethod='none', nbins=101, order=3, knee=None, maxgap=1):
+    def add_data(self, curve=None, detrend=False, detrendmethod='none', nbins=101, order=3, knee=None):
         """
         Add light curve data to the object..
 
@@ -258,8 +260,6 @@ class Lightcurve():
            The width of the detrending window in bins of the light curve.
         order : int, optional, default: 3
            The polynomial order of the detrending filter.
-        maxgap : int, optional, default: 1
-           The largest gap size (in bins) allowed before the light curve is deemed to contain gaps.
 
         Exceptions
         ----------
@@ -297,9 +297,8 @@ class Lightcurve():
         self.cle = np.append(self.cle, copy.deepcopy(dcurve[1].data['PDCSAP_FLUX_ERR']))
 
         dcurve.close()
-        self.datagap = self.gap_checker(self.clc, maxgap=maxgap)
-        self.interpolate()
         self.dcoffset() # remove a DC offset (calculated as the median of the light curve)
+        self.maskdata()
 
         if detrend and detrendmethod != 'none':
             self.detrend(detrendmethod, nbins, order)
@@ -311,68 +310,12 @@ class Lightcurve():
         Method to remove a DC offset from a light curve by subtracting the median value of the
         light curve from all values.
         """
-        self.dc  = np.median(self.clc)
+        self.dc  = np.median(self.clc[np.isfinite(self.clc)])
         self.clc = self.clc - self.dc
 
-    def gap_checker(self, d, maxgap=1):
+    def maskdata(self):
         """
-        Check for NaN gaps in the data greater than a given value.
-
-        Parameters
-        ----------
-        d : :class:`numpy.ndarray`
-           The array to check for gaps in the data.
-
-        maxgap : int, optional, default: 1
-           The maximum allowed size of gaps in the data.
-
-        Returns
-        -------
-        bool
-           ``True`` if there is a gap of maxgap or greater exists in ``d``, otherwise ``False``.
-        """
-
-        z = np.invert(np.isnan(d))
-        y = np.diff(z.nonzero()[0])
-        if len(y < maxgap+1) != len(y):
-          return True
-        else:
-          return False
-
-    def nan_helper(self, y):
-        """
-        Helper to handle indices and logical indices of NaNs.
-
-        Parameters
-        ----------
-        y : ndarray
-           An array which may contain NaN values.
-
-        Returns
-        -------
-        nans : ndarray
-          An array containing the indices of NaNs
-        index : function
-          A function, to convert logical indices of NaNs to 'equivalent' indices
-
-        Examples
-        --------
-
-           >>> # linear interpolation of NaNs
-           >>> spam = np.ones(100)
-           >>> spam[10] = np.nan
-           >>> camelot = bf.Lightcurve(curves)
-           >>> nans, x = camelot.nan_helper(spam)
-           >>> spam[nans]= np.interp(x(nans), x(~nans), spam[~nans])
-
-
-        """
-
-        return np.isnan(y), lambda z: z.nonzero()[0]
-
-    def interpolate(self):
-        """
-        A method for interpolating the light curves, to compensate for NaN values.
+        Set all non-finite values to zero, and their associated errors to infinity.
 
         Examples
         --------
@@ -382,17 +325,16 @@ class Lightcurve():
 
         """
 
-        #for a in np.arange(len(self.lc)):
-        z = self.clc
-        nans, za= self.nan_helper(z)
-        z[nans]= np.interp(za(nans), za(~nans), z[~nans]).astype('float32')
-        self.clc = z
+        self.datamask = ~np.isfinite(self.clc)
+        self.clc[self.datamask] = 0.
+        #self.cle[self.datamask] = np.inf
+        self.cle[self.datamask] = 1e5 # a large, but finite value
 
-        # interpolate error values too
-        ze = self.cle
-        nans, za= self.nan_helper(ze)
-        ze[nans] = np.interp(za(nans), za(~nans), z[~nans]).astype('float32')
-        self.cle = ze
+        # sort out any timestamps that are screwy!
+        tidxs = np.isfinite(self.cts)
+        cidxs = np.arange(len(self.cts))
+        fint = interp1d(cidxs[tidxs], self.cts[tidxs], kind='linear')
+        self.cts[~tidxs] = fint(cidxs[~tidxs])
 
     def set_detrend(self, method='none', nbins=None, order=None, knee=None):
         """
@@ -448,15 +390,15 @@ class Lightcurve():
             if nbins is None or order is None:
                 raise ValueError("Number of bins, or polynomial order, for Savitsky-Golay filter not set")
 
-            ffit = bf.savitzky_golay(self.clc, nbins, order)
-            self.clc = (self.clc - ffit)
+            ffit = bf.savitzky_golay(self.clc[~self.datamask], nbins, order)
+            self.clc[~self.datamask] = (self.clc[~self.datamask] - ffit)
             self.detrend_fit = np.copy(ffit)
         elif method == 'runningmedian':
             if nbins is None:
                 raise ValueError("Number of bins for running median filter not set")
 
-            ffit = bf.running_median(self.clc, nbins)
-            self.clc = (self.clc - ffit)
+            ffit = bf.running_median(self.clc[~self.datamask], nbins)
+            self.clc[~self.datamask] = (self.clc[~self.datamask] - ffit)
             self.detrend_fit = np.copy(ffit)
         elif method == 'highpassfilter':
             if knee is None:

@@ -140,8 +140,9 @@ cpdef log_marg_amp(np.ndarray[DTYPE_t, ndim=1] d, np.ndarray[DTYPE_t, ndim=1] m,
     return B
 
 
-cpdef log_marg_amp_full_model(i, shape, sk, nbackground, lastHalfRange, np.ndarray[DTYPE_t, ndim=1] d,
-                              np.ndarray ms, np.ndarray[DTYPE_t, ndim=2] bgcross,
+cpdef log_marg_amp_full_model(i, shape, np.ndarray[DTYPE_t, ndim=1] sk, nbackground, lastHalfRange,
+                              np.ndarray[DTYPE_t, ndim=1] d,
+                              np.ndarray ms, np.ndarray[DTYPE_t, ndim=3] bgcross,
                               np.ndarray mdbgcross, np.ndarray mdcross,
                               np.ndarray[DTYPE_t, ndim=2] dbgr):
     """
@@ -159,7 +160,7 @@ cpdef log_marg_amp_full_model(i, shape, sk, nbackground, lastHalfRange, np.ndarr
         The ravelled index within the model parameter space.
     shape : list
         A list of integers giving the size of each parameter range.
-    sk : float
+    sk : :class:`numpy.ndarray`
         The data's noise standard deviation.
     nbackground : int
         The number of background models with amplitudes to be marginalised over
@@ -212,11 +213,23 @@ cpdef log_marg_amp_full_model(i, shape, sk, nbackground, lastHalfRange, np.ndarr
 
     cdef np.ndarray B = np.zeros(loopmax, dtype=DTYPE)
 
+    cdef double sigma = 1. # assume data and cross terms have been pre-whitened with variance values and set to one
+    cdef double sumlogsigma = 0.
+    if len(sk) == 1:
+        sigma = sk[0]
+    else: # get normalising factor from sum of sigmas
+        sumlogsigma = np.sum(np.log(sk[np.isfinite(sk)]))
+
+    if lastHalfRange:
+        lhr = 1
+    else:
+        lhr = 0
+
     for j in range(loopmax): # loop over data
         # fill in arrays for marginalisation function
         for k in range(endidx):
             for l in range(k, endidx):
-                modelModel[k*(nbackground+1)+l] = bgcross[k,l]
+                modelModel[k*(nbackground+1)+l] = bgcross[k,l,j]
 
         # fill in the model model and data model terms
         for k in range(nbackground+1):
@@ -227,17 +240,14 @@ cpdef log_marg_amp_full_model(i, shape, sk, nbackground, lastHalfRange, np.ndarr
                 modelModel[k*(nbackground+1)+endidx] = mdcross[q+(j,)]
                 dataModel[k] = dm[j]
 
-        if lastHalfRange:
-            lhr = 1
-        else:
-            lhr = 0
-        B[j] = log_marg_amp_full_C(nbackground+1, <double*> modelModel.data, <double*> dataModel.data, sk, lhr)
+        B[j] = log_marg_amp_full_C(nbackground+1, <double*> modelModel.data, <double*> dataModel.data, sigma, lhr)
+        B[j] += sumlogsigma
 
     return B
 
 
-cpdef log_marg_amp_full_2Dmodel(i, shape, sk, nbackground, lastHalfRange, np.ndarray[DTYPE_t, ndim=1] d,
-                                np.ndarray[DTYPE_t, ndim=3] ms, np.ndarray[DTYPE_t, ndim=2] bgcross,
+cpdef log_marg_amp_full_2Dmodel(i, shape, np.ndarray[DTYPE_t, ndim=1] sk, nbackground, lastHalfRange, np.ndarray[DTYPE_t, ndim=1] d,
+                                np.ndarray[DTYPE_t, ndim=3] ms, np.ndarray[DTYPE_t, ndim=3] bgcross,
                                 np.ndarray[DTYPE_t, ndim=4] mdbgcross, np.ndarray[DTYPE_t, ndim=3] mdcross,
                                 np.ndarray[DTYPE_t, ndim=2] dbgr):
     """
@@ -254,7 +264,6 @@ cpdef log_marg_amp_full_2Dmodel(i, shape, sk, nbackground, lastHalfRange, np.nda
                               dimensionality.
     """
     q = np.unravel_index(i, shape) # get tuple of index positions
-
     cdef np.ndarray modelModel = np.zeros((nbackground+1)*(nbackground+1), dtype=DTYPE) # make array 1D
     cdef np.ndarray dataModel = np.zeros(nbackground+1, dtype=DTYPE)
     cdef unsigned int loopmax = 0, j = 0, k = 0, l = 0, endidx = nbackground, lhr = 0
@@ -266,11 +275,23 @@ cpdef log_marg_amp_full_2Dmodel(i, shape, sk, nbackground, lastHalfRange, np.nda
 
     cdef np.ndarray B = np.zeros(loopmax, dtype=DTYPE)
 
+    cdef double sigma = 1. # assume data and cross terms have been pre-whitened with variance values and set to one
+    cdef double sumlogsigma = 0.
+    if len(sk) == 1:
+        sigma = sk[0]
+    else: # get normalising factor from sum of sigmas
+        sumlogsigma = np.sum(np.log(sk[np.isfinite(sk)]))
+
+    if lastHalfRange:
+        lhr = 1
+    else:
+        lhr = 0
+
     for j in range(loopmax): # loop over data
         # fill in arrays for marginalisation function
         for k in range(endidx):
             for l in range(k, endidx):
-                modelModel[k*(nbackground+1) + l] = bgcross[k,l]
+                modelModel[k*(nbackground+1) + l] = bgcross[k,l,j]
 
         # fill in the model model and data model terms
         for k in range(nbackground+1):
@@ -285,23 +306,20 @@ cpdef log_marg_amp_full_2Dmodel(i, shape, sk, nbackground, lastHalfRange, np.nda
                 modelModel[k*(nbackground+1) + endidx] = mdcross[q[0],q[1],j]
                 dataModel[k] = dm[j]
 
-        if lastHalfRange:
-            lhr = 1
-        else:
-            lhr = 0
-        B[j] = log_marg_amp_full_C(nbackground+1, <double*> modelModel.data, <double*> dataModel.data, sk, lhr)
+        B[j] = log_marg_amp_full_C(nbackground+1, <double*> modelModel.data, <double*> dataModel.data, sigma, lhr)
+        B[j] += sumlogsigma
 
     return B
 
 
-cpdef log_marg_amp_full_background(sk, dlen, nbackground, np.ndarray[DTYPE_t, ndim=2] bgcross, np.ndarray[DTYPE_t, ndim=2] dbgr):
+cpdef log_marg_amp_full_background(np.ndarray[DTYPE_t, ndim=1] sk, dlen, nbackground, np.ndarray[DTYPE_t, ndim=3] bgcross, np.ndarray[DTYPE_t, ndim=2] dbgr):
     """
     Run :func:`log_marg_amp_full_C` to get the background (modelled by `nbackground` functions)
     versus Gaussian noise log likelihood ratio.
 
     Parameters
     ----------
-    sk : double
+    sk : :class:`numpy.ndarray`
         The noise standard deviation.
     dlen : int
         The length of the data.
@@ -327,14 +345,22 @@ cpdef log_marg_amp_full_background(sk, dlen, nbackground, np.ndarray[DTYPE_t, nd
     cdef np.ndarray modelModel = np.zeros(nbackground*nbackground, dtype=DTYPE)
     cdef np.ndarray dataModel = np.zeros(nbackground, dtype=DTYPE)
 
+    cdef double sigma = 1. # assume data and cross terms have been pre-whitened with variance values and set to one
+    cdef double sumlogsigma = 0.
+    if len(sk) == 1:
+        sigma = sk[0]
+    else: # get normalising factor from sum of sigmas
+        sumlogsigma = np.sum(np.log(sk[np.isfinite(sk)]))
+
     for j in range(dlen):
         for k in range(nbackground):
             dataModel[k] = dbgr[k,j]
 
             for n in range(k, nbackground):
-                modelModel[k*nbackground+n] = bgcross[k,n]
+                modelModel[k*nbackground+n] = bgcross[k,n,j]
 
-        B[j] = log_marg_amp_full_C(nbackground, <double *> modelModel.data, <double*> dataModel.data, sk, 0)
+        B[j] = log_marg_amp_full_C(nbackground, <double *> modelModel.data, <double*> dataModel.data, sigma, 0)
+        B[j] += sumlogsigma
 
     return B
 

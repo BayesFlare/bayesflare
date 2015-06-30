@@ -8,6 +8,7 @@ from math import log
 import pyfits
 import numpy as np
 from copy import copy, deepcopy
+from matplotlib import pyplot as pl
 
 def contiguous_regions(condition):
         """
@@ -792,6 +793,7 @@ class OddsRatioDetector():
                                            psestfrac=self.psestfrac,
                                            tvsigma=self.tvsigma)
             Oi = Bi.marginalise_full()
+
             noiseodds.append(Oi.lnBmargAmp)
             del M
 
@@ -829,9 +831,11 @@ class OddsRatioDetector():
             Bs.bayes_factors_marg_poly_bgd(bglen=self.bglen,
                                            bgorder=self.bgorder,
                                            nsinusoids=self.nsinusoids,
+                                           halfrange=False,
                                            noiseestmethod=self.noiseestmethod,
                                            psestfrac=self.psestfrac,
                                            tvsigma=self.tvsigma)
+
             Os = Bs.marginalise_full()
             noiseodds.append(Os.lnBmargAmp)
             del M
