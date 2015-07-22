@@ -302,7 +302,7 @@ class Lightcurve():
         self.dcoffset() # remove a DC offset (calculated as the median of the light curve)
 
         if detrend and detrendmethod != 'none':
-            self.detrend(detrendmethod, nbins, order)
+            self.detrend(detrendmethod, nbins, order, knee)
 
         del dcurve
 
@@ -463,7 +463,7 @@ class Lightcurve():
                 raise ValueError("Knee frequency for high-pass filter not set.")
 
             dlc = bf.highpass_filter_lightcurve(self, knee=knee)
-            self.clc = np.copy(dlc.clc)
+            self.clc = np.copy(dlc)
         else:
             raise ValueError("No detrend method set")
 
