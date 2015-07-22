@@ -273,7 +273,9 @@ of standard devaitons with which to estimate the noise [default: %default].",
   if opts.detrendmeth == 'savitzkygolay':
     tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
   elif opts.detrendmeth == 'highpassfilter':
-    tmpcurve.detrend(method='highpassfilter', knee=1/(60**2))
+    tmpcurve.detrend(method='highpassfilter', knee=1./(0.3*86400))
+  elif opts.detrendmeth == 'runningmedian':
+    tmpcurve.detrend(method='runningmedian', nbins=bglen)
 
 
   if noiseest == 'powerspectrum':
