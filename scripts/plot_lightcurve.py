@@ -144,9 +144,14 @@ of standard devaitons with which to estimate the noise [default: %default].",
   parser.add_option("-T", "--threshold", dest="threshold",
                     help="Find odds ratios above this value and overplot.",
                     type="float", default=None)
+
   parser.add_option("-D", "--detrend-method", dest="detrendmeth",
                     help="Set detrend method: Can be savitzkygolay, runningmedian, highpassfilter",
                     default="savitzkygolay")
+
+  parser.add_option("-K", "--knee-value", dest="kneevalue",
+                    help="Set knee value",
+                    type="float", default=0.00003858)
 
   # read in arguments
   (opts, args) = parser.parse_args()
@@ -273,7 +278,7 @@ of standard devaitons with which to estimate the noise [default: %default].",
   if opts.detrendmeth == 'savitzkygolay':
     tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
   elif opts.detrendmeth == 'highpassfilter':
-    tmpcurve.detrend(method='highpassfilter', knee=1./(0.3*86400))
+    tmpcurve.detrend(method='highpassfilter', knee=opts.kneevalue)
   elif opts.detrendmeth == 'runningmedian':
     tmpcurve.detrend(method='runningmedian', nbins=bglen)
 
