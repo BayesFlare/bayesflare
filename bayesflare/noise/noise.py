@@ -289,7 +289,7 @@ def highpass_filter_lightcurve(lightcurve, knee=(1./(0.3*86400.))):
     return z
 
     
-def running_median(self, y, window):
+def running_median(y, window):
     """
     A method to subtract a running median for smoothing data.
 
