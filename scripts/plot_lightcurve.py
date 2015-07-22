@@ -144,13 +144,15 @@ of standard devaitons with which to estimate the noise [default: %default].",
   parser.add_option("-T", "--threshold", dest="threshold",
                     help="Find odds ratios above this value and overplot.",
                     type="float", default=None)
+  parser.add_option("-D", "--detrend-method", dest="detrendmeth",
+                    help="Set detrend method: Can be savitzkygolay, runningmedian, highpassfilter",
+                    default="savitzkygolay")
 
   # read in arguments
   (opts, args) = parser.parse_args()
 
   oinj = None
-
-  # check if there's a list of Kepler light curve files
+    # check if there's a list of Kepler light curve files
   if not opts.__dict__['filedir']: # no list so simulate the data
     kl = False # no Kepler file list
 
@@ -267,7 +269,13 @@ of standard devaitons with which to estimate the noise [default: %default].",
   # output different noise estimates
   noiseest = opts.noisemethod
   tmpcurve = copy(flarelc)
-  tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
+
+  if opts.detrendmeth == 'savitzkygolay':
+    tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
+  elif opts.detrendmeth == 'highpassfilter':
+    tmpcurve.detrend(method='highpassfilter', knee=1/(60**2))
+
+
   if noiseest == 'powerspectrum':
     sig = bf.estimate_noise_ps(tmpcurve, estfrac=opts.psest)[0]
   elif noiseest == 'tailveto':
