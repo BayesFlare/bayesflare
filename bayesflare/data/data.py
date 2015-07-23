@@ -9,6 +9,7 @@ import scipy.signal as signal
 import matplotlib.mlab as ml
 import matplotlib.pyplot as pl
 import copy
+import supersmoother as ss
 
 __all__ = ["Loader", "Lightcurve"]
 
@@ -464,6 +465,14 @@ class Lightcurve():
 
             dlc = bf.highpass_filter_lightcurve(self, knee=knee)
             self.clc = np.copy(dlc)
+
+        elif method == 'supersmoother':
+            smooth_test = ss.SuperSmoother()
+            smooth_test.fit(self.cts, self.clc)
+            yfit = smooth_test.predict(self.cts) #has no option to change number of points and uses length of curve given
+            self.clc = np.copy(yfit)
+
+
         else:
             raise ValueError("No detrend method set")
 
