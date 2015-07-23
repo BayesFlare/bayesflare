@@ -308,7 +308,7 @@ def running_median(y, window):
     """
     
     ffit = np.array([])
-    idxs = range(len(y))
+    idxs = np.arange(len(y))
     halfwin = int(window/2)
     
     for i in range(len(y)):
