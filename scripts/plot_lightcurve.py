@@ -153,6 +153,10 @@ of standard devaitons with which to estimate the noise [default: %default].",
                     help="Set knee value",
                     type="float", default=0.00003858)
 
+  parser.add_option("-d", "--alpha", dest="alpha",
+                    help="Set smoothness value 0 to 10 (int), 10 smoothest",
+                    type="int", default=None)
+
   # read in arguments
   (opts, args) = parser.parse_args()
 
@@ -282,7 +286,7 @@ of standard devaitons with which to estimate the noise [default: %default].",
   elif opts.detrendmeth == 'runningmedian':
     tmpcurve.detrend(method='runningmedian', nbins=bglen)
   elif opts.detrendmeth == 'supersmoother':
-    tmpcurve.detrend(method='supersmoother')
+    tmpcurve.detrend(method='supersmoother', alpha=opts.alpha)
 
 
   if noiseest == 'powerspectrum':

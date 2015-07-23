@@ -133,12 +133,12 @@ class Lightcurve():
     running_median_fit = np.array([])
     datagap = False
 
-    def __init__(self, curve=None, detrend=False, detrendmethod='savitzkygolay', nbins=101, order=3, knee=(1./(0.3*86400)), maxgap=1):
+    def __init__(self, curve=None, detrend=False, detrendmethod='savitzkygolay', nbins=101, order=3, knee=(1./(0.3*86400)), maxgap=1, alpha=None):
 
         clc = None
         clc = np.array([])
         if curve != None:
-            self.add_data(curve=curve, detrend=detrend, detrendmethod=detrendmethod, nbins=nbins, order=order, knee=knee, maxgap=1)
+            self.add_data(curve=curve, detrend=detrend, detrendmethod=detrendmethod, nbins=nbins, order=order, knee=knee, maxgap=1, alpha=None)
 
     def __str__(self):
         return "<bayesflare Lightcurve for KIC "+str(self.id)+">"
@@ -241,7 +241,7 @@ class Lightcurve():
 
         return pgram, freqs
 
-    def add_data(self, curve=None, detrend=False, detrendmethod='none', nbins=101, order=3, knee=None, maxgap=1):
+    def add_data(self, curve=None, detrend=False, detrendmethod='none', nbins=101, order=3, knee=None, maxgap=1, alpha=None):
         """
         Add light curve data to the object..
 
@@ -395,7 +395,7 @@ class Lightcurve():
         ze[nans] = np.interp(za(nans), za(~nans), z[~nans]).astype('float32')
         self.cle = ze
 
-    def set_detrend(self, method='none', nbins=None, order=None, knee=None):
+    def set_detrend(self, method='none', nbins=None, order=None, knee=None, alpha=None):
         """
         A method allowing the detrending parameters for the light curve to be changed.
 
@@ -418,8 +418,9 @@ class Lightcurve():
         self.detrend_length=nbins
         self.detrend_order=order
         self.detrend_knee=knee
+        self.detrend_alpha=alpha
 
-    def detrend(self, method='none', nbins=None, order=None, knee=None):
+    def detrend(self, method='none', nbins=None, order=None, knee=None, alpha=None):
         """
         A method to detrend the light curve using a Savitsky-Golay filter (:func:`.savitzky_golay`),
         a running median filter (:func:`.running_median`), or a high-pass filter
@@ -439,7 +440,7 @@ class Lightcurve():
 
         """
 
-        self.set_detrend(method=method, nbins=nbins, order=order, knee=knee)
+        self.set_detrend(method=method, nbins=nbins, order=order, knee=knee, alpha=alpha)
         self.detrended = True
 
         # store un-detrending light curve
@@ -467,7 +468,7 @@ class Lightcurve():
             self.clc = np.copy(dlc)
 
         elif method == 'supersmoother':
-            smooth = ss.SuperSmoother() #currently uses leats smoothing option (no alpha value given)
+            smooth = ss.SuperSmoother(alpha=alpha) #currently uses leats smoothing option (no alpha value given)
             smooth.fit(self.cts, self.clc)
             yfit = smooth.predict(self.cts) #currently has no option to change number of points and uses length of curve given
             self.clc = self.clc - yfit
