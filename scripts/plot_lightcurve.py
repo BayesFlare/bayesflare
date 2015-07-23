@@ -146,7 +146,7 @@ of standard devaitons with which to estimate the noise [default: %default].",
                     type="float", default=None)
 
   parser.add_option("-D", "--detrend-method", dest="detrendmeth",
-                    help="Set detrend method: Can be savitzkygolay, runningmedian, highpassfilter",
+                    help="Set detrend method: Can be savitzkygolay, runningmedian, highpassfilter, supersmoother",
                     default="savitzkygolay")
 
   parser.add_option("-K", "--knee-value", dest="kneevalue",
@@ -281,6 +281,8 @@ of standard devaitons with which to estimate the noise [default: %default].",
     tmpcurve.detrend(method='highpassfilter', knee=opts.kneevalue)
   elif opts.detrendmeth == 'runningmedian':
     tmpcurve.detrend(method='runningmedian', nbins=bglen)
+  elif opts.detrendmeth == 'supersmoother':
+    tmpcurve.detrend(method='supersmoother')
 
 
   if noiseest == 'powerspectrum':
