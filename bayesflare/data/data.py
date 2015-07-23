@@ -467,12 +467,11 @@ class Lightcurve():
             self.clc = np.copy(dlc)
 
         elif method == 'supersmoother':
-            smooth_test = ss.SuperSmoother()
-            smooth_test.fit(self.cts, self.clc)
-            yfit = smooth_test.predict(self.cts) #has no option to change number of points and uses length of curve given
-            self.clc = np.copy(yfit)
-
-
+            smooth = ss.SuperSmoother() #currently uses leats smoothing option (no alpha value given)
+            smooth.fit(self.cts, self.clc)
+            yfit = smooth.predict(self.cts) #currently has no option to change number of points and uses length of curve given
+            self.clc = self.clc - yfit
+            
         else:
             raise ValueError("No detrend method set")
 
