@@ -9,6 +9,11 @@ import sys
 import os
 from copy import copy
 
+
+def Chi_sq(no_noise_data, smoothed, sigma):
+	res = no_noise_data - smoothed
+	return np.sqrt(np.sum(res**2)/(len(no_noise_data)-1.))/sigma
+	
 tlength = 2893536. #length of time data
 tstep = 1765.55929 #time data step
 nstd = 1. #noise standard deviation
@@ -19,29 +24,18 @@ taue = 3600 #Exponential decay timescale of injected flare (sec)
 noiseest = 'powerspectrum'
 kneevalue = 0.00003858
 psest = 0.5 #fraction of the spectrum with which to estimate the noise
-nsinusoids = 0 # number sinusions to fit
-lowlim = None
-uplim = None
-threshold = None
-timemin = -1
-timemax = -.1
+freq = (1./(4.*86400.))
+amp = 4
 
-lconly = False #or True
 injamp = 50 #change this (injected flare amplitude)
-detrendmeth = 'savitzkygolay' #'savitzkygolay''highpassfilter''runningmedian''supersmoother' filter used
-alpha = None #can be None or from 0 to 10 smoothest is 10 (for super smoother)
-oinj = None #or false
+#detrendmeth = ['savitzkygolay', 'highpassfilter', 'runningmedian', 'supersmoother']
+alpha = 0 #can be None or from 0 to 10 smoothest is 10 (for super smoother)
 
 ts = np.arange(0., tlength, tstep, dtype='float64')
 flarelc = bf.Lightcurve()
 flarelc.clc = nstd*np.random.randn(len(ts)) #clc y data
 flarelc.cts = np.copy(ts) #cts time stamp data
 flarelc.cadence = 'long'
-
-# set amplitude priors to be large
-# largeprior = 1.e6 # 1 million!
-# amppriors = (np.ones(bgorder+2)*largeprior).tolist() #array of 1s 6 long, * million, array 6 long each entry has 1 million in. turns array into list
-#tslen = len(ts)-bglen+1 # length of time series with edges removed, (removed half a window on each side)
 
 tmi = flarelc.cts-flarelc.cts[0] #makes time data start at 0
 Mfi = bf.Flare(tmi, amp=1.) #creates a Flare object
@@ -50,46 +44,50 @@ t0 = tmi[int(len(tmi)/2)] #central time of flare set to middle of time data
 pdict = {'t0': t0, 'amp': injamp, 'taugauss': taug, 'tauexp': taue}
 injdata = np.copy(Mfi.model(pdict)) #creates a flare in the flare object Mfi, using data pdict, copies this into injdata
 
-# if oinj:
-#   if oinj != None:
-#     oinj = oinj + injdata
-#   else:
-#     oinj = np.copy(injdat)
-
 flarelc.clc = flarelc.clc + injdata #adds flare model to data
 
-tmpcurve = copy(flarelc)
+phase = 2.*np.pi*np.random.rand(1)
+sinewave = amp*np.sin(2.*np.pi*freq*ts + phase)
+flarelc.clc = flarelc.clc + sinewave
 
-if detrendmeth == 'savitzkygolay':
-	tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
-elif detrendmeth == 'highpassfilter':
-	tmpcurve.detrend(method='highpassfilter', knee=kneevalue)
-elif detrendmeth == 'runningmedian':
-	tmpcurve.detrend(method='runningmedian', nbins=bglen)
-elif detrendmeth == 'supersmoother':
-	tmpcurve.detrend(method='supersmoother', alpha=alpha)
+
+tmpcurve = copy(flarelc)
+fig, ax = pl.subplots(6)
+ax[5].plot(tmpcurve.cts, tmpcurve.clc, 'b')
+
+
+tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
+ax[0].plot(tmpcurve.cts, tmpcurve.clc,'k')
+Chi1 = Chi_sq(injdata, tmpcurve.clc, nstd)
+print Chi1
+tmpcurve = copy(flarelc)
+tmpcurve.detrend(method='highpassfilter', knee=kneevalue)
+ax[1].plot(tmpcurve.cts, tmpcurve.clc,'b')
+Chi2 = Chi_sq(injdata, tmpcurve.clc, nstd)
+print Chi2
+tmpcurve = copy(flarelc)
+tmpcurve.detrend(method='runningmedian', nbins=bglen)
+ax[2].plot(tmpcurve.cts, tmpcurve.clc,'r')
+Chi3 = Chi_sq(injdata, tmpcurve.clc, nstd)
+print Chi3
+tmpcurve = copy(flarelc)
+tmpcurve.detrend(method='supersmoother', alpha=alpha)
+ax[3].plot(tmpcurve.cts, tmpcurve.clc,'g')
+Chi4 = Chi_sq(injdata, tmpcurve.clc, nstd)
+print Chi4
+tmpcurve = copy(flarelc)
+tmpcurve.detrend(method='periodsmoother', alpha=alpha,phase=phase,period=350000)
+ax[4].plot(tmpcurve.cts, tmpcurve.clc,'g')
+Chi5 = Chi_sq(injdata, tmpcurve.clc, nstd)
+print Chi5
+
+
+
+
 
 sig = bf.estimate_noise_ps(tmpcurve, estfrac=psest)[0]
 
 print "Noise estimate with '%s' method = %f" % (noiseest, sig)
-
-# Or = bf.OddsRatioDetector( flarelc,
-#                            bglen=bglen,
-#                            bgorder=bgorder,
-#                            nsinusoids=nsinusoids,
-#                            noiseestmethod=noiseest,
-#                            psestfrac=psest,
-#                            #tvsigma=opts.tvsigma,
-#                            flareparams={'taugauss': (0, 1.5*60*60, 10), 'tauexp': (0.5*60*60, 3.*60*60, 10)},
-#                            noisepoly=True,
-#                            noiseimpulse=True,
-#                            noiseimpulseparams={'t0': (0, (bglen-1.)*flarelc.dt(), bglen)},
-#                            noiseexpdecay=True,
-#                            noiseexpdecayparams={'tauexp': (0.0, 0.25*60*60, 3)},
-#                            noiseexpdecaywithreverse=True,
-#                            ignoreedges=True )
-
-# lnO, tst = Or.oddsratio()
 
 mplparams = { \
 'text.usetex': True, # use LaTeX for all text
@@ -100,54 +98,14 @@ mplparams = { \
 'font.size': 16,
 'legend.fontsize': 12 }
 
-matplotlib.rcParams.update(mplparams)
+# pl.plot(tmpcurve.cts, tmpcurve.clc, 'b')
+# pl.show()
+# pl.close()
 
-fig, axarr = pl.subplots(1, sharex=True)
 
-#tst = (tst-tst[0])/86400.
 
-axarr.plot(flarelc.cts, flarelc.clc, 'b') #[np.arange(int(bglen/2), len(ts)-int(bglen/2))]
-
-# if oinj: # overplot injection
-#   axarr.plot(tst, oinj[np.arange(int(bglen/2), len(ts)-int(bglen/2))], 'r')
-
-"""if threshold != None:
-  # get above threshold (i.e. flare) points.
-  flarelist, Nflares, maxlist = Or.thresholder(lnO, threshold, expand=1)
-
-  ylims = axarr.get_ylim()
-
-  for fl in flarelist:
-    fs = tst[fl[0]]
-    fe = tst[fl[1]]
-    axarr.fill_between([fs, fe], [ylims[0], ylims[0]], [ylims[1], ylims[1]], alpha=0.35, facecolor='k', edgecolor='none')
-
-  axarr.set_ylim((ylims[0], ylims[1]))"""
-
-axarr.set_ylabel('Flux', fontsize=16, fontweight=100)
-
-"""if not lconly:
-	axarr[1].plot(tst, lnO, 'k')
-	axarr[1].set_ylabel('log(Odds Ratio)', fontsize=16, fontweight=100)
-	axarr[1].set_xlabel('Time (days)', fontsize=16, fontweight=100)"""
-
-"""if lowlim != None and uplim != None:
-	axarr[1].set_ylim((float(lowlim), float(uplim)))"""
-
-fig.subplots_adjust(hspace=0.075) # remove most space between plots
-# remove ticks for all bar the bottom plot
-pl.setp([a.get_xticklabels() for a in fig.axes[:-1]], visible=False)
-
-tstart = flarelc.cts[0]
-tend = flarelc.cts[-1]
-if timemin >= 0.:
-  tstart = timemin
-if timemax >= 0.:
-  tend = timemax
-axarr.set_xlim((tstart, tend))
-#axarr[1].set_xlim((tstart, tend))
-
+# ax.plot(freqs1,modfreqp1,color='blue')
+# ax.plot(freqs2,modfreqp2,color='red')
 pl.show()
 
-fig.clf()
-pl.close(fig)
+	
