@@ -133,12 +133,12 @@ class Lightcurve():
     running_median_fit = np.array([])
     datagap = False
 
-    def __init__(self, curve=None, detrend=False, detrendmethod='savitzkygolay', nbins=101, order=3, knee=(1./(0.3*86400)), maxgap=1, alpha=None):
+    def __init__(self, curve=None, detrend=False, detrendmethod='savitzkygolay', nbins=101, order=3, knee=(1./(0.3*86400)), maxgap=1, alpha=None,period=None, phase=None):
 
         clc = None
         clc = np.array([])
         if curve != None:
-            self.add_data(curve=curve, detrend=detrend, detrendmethod=detrendmethod, nbins=nbins, order=order, knee=knee, maxgap=1, alpha=None)
+            self.add_data(curve=curve, detrend=detrend, detrendmethod=detrendmethod, nbins=nbins, order=order, knee=knee, maxgap=1, alpha=None, period=None, phase=None)
 
     def __str__(self):
         return "<bayesflare Lightcurve for KIC "+str(self.id)+">"
@@ -241,7 +241,7 @@ class Lightcurve():
 
         return pgram, freqs
 
-    def add_data(self, curve=None, detrend=False, detrendmethod='none', nbins=101, order=3, knee=None, maxgap=1, alpha=None):
+    def add_data(self, curve=None, detrend=False, detrendmethod='none', nbins=101, order=3, knee=None, maxgap=1, alpha=None, period=None,phase=None):
         """
         Add light curve data to the object..
 
@@ -395,7 +395,7 @@ class Lightcurve():
         ze[nans] = np.interp(za(nans), za(~nans), z[~nans]).astype('float32')
         self.cle = ze
 
-    def set_detrend(self, method='none', nbins=None, order=None, knee=None, alpha=None):
+    def set_detrend(self, method='none', nbins=None, order=None, knee=None, alpha=None, period=None, phase=None):
         """
         A method allowing the detrending parameters for the light curve to be changed.
 
@@ -419,8 +419,10 @@ class Lightcurve():
         self.detrend_order=order
         self.detrend_knee=knee
         self.detrend_alpha=alpha
+        self.detrend_period=period
+        self.detrend_phase=phase
 
-    def detrend(self, method='none', nbins=None, order=None, knee=None, alpha=None):
+    def detrend(self, method='none', nbins=None, order=None, knee=None, alpha=None, period=None, phase=None):
         """
         A method to detrend the light curve using a Savitsky-Golay filter (:func:`.savitzky_golay`),
         a running median filter (:func:`.running_median`), or a high-pass filter
@@ -440,7 +442,7 @@ class Lightcurve():
 
         """
 
-        self.set_detrend(method=method, nbins=nbins, order=order, knee=knee, alpha=alpha)
+        self.set_detrend(method=method, nbins=nbins, order=order, knee=knee, alpha=alpha, period=period, phase=phase)
         self.detrended = True
 
         # store un-detrending light curve
@@ -449,30 +451,33 @@ class Lightcurve():
         if method == 'savitzkygolay':
             if nbins is None or order is None:
                 raise ValueError("Number of bins, or polynomial order, for Savitsky-Golay filter not set")
-
             ffit = bf.savitzky_golay(self.clc, nbins, order)
             self.clc = (self.clc - ffit)
             self.detrend_fit = np.copy(ffit)
+
         elif method == 'runningmedian':
             if nbins is None:
                 raise ValueError("Number of bins for running median filter not set")
-
             ffit = bf.running_median(self.clc, nbins)
             self.clc = (self.clc - ffit)
             self.detrend_fit = np.copy(ffit)
+
         elif method == 'highpassfilter':
             if knee is None:
                 raise ValueError("Knee frequency for high-pass filter not set.")
-
             dlc = bf.highpass_filter_lightcurve(self, knee=knee)
             self.clc = np.copy(dlc)
 
         elif method == 'supersmoother':
-            smooth = ss.SuperSmoother(alpha=alpha) #currently uses leats smoothing option (no alpha value given)
+            smooth = ss.SuperSmoother(alpha=alpha) 
             smooth.fit(self.cts, self.clc)
             yfit = smooth.predict(self.cts) #currently has no option to change number of points and uses length of curve given
-            self.clc = self.clc - yfit
-            
+            self.clc =  self.clc - yfit 
+
+        elif method == 'periodsmoother':
+            model = ss.SuperSmoother(period=period)
+            yfit = model.fit(self.cts, self.clc).predict(self.cts)
+            self.clc =  self.clc - yfit 
         else:
             raise ValueError("No detrend method set")
 
