@@ -146,7 +146,7 @@ of standard devaitons with which to estimate the noise [default: %default].",
                     type="float", default=None)
 
   parser.add_option("-D", "--detrend-method", dest="detrendmeth",
-                    help="Set detrend method: Can be savitzkygolay, runningmedian, highpassfilter, supersmoother",
+                    help="Set detrend method: Can be savitzkygolay, runningmedian, highpassfilter, supersmoother, perioidsmoother",
                     default="savitzkygolay")
 
   parser.add_option("-K", "--knee-value", dest="kneevalue",
@@ -156,6 +156,14 @@ of standard devaitons with which to estimate the noise [default: %default].",
   parser.add_option("-d", "--alpha", dest="alpha",
                     help="Set smoothness value 0 to 10 (int), 10 smoothest",
                     type="int", default=None)
+
+  parser.add_option("-E", "--period", dest="period",
+                    help="Set the period value",
+                    type=float, default=8640.)
+
+  parser.add_option("-F", "--phase", dest="phase",
+                    help="set the starting phase",
+                    type=float,default = 0.)
 
   # read in arguments
   (opts, args) = parser.parse_args()
@@ -273,6 +281,7 @@ of standard devaitons with which to estimate the noise [default: %default].",
       else:
         oinj = np.copy(injdata)
 
+
     flarelc.clc = flarelc.clc + injdata
 
   # output different noise estimates
@@ -287,6 +296,8 @@ of standard devaitons with which to estimate the noise [default: %default].",
     tmpcurve.detrend(method='runningmedian', nbins=bglen)
   elif opts.detrendmeth == 'supersmoother':
     tmpcurve.detrend(method='supersmoother', alpha=opts.alpha)
+  elif opts.detrendmeth =='perioidsmoother':
+    tmpcurve.detrend(method=='perioidsmoother',alpha=opts.alpha,phase=opts.phase,period=opts.period)
 
 
   if noiseest == 'powerspectrum':
