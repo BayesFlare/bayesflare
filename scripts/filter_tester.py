@@ -65,7 +65,12 @@ def find_best_alpha():
 	return min_alpha
 
 def find_best_filter():
-	min_chi = []
+	count = {
+		'savitzkygolay': 0, 
+		'highpassfilter': 0,
+		'runningmedian': 0,
+		'supersmoother': 0
+	}
 	for i in range (0,100):
 		curve, injdata = make_curve()
 
@@ -90,8 +95,10 @@ def find_best_filter():
 					'runningmedian': Chi3,
 					'supersmoother': Chi4} #'periodsmoother': Chi5
 
-		min_chi.append(min(chi_val.items(), key=lambda x: x[1]))
-	return min_chi
+		min_chi = min(chi_val.items(), key=lambda x: x[1])
+		count[min_chi[0]] += 1
+
+	return count
 
 def supersmoother (curve, alpha_=alpha):
 	curve.detrend(method='supersmoother', alpha=alpha_)
@@ -118,23 +125,26 @@ def avg_chi(no_tests, filter_used):
 		tot += Chi
 	return tot/no_tests	
 
-filters = {
-	'runningmedian': runningmedian,
-	'highpassfilter': highpassfilter,
-	'supersmoother': supersmoother,
-	'savitzkygolay': savitzkygolay
-}
+###############################################################
 
-if test_which == "alpha":
-	best_alpha = find_best_alpha()
-	print best_alpha
+if __name__=='__main__':
+	filters = {
+		'runningmedian': runningmedian,
+		'highpassfilter': highpassfilter,
+		'supersmoother': supersmoother,
+		'savitzkygolay': savitzkygolay
+	}
 
-elif test_which == "all":
-	best_filter = find_best_filter()
-	print best_filter
+	if test_which == "alpha":
+		best_alpha = find_best_alpha()
+		print best_alpha
 
-else:
-	print avg_chi(100, filters[test_which])
+	elif test_which == "all":
+		best_filter = find_best_filter()
+		print best_filter
+
+	else:
+		print avg_chi(100, filters[test_which])
 
 
 
