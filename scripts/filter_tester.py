@@ -28,8 +28,6 @@ injamp = 100 # injected flare amplitude
 alpha = None #can be None or from 0 to 10 smoothest is 10 (for super smoother)
 #####################################################################################
 
-test_which = "all" if len(sys.argv) == 1 else sys.argv[1]
-
 def chi_sq(no_noise_data, smoothed, sigma):
 	res = no_noise_data - smoothed
 	return np.sqrt(np.sum(res**2)/(len(no_noise_data)-1.))/sigma
@@ -90,10 +88,12 @@ def find_best_filter():
 		# tmpcurve.detrend(method='periodsmoother', alpha=alpha,phase=phase,period=period)
 		# Chi5 = chi_sq(injdata, tmpcurve.clc, nstd)
 
-		chi_val = {'savitzkygolay': Chi1, 
-					'highpassfilter': Chi2,
-					'runningmedian': Chi3,
-					'supersmoother': Chi4} #'periodsmoother': Chi5
+		chi_val = {
+			'savitzkygolay': Chi1, 
+			'highpassfilter': Chi2,
+			'runningmedian': Chi3,
+			'supersmoother': Chi4
+		} #'periodsmoother': Chi5
 
 		min_chi = min(chi_val.items(), key=lambda x: x[1])
 		count[min_chi[0]] += 1
@@ -127,14 +127,15 @@ def avg_chi(no_tests, filter_used):
 
 ###############################################################
 
-if __name__=='__main__':
-	filters = {
-		'runningmedian': runningmedian,
-		'highpassfilter': highpassfilter,
-		'supersmoother': supersmoother,
-		'savitzkygolay': savitzkygolay
-	}
+filters = {
+	'runningmedian': runningmedian,
+	'highpassfilter': highpassfilter,
+	'supersmoother': supersmoother,
+	'savitzkygolay': savitzkygolay
+}
 
+if __name__=='__main__':	
+	test_which = "all" if len(sys.argv) == 1 else sys.argv[1]
 	if test_which == "alpha":
 		best_alpha = find_best_alpha()
 		print best_alpha
