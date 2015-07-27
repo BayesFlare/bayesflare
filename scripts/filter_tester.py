@@ -28,9 +28,7 @@ injamp = 100 # injected flare amplitude
 alpha = None #can be None or from 0 to 10 smoothest is 10 (for super smoother)
 #####################################################################################
 
-test_which = "runningmedian"  #alpha finds best alpha value(only runs with one curve)
-					#'insert filter name' runs 'filter name' on 100 diff curves an gets ave red chi dq
-					#all tests 100 curves and prints out that filter which gave lowest red chi sq
+test_which = "all" if len(sys.argv) == 1 else sys.argv[1]
 
 def chi_sq(no_noise_data, smoothed, sigma):
 	res = no_noise_data - smoothed
