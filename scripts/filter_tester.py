@@ -28,8 +28,8 @@ freq = (1./(4.*86400.))
 amp = 4
 
 injamp = 50 #change this (injected flare amplitude)
-#detrendmeth = ['savitzkygolay', 'highpassfilter', 'runningmedian', 'supersmoother']
 alpha = 0 #can be None or from 0 to 10 smoothest is 10 (for super smoother)
+period=350000
 
 ts = np.arange(0., tlength, tstep, dtype='float64')
 flarelc = bf.Lightcurve()
@@ -50,62 +50,45 @@ phase = 2.*np.pi*np.random.rand(1)
 sinewave = amp*np.sin(2.*np.pi*freq*ts + phase)
 flarelc.clc = flarelc.clc + sinewave
 
-
 tmpcurve = copy(flarelc)
 fig, ax = pl.subplots(6)
-ax[5].plot(tmpcurve.cts, tmpcurve.clc, 'b')
+ax[0].plot(tmpcurve.cts, tmpcurve.clc, 'b')
 
 
 tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
-ax[0].plot(tmpcurve.cts, tmpcurve.clc,'k')
+ax[1].plot(tmpcurve.cts, tmpcurve.clc,'k')
 Chi1 = Chi_sq(injdata, tmpcurve.clc, nstd)
-print Chi1
+
 tmpcurve = copy(flarelc)
 tmpcurve.detrend(method='highpassfilter', knee=kneevalue)
-ax[1].plot(tmpcurve.cts, tmpcurve.clc,'b')
+ax[2].plot(tmpcurve.cts, tmpcurve.clc,'b')
 Chi2 = Chi_sq(injdata, tmpcurve.clc, nstd)
-print Chi2
+
 tmpcurve = copy(flarelc)
 tmpcurve.detrend(method='runningmedian', nbins=bglen)
-ax[2].plot(tmpcurve.cts, tmpcurve.clc,'r')
+ax[3].plot(tmpcurve.cts, tmpcurve.clc,'r')
 Chi3 = Chi_sq(injdata, tmpcurve.clc, nstd)
-print Chi3
+
 tmpcurve = copy(flarelc)
 tmpcurve.detrend(method='supersmoother', alpha=alpha)
-ax[3].plot(tmpcurve.cts, tmpcurve.clc,'g')
-Chi4 = Chi_sq(injdata, tmpcurve.clc, nstd)
-print Chi4
-tmpcurve = copy(flarelc)
-tmpcurve.detrend(method='periodsmoother', alpha=alpha,phase=phase,period=350000)
 ax[4].plot(tmpcurve.cts, tmpcurve.clc,'g')
+Chi4 = Chi_sq(injdata, tmpcurve.clc, nstd)
+
+tmpcurve = copy(flarelc)
+tmpcurve.detrend(method='periodsmoother', alpha=alpha,phase=phase,period=period)
+ax[5].plot(tmpcurve.cts, tmpcurve.clc,'g')
 Chi5 = Chi_sq(injdata, tmpcurve.clc, nstd)
-print Chi5
 
 
+chi_val = {'savitzkygolay': Chi1, 
+			'highpassfilter': Chi2,
+			'runningmedian': Chi3,
+			'supersmoother': Chi4,
+			'periodsmoother': Chi5}
+
+print min(chi_val.items(), key=lambda x: x[1]) 
 
 
-
-sig = bf.estimate_noise_ps(tmpcurve, estfrac=psest)[0]
-
-print "Noise estimate with '%s' method = %f" % (noiseest, sig)
-
-mplparams = { \
-'text.usetex': True, # use LaTeX for all text
-'axes.linewidth': 0.5, # set axes linewidths to 0.5
-'axes.grid': True, # add a grid
-'grid.linewidth': 0.5,
-'font.family': 'serif',
-'font.size': 16,
-'legend.fontsize': 12 }
-
-# pl.plot(tmpcurve.cts, tmpcurve.clc, 'b')
-# pl.show()
-# pl.close()
-
-
-
-# ax.plot(freqs1,modfreqp1,color='blue')
-# ax.plot(freqs2,modfreqp2,color='red')
 pl.show()
 
 	
