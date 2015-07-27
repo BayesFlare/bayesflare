@@ -28,9 +28,9 @@ injamp = 100 # injected flare amplitude
 alpha = None #can be None or from 0 to 10 smoothest is 10 (for super smoother)
 #####################################################################################
 
-test_which = "runningmedian"  #supersmoother finds best alpha value(only runs with one curve)
-					#runningmedian runs runningmedian on 100 diff curves an gets ave red chi dq
-					#all tests 100 curves and prints out that filter chich gave lowest red chi sq
+test_which = "runningmedian"  #alpha finds best alpha value(only runs with one curve)
+					#'insert filter name' runs 'filter name' on 100 diff curves an gets ave red chi dq
+					#all tests 100 curves and prints out that filter which gave lowest red chi sq
 
 def chi_sq(no_noise_data, smoothed, sigma):
 	res = no_noise_data - smoothed
@@ -58,13 +58,11 @@ def find_best_alpha():
 	alphas = []
 	min_alpha = []
 	tmpcurve, injdata = make_curve()
-	tmpcurve.detrend(method='supersmoother', alpha=None)
-	Chi4 = chi_sq(injdata, tmpcurve.clc, nstd)
-	alphas.append(["None", Chi4])
+	supersmoother(tmpcurve, None)
+	alphas.append(["None", chi_sq(injdata, tmpcurve.clc, nstd)])
 	for i in range (0,11):
-		supersmoother(tmpcurve, i)
-		Chi4 = chi_sq(injdata, tmpcurve.clc, nstd)
-		alphas.append([i, Chi4])
+		supersmoother(tmpcurve, i) 
+		alphas.append([i, chi_sq(injdata, tmpcurve.clc, nstd)])
 	min_alpha.append(min(alphas, key=lambda x: x[1]))
 	return min_alpha
 
@@ -122,18 +120,23 @@ def avg_chi(no_tests, filter_used):
 		tot += Chi
 	return tot/no_tests	
 
+filters = {
+	'runningmedian': runningmedian,
+	'highpassfilter': highpassfilter,
+	'supersmoother': supersmoother,
+	'savitzkygolay': savitzkygolay
+}
 
-if test_which == "supersmoother":
+if test_which == "alpha":
 	best_alpha = find_best_alpha()
 	print best_alpha
-
-elif test_which == "runningmedian":
-	print avg_chi(100, runningmedian)
 
 elif test_which == "all":
 	best_filter = find_best_filter()
 	print best_filter
 
+else:
+	print avg_chi(100, filters[test_which])
 
 
 
