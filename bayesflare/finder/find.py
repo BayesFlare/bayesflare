@@ -8,7 +8,6 @@ from math import log
 import pyfits
 import numpy as np
 from copy import copy, deepcopy
-from matplotlib import pyplot as pl
 
 def contiguous_regions(condition):
         """
