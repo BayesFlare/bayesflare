@@ -840,7 +840,7 @@ class OddsRatioDetector():
             del M
                 
         # get the total odds ratio
-        if self.ignoreedges:
+        if self.ignoreedges and self.bglen != None:
             valrange = np.arange(int(self.bglen/2), len(Of.lnBmargAmp)-int(self.bglen/2))
             ts = np.copy(self.lightcurve.cts[valrange])
         else:

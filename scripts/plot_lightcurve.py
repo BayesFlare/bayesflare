@@ -15,7 +15,7 @@ import bayesflare as bf
 from matplotlib.mlab import find
 import sys
 import os
-from copy import copy
+from copy import copy, deepcopy
 
 from optparse import OptionParser
 
@@ -266,7 +266,7 @@ of standard devaitons with which to estimate the noise [default: %default].",
 
   # output different noise estimates
   noiseest = opts.noisemethod
-  tmpcurve = copy(flarelc)
+  tmpcurve = deepcopy(flarelc)
   tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
   if noiseest == 'powerspectrum':
     sig = bf.estimate_noise_ps(tmpcurve, estfrac=opts.psest)[0]
