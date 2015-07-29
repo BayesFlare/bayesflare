@@ -21,11 +21,11 @@ taue = 6300 #Exponential decay timescale of injected flare (sec) 1 hr 45
 noiseest = 'powerspectrum'
 kneevalue = 0.00003858
 psest = 0.5 #fraction of the spectrum with which to estimate the noise
-amp = 4
+
 period=350000
 injamp = 100 # injected flare amplitude
 alpha = None #can be None or from 0 to 10 smoothest is 10 (for super smoother)None #can be None or from 0 to 10 smoothest is 10 (for super smoother)
-nstd = 1.
+
 #####################################################################################
 
 def chi_sq(no_noise_data, smoothed, sigma):
@@ -86,7 +86,7 @@ def find_best_periodic_filter():
 	i = min_period
 	best = []
 	while i <= max_period:			
-		curve, injdata = make_curve(True,10,i)
+		curve, injdata = make_curve(True,amp,i)
 		min_chi = best_filter_for_curve(curve, injdata)
 
 		best.append([i, min_chi[0], min_chi[1]])
@@ -173,8 +173,8 @@ filters = {
 	'supersmoother': supersmoother,
 	'savitzkygolay': savitzkygolay
 }
-
-
+nstd = 4.
+amp = 10
 if __name__=='__main__':
 	test_which = "all" if len(sys.argv) == 1 else sys.argv[1]
 
@@ -183,15 +183,15 @@ if __name__=='__main__':
 		print best_alpha
 
 	elif test_which == "all":
-		best_filter = find_best_filter(lambda: make_curve(True, 50, 24*60*60))
+		best_filter = find_best_filter(lambda: make_curve(True, amp, 24*60*60)) #specific period given or no periodic variation tests 100 times per curve (diff noise)
 		print best_filter
 
 	elif test_which == "periodic":
 		# find best filters for each period
-		print format_periodic_list(find_best_periodic_filter())
+		print format_periodic_list(find_best_periodic_filter()) # tests a 100 periods in the range 0.2days to 10days on each filter once
 
 	else:
-		print avg_chi(100, filters[test_which], lambda: make_curve(True, 50, 24*60*60))
+		print avg_chi(100, filters[test_which], lambda: make_curve(True, amp, 135820))
 
 
 
