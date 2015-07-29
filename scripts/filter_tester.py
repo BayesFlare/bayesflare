@@ -13,7 +13,6 @@ from copy import copy
 # Don't change these	
 tlength = 2893536. #length of time data
 tstep = 1765.55929 #time data step
-nstd = 1. #noise standard deviation
 bglen = 55 #background window length (must be odd) so there is always a bin in the centre
 bgorder = 4 #The polynomial order of the fitted background variability
 taug = 2700 #Gaussian rise width of injected flare (sec) * (45 min)
@@ -21,7 +20,6 @@ taue = 6300 #Exponential decay timescale of injected flare (sec) 1 hr 45
 noiseest = 'powerspectrum'
 kneevalue = 0.00003858
 psest = 0.5 #fraction of the spectrum with which to estimate the noise
-freq = (1./(4.*86400.))
 amp = 4
 period=350000
 injamp = 100 # injected flare amplitude
@@ -32,8 +30,9 @@ def chi_sq(no_noise_data, smoothed, sigma):
 	res = no_noise_data - smoothed
 	return np.sqrt(np.sum(res**2)/(len(no_noise_data)-1.))/sigma
 
-def make_curve():
+def make_curve(nstd=5,add_sine=False,amp=None,period=None):
 	ts = np.arange(0., tlength, tstep, dtype='float64')
+	freq=1./period
 	flarelc = bf.Lightcurve()
 	flarelc.clc = nstd*np.random.randn(len(ts)) #clc y data
 	flarelc.cts = np.copy(ts) #cts time stamp data
@@ -43,11 +42,13 @@ def make_curve():
 	t0 = tmi[int(len(tmi)/2)] #central time of flare set to middle of time data
 	pdict = {'t0': t0, 'amp': injamp, 'taugauss': taug, 'tauexp': taue}
 	injdata = np.copy(Mfi.model(pdict)) #creates a flare in the flare object Mfi, using data pdict, copies this into injdata
-	flarelc.clc = flarelc.clc + injdata #adds flare model to data	
-	# phase = 2.*np.pi*np.random.rand(1)
-	# sinewave = amp*np.sin(2.*np.pi*freq*ts + phase)
-	# flarelc.clc = flarelc.clc + sinewave
-	curve = copy(flarelc)	
+	flarelc.clc = flarelc.clc + injdata #adds flare model to data		
+
+	if add_sine == True:
+		phase = 2.*np.pi*np.random.rand(1)
+		sinewave = amp*np.sin(2.*np.pi*freq*ts + phase)
+		flarelc.clc = flarelc.clc + sinewave	
+	curve = copy(flarelc)
 	return curve, injdata
 
 def find_best_alpha():
@@ -146,6 +147,10 @@ if __name__=='__main__':
 
 	else:
 		print avg_chi(100, filters[test_which])
+
+	test, injdata = make_curve(0,True,50,10*24*60*60)
+	pl.plot(test.cts,test.clc)
+	pl.show()
 
 
 
