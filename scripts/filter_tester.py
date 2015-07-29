@@ -74,31 +74,7 @@ def find_best_filter(curve_maker):
 	}
 	for i in range (0,100):
 		curve, injdata = curve_maker()
-
-		tmpcurve = savitzkygolay(copy(curve))
-		Chi1 = chi_sq(injdata, tmpcurve.clc, nstd)
-
-		tmpcurve = highpassfilter(copy(curve))
-		Chi2 = chi_sq(injdata, tmpcurve.clc, nstd)
-		
-		tmpcurve = runningmedian(copy(curve))
-		Chi3 = chi_sq(injdata, tmpcurve.clc, nstd)
-		
-		tmpcurve = supersmoother(copy(curve))
-		Chi4 = chi_sq(injdata, tmpcurve.clc, nstd)
-
-		# tmpcurve = copy(curve)
-		# tmpcurve.detrend(method='periodsmoother', alpha=alpha,phase=phase,period=period)
-		# Chi5 = chi_sq(injdata, tmpcurve.clc, nstd)
-
-		chi_val = {
-			'savitzkygolay': Chi1, 
-			'highpassfilter': Chi2,
-			'runningmedian': Chi3,
-			'supersmoother': Chi4
-		} #'periodsmoother': Chi5
-
-		min_chi = min(chi_val.items(), key=lambda x: x[1])
+		min_chi = best_filter_for_curve(curve, injdata)
 		count[min_chi[0]] += 1
 
 	return count
@@ -113,32 +89,33 @@ def find_best_periodic_filter():
 	while i <= max_period:		
 		
 		curve, injdata = make_curve(True,10,i)
-
-		tmpcurve = savitzkygolay(copy(curve))
-		Chi1 = chi_sq(injdata, tmpcurve.clc, nstd)
-
-		tmpcurve = highpassfilter(copy(curve))
-		Chi2 = chi_sq(injdata, tmpcurve.clc, nstd)
-		
-		tmpcurve = runningmedian(copy(curve))
-		Chi3 = chi_sq(injdata, tmpcurve.clc, nstd)
-		
-		tmpcurve = supersmoother(copy(curve))
-		Chi4 = chi_sq(injdata, tmpcurve.clc, nstd)
-
-		chi_val = {
-			'savitzkygolay': Chi1, 
-			'highpassfilter': Chi2,
-			'runningmedian': Chi3,
-			'supersmoother': Chi4
-		}
-		min_chi = min(chi_val.items(), key=lambda x: x[1])
+		min_chi = best_filter_for_curve(curve, injdata)
 
 		best.append([i, min_chi[0], min_chi[1]])
 		i += step
 	return best
 
+def best_filter_for_curve(curve, injdata):
+	tmpcurve = savitzkygolay(copy(curve))
+	Chi1 = chi_sq(injdata, tmpcurve.clc, nstd)
 
+	tmpcurve = highpassfilter(copy(curve))
+	Chi2 = chi_sq(injdata, tmpcurve.clc, nstd)
+	
+	tmpcurve = runningmedian(copy(curve))
+	Chi3 = chi_sq(injdata, tmpcurve.clc, nstd)
+	
+	tmpcurve = supersmoother(copy(curve))
+	Chi4 = chi_sq(injdata, tmpcurve.clc, nstd)
+
+	chi_val = {
+		'savitzkygolay': Chi1, 
+		'highpassfilter': Chi2,
+		'runningmedian': Chi3,
+		'supersmoother': Chi4
+	}
+	return min(chi_val.items(), key=lambda x: x[1])
+	
 def supersmoother (curve, alpha_=alpha):
 	curve.detrend(method='supersmoother', alpha=alpha_)
 	return curve
