@@ -13,6 +13,7 @@ from copy import copy
 # Don't change these	
 tlength = 2893536. #length of time data
 tstep = 1765.55929 #time data step
+nstd = 1. #noise standard deviation
 bglen = 55 #background window length (must be odd) so there is always a bin in the centre
 bgorder = 4 #The polynomial order of the fitted background variability
 taug = 2700 #Gaussian rise width of injected flare (sec) * (45 min)
@@ -23,16 +24,16 @@ psest = 0.5 #fraction of the spectrum with which to estimate the noise
 amp = 4
 period=350000
 injamp = 100 # injected flare amplitude
-alpha = None #can be None or from 0 to 10 smoothest is 10 (for super smoother)
+alpha = None #can be None or from 0 to 10 smoothest is 10 (for super smoother)None #can be None or from 0 to 10 smoothest is 10 (for super smoother)
+nstd = 1.
 #####################################################################################
 
 def chi_sq(no_noise_data, smoothed, sigma):
 	res = no_noise_data - smoothed
 	return np.sqrt(np.sum(res**2)/(len(no_noise_data)-1.))/sigma
 
-def make_curve(nstd=5,add_sine=False,amp=None,period=None):
+def make_curve(add_sine=False,amp=None,period=None):
 	ts = np.arange(0., tlength, tstep, dtype='float64')
-	freq=1./period
 	flarelc = bf.Lightcurve()
 	flarelc.clc = nstd*np.random.randn(len(ts)) #clc y data
 	flarelc.cts = np.copy(ts) #cts time stamp data
@@ -45,6 +46,7 @@ def make_curve(nstd=5,add_sine=False,amp=None,period=None):
 	flarelc.clc = flarelc.clc + injdata #adds flare model to data		
 
 	if add_sine == True:
+		freq=1./period
 		phase = 2.*np.pi*np.random.rand(1)
 		sinewave = amp*np.sin(2.*np.pi*freq*ts + phase)
 		flarelc.clc = flarelc.clc + sinewave	
@@ -63,7 +65,7 @@ def find_best_alpha():
 	min_alpha.append(min(alphas, key=lambda x: x[1]))
 	return min_alpha
 
-def find_best_filter():
+def find_best_filter(curve_maker):
 	count = {
 		'savitzkygolay': 0, 
 		'highpassfilter': 0,
@@ -71,7 +73,7 @@ def find_best_filter():
 		'supersmoother': 0
 	}
 	for i in range (0,100):
-		curve, injdata = make_curve()
+		curve, injdata = curve_maker()
 
 		tmpcurve = savitzkygolay(copy(curve))
 		Chi1 = chi_sq(injdata, tmpcurve.clc, nstd)
@@ -101,6 +103,42 @@ def find_best_filter():
 
 	return count
 
+def find_best_periodic_filter():
+	# want output of list of lists: [[period, best filter, chi value],[....]]
+	min_period = 0.2*24*60*60
+	max_period = 10*24*60*60
+	step = (max_period - min_period) / 100.
+	i = min_period
+	best = []
+	while i <= max_period:		
+		
+		curve, injdata = make_curve(True,10,i)
+
+		tmpcurve = savitzkygolay(copy(curve))
+		Chi1 = chi_sq(injdata, tmpcurve.clc, nstd)
+
+		tmpcurve = highpassfilter(copy(curve))
+		Chi2 = chi_sq(injdata, tmpcurve.clc, nstd)
+		
+		tmpcurve = runningmedian(copy(curve))
+		Chi3 = chi_sq(injdata, tmpcurve.clc, nstd)
+		
+		tmpcurve = supersmoother(copy(curve))
+		Chi4 = chi_sq(injdata, tmpcurve.clc, nstd)
+
+		chi_val = {
+			'savitzkygolay': Chi1, 
+			'highpassfilter': Chi2,
+			'runningmedian': Chi3,
+			'supersmoother': Chi4
+		}
+		min_chi = min(chi_val.items(), key=lambda x: x[1])
+
+		best.append([i, min_chi[0], min_chi[1]])
+		i += step
+	return best
+
+
 def supersmoother (curve, alpha_=alpha):
 	curve.detrend(method='supersmoother', alpha=alpha_)
 	return curve
@@ -117,14 +155,14 @@ def highpassfilter (curve, knee=kneevalue):
 	curve.detrend(method='highpassfilter', knee=knee)
 	return curve
 
-def avg_chi(no_tests, filter_used):
+def avg_chi(no_tests, filter_used, curve_maker):
 	tot = 0.
 	for i in range (0,no_tests):
-		tmpcurve, injdata = make_curve()
+		tmpcurve, injdata = curve_maker()
 		tmpcurve = filter_used(tmpcurve)
 		Chi = chi_sq(injdata, tmpcurve.clc, nstd)
 		tot += Chi
-	return tot/no_tests	
+	return tot/no_tests
 
 ###############################################################
 
@@ -135,22 +173,37 @@ filters = {
 	'savitzkygolay': savitzkygolay
 }
 
-if __name__=='__main__':	
-	test_which = "all" if len(sys.argv) == 1 else sys.argv[1]
-	if test_which == "alpha":
-		best_alpha = find_best_alpha()
-		print best_alpha
 
-	elif test_which == "all":
-		best_filter = find_best_filter()
-		print best_filter
+if __name__=='__main__':
+	# test_which = "all" if len(sys.argv) == 1 else sys.argv[1]
 
-	else:
-		print avg_chi(100, filters[test_which])
+	# if test_which == "alpha":
+	# 	best_alpha = find_best_alpha()
+	# 	print best_alpha
 
-	test, injdata = make_curve(0,True,50,10*24*60*60)
-	pl.plot(test.cts,test.clc)
-	pl.show()
+	# elif test_which == "all":
+	# 	best_filter = find_best_filter(lambda: make_curve(True, 50, 24*60*60))
+	# 	print best_filter
+
+	# else:
+	# 	print avg_chi(100, filters[test_which], lambda: make_curve(True, 50, 24*60*60))
+
+	# min_period = 0.2*24*60*60
+	# max_period = 10*24*60*60
+	# step = (max_period - min_period) / 100.
+	# i = min_period
+	# while i <= max_period:		
+	# 	count = find_best_filter(lambda: make_curve(True,10,i))
+	# 	print i, count
+	# 	i += step
+
+	print "\n".join(map(lambda x: str(x), find_best_periodic_filter()))
+		
+
+
+	# test, injdata = make_curve(True,50,10*24*60*60)
+	# pl.plot(test.cts,test.clc)
+	# pl.show()
 
 
 
