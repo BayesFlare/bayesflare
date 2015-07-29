@@ -80,14 +80,12 @@ def find_best_filter(curve_maker):
 	return count
 
 def find_best_periodic_filter():
-	# want output of list of lists: [[period, best filter, chi value],[....]]
 	min_period = 0.2*24*60*60
 	max_period = 10*24*60*60
 	step = (max_period - min_period) / 100.
 	i = min_period
 	best = []
-	while i <= max_period:		
-		
+	while i <= max_period:			
 		curve, injdata = make_curve(True,10,i)
 		min_chi = best_filter_for_curve(curve, injdata)
 
@@ -141,6 +139,32 @@ def avg_chi(no_tests, filter_used, curve_maker):
 		tot += Chi
 	return tot/no_tests
 
+def format_periodic_list(best_filters):
+	# sort them so that the same filters are adjacent 
+	# and within these filters elements are sorted by period
+	best_filters.sort(lambda x, y: cmp(x[0], y[0]) if x[1] == y[1] else cmp(x[1], y[1]))
+
+	# extract a range of periods for which the filter is best
+	def extract_ranges(ranges, element):
+		"""Returns a dictionary in the form {'filter': [min_period, max_period]}"""
+		filter_name, period = element[1], element[0]
+		if filter_name not in ranges:
+			ranges[filter_name] = [period, period]
+		ranges[filter_name][1] = period
+		return ranges
+	
+	ranges = reduce(extract_ranges, best_filters, {})
+
+	# convert a dictionary to a list for subsequent sorting
+	ranges_list = [[x, ranges[x][0], ranges[x][1]] for x in ranges]
+	# sort the ranges so that smaller periods go first
+	ranges_list.sort(key=lambda x: x[1])
+
+	# print out the results, one on each line
+	format_range = lambda x: "[" + str(int(x[1])) + ", " + str(int(x[2])) + "]"
+	return "\n".join([x[0] + ": " + format_range(x) for x in ranges_list])
+
+
 ###############################################################
 
 filters = {
@@ -152,29 +176,26 @@ filters = {
 
 
 if __name__=='__main__':
-	# test_which = "all" if len(sys.argv) == 1 else sys.argv[1]
+	test_which = "all" if len(sys.argv) == 1 else sys.argv[1]
 
-	# if test_which == "alpha":
-	# 	best_alpha = find_best_alpha()
-	# 	print best_alpha
+	if test_which == "alpha":
+		best_alpha = find_best_alpha()
+		print best_alpha
 
-	# elif test_which == "all":
-	# 	best_filter = find_best_filter(lambda: make_curve(True, 50, 24*60*60))
-	# 	print best_filter
+	elif test_which == "all":
+		best_filter = find_best_filter(lambda: make_curve(True, 50, 24*60*60))
+		print best_filter
 
-	# else:
-	# 	print avg_chi(100, filters[test_which], lambda: make_curve(True, 50, 24*60*60))
+	elif test_which == "periodic":
+		# find best filters for each period
+		print format_periodic_list(find_best_periodic_filter())
 
-	# min_period = 0.2*24*60*60
-	# max_period = 10*24*60*60
-	# step = (max_period - min_period) / 100.
-	# i = min_period
-	# while i <= max_period:		
-	# 	count = find_best_filter(lambda: make_curve(True,10,i))
-	# 	print i, count
-	# 	i += step
+	else:
+		print avg_chi(100, filters[test_which], lambda: make_curve(True, 50, 24*60*60))
 
-	print "\n".join(map(lambda x: str(x), find_best_periodic_filter()))
+
+
+	
 		
 
 
