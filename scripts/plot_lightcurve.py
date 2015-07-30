@@ -312,7 +312,7 @@ of standard devaitons with which to estimate the noise [default: %default].",
 
   if not opts.lconly:
     # get the odds ratio
-    Or = bf.OddsRatioDetector( flarelc,
+    Or = bf.OddsRatioDetector( tmpcurve,
                                bglen=bglen,
                                bgorder=bgorder,
                                nsinusoids=nsinusoids,
