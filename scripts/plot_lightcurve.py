@@ -15,7 +15,7 @@ import bayesflare as bf
 from matplotlib.mlab import find
 import sys
 import os
-from copy import copy
+from copy import copy, deepcopy
 
 from optparse import OptionParser
 
@@ -298,7 +298,6 @@ of standard devaitons with which to estimate the noise [default: %default].",
     tmpcurve.detrend(method='supersmoother', alpha=opts.alpha)
   elif opts.detrendmeth =='perioidsmoother':
     tmpcurve.detrend(method=='perioidsmoother',alpha=opts.alpha,phase=opts.phase,period=opts.period)
-
 
   if noiseest == 'powerspectrum':
     sig = bf.estimate_noise_ps(tmpcurve, estfrac=opts.psest)[0]

@@ -597,17 +597,17 @@ class OddsRatioDetector():
             single value of three values for the low end, high end (both in seconds) and number of
             parameter points.
         """
-        
+
         if not flareparams.has_key('taugauss'):
             raise ValueError("Error... dictionary has no parameter 'taugauss'")
         if not flareparams.has_key('tauexp'):
             raise ValueError("Error... dictionary has no parameter 'tauexp'")
-        
+
         if not flareparams.has_key('t0'):
             flareparams['t0'] = (np.inf,)
 
         flareparams['amp'] = (1.,)
-        
+
         self.flareparams = flareparams
 
     def set_noise_est_method(self, noiseestmethod='powerspectrum', psestfrac=0.5, tvsigma=1.0):
@@ -667,12 +667,12 @@ class OddsRatioDetector():
             Otherwise it can have either sign and in marginalised between -infinity and infinity.
         """
         self.noiseimpulse = noiseimpulse
-        
+
         if not noiseimpulseparams.has_key('t0'):
             raise ValueError("Error... no 't0' value set")
-        
+
         noiseimpulseparams['amp'] = (1.,)
-        
+
         self.noiseimpulseparams = noiseimpulseparams
 
         self.noiseimpulsepositive = positive
@@ -705,9 +705,9 @@ class OddsRatioDetector():
 
         if not noiseexpdecayparams.has_key('t0'):
             noiseexpdecayparams['t0'] = (np.inf,)
-        
+
         noiseexpdecayparams['amp'] = (1.,)
-        
+
         self.noiseexpdecayparams = noiseexpdecayparams
 
     def set_noise_step(self, noisestep=False, noisestepparams={'t0': (np.inf,)}):
@@ -727,14 +727,14 @@ class OddsRatioDetector():
             time series.
         """
         self.noisestep = noisestep
-        
+
         if not noisestepparams.has_key('t0'):
             raise ValueError("Error... 't0' parameter range not set.")
-          
+
         noisestepparams['amp'] = (1.,)
-        
+
         self.noisestepparams = noisestepparams
-    
+
     def oddsratio(self):
         """
         Get a time series of log odds ratio for data containing a flare *and* polynomial background
@@ -779,7 +779,7 @@ class OddsRatioDetector():
             noiseodds.append(Bg)
 
         del Mf
-            
+
         if self.noiseimpulse:
             # setup impulse model
             M = Impulse(self.lightcurve.cts, amp=1, paramranges=self.noiseimpulseparams)
@@ -792,6 +792,7 @@ class OddsRatioDetector():
                                            psestfrac=self.psestfrac,
                                            tvsigma=self.tvsigma)
             Oi = Bi.marginalise_full()
+
             noiseodds.append(Oi.lnBmargAmp)
             del M
 
@@ -829,15 +830,17 @@ class OddsRatioDetector():
             Bs.bayes_factors_marg_poly_bgd(bglen=self.bglen,
                                            bgorder=self.bgorder,
                                            nsinusoids=self.nsinusoids,
+                                           halfrange=False,
                                            noiseestmethod=self.noiseestmethod,
                                            psestfrac=self.psestfrac,
                                            tvsigma=self.tvsigma)
+
             Os = Bs.marginalise_full()
             noiseodds.append(Os.lnBmargAmp)
             del M
-                
+
         # get the total odds ratio
-        if self.ignoreedges:
+        if self.ignoreedges and self.bglen != None:
             valrange = np.arange(int(self.bglen/2), len(Of.lnBmargAmp)-int(self.bglen/2))
             ts = np.copy(self.lightcurve.cts[valrange])
         else:
@@ -856,6 +859,55 @@ class OddsRatioDetector():
                 lnO.append(Of.lnBmargAmp[i])
 
         return lnO, ts
+
+    def impulse_excluder(self, lnO, ts, exclusionwidth=5):
+        """
+        Return a copy of the odds ratio time series with sections excluded based on containing features
+        consistent with impulse artifacts. The type of feature is that which comes about due to impulses
+        in the data ringing up the signal template as it moves onto and off-of the impulse. These give
+        rise to a characteristic M-shaped feature with the middle dip (when the impulse model well
+        matches the data) giving a string negative odds ratio.
+
+        Parameters
+        ----------
+        lnO : list or :class:`numpy.array`
+            A time series array of log odds ratios.
+        exclusionwidth : int, default: 5
+            The number of points either side of the feature to be excluded. In practice this should be
+            based on the charactistic maximum flare width.
+        """
+
+        # find log odds ratios < -5 (i.e. favouring the impulse/noise model
+        negidxs = np.arange(len(lnO))[np.copy(lnO) < -5.]
+
+        idxarray = np.ones(len(lnO), dtype=np.bool) # array to say whether values should be excluded or not
+
+        # check whether to exclude or not based on M shaped profile
+        for idx in negidxs:
+            if idx > 1 and idx < len(lnO)-2:
+                c1 = False
+                c2 = False
+                # check previous value is positive and value before that is positive, but less than next one
+                if lnO[idx-1] > 0 and lnO[idx-2] > 0 and lnO[idx-2] < lnO[idx-1]:
+                    c1 = True
+                # check next value is positive and value after that is positive, but less than previous one
+                if lnO[idx+1] > 0 and lnO[idx+2] > 0 and lnO[idx+2] < lnO[idx+1]:
+                    c2 = True
+
+                # set exclusion is both these are true
+                if c1 and c2:
+                    stidx = idx - exclusionwidth
+                    if stidx < 0:
+                        stidx = 0
+                    enidx = idx + exclusionwidth
+                    if enidx > len(lnO)-1:
+                        enidx = len(lnO)-1
+
+                    idxarray[stidx:enidx] = False
+
+        # return arrays with parts excluded
+        return np.copy(lnO)[idxarray], np.copy(ts)[idxarray]
+
 
     def thresholder(self, lnO, thresh, expand=0, returnmax=True):
         """

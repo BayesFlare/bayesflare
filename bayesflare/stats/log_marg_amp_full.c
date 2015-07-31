@@ -17,12 +17,12 @@ double log_marg_amp_full_C(int Nmodels, double modelModel[], double dataModel[],
     squared[i] = modelModel[i*Nmodels + i];
     coeffs[i][i] = -2.*dataModel[i];
 
-    if( isinf(squared[i]) || isinf(coeffs[i][i]) ){ return -INFINITY; }
+    if( !isfinite(squared[i]) || !isfinite(coeffs[i][i]) ){ return -INFINITY; }
 
     for ( j=(i+1); j<Nmodels; j++ ){
       coeffs[i][j] = 2.*modelModel[i*Nmodels + j];
 
-      if( isinf(coeffs[i][j]) ){ return -INFINITY; }
+      if( !isfinite(coeffs[i][j]) ){ return -INFINITY; }
     }
   }
 
@@ -85,12 +85,12 @@ double log_marg_amp_except_final_C(int Nmodels, double modelModel[], double data
     squared[i] = modelModel[i*Nmodels + i];
     coeffs[i][i] = -2.*dataModel[i];
 
-    if( isinf(squared[i]) || isinf(coeffs[i][i]) ){ return -INFINITY; }
+    if( !isfinite(squared[i]) || !isfinite(coeffs[i][i]) ){ return -INFINITY; }
 
     for ( j=(i+1); j<Nmodels; j++ ){
       coeffs[i][j] = 2.*modelModel[i*Nmodels + j];
 
-      if( isinf(coeffs[i][j]) ){ return -INFINITY; }
+      if( !isfinite(coeffs[i][j]) ){ return -INFINITY; }
     }
   }
 

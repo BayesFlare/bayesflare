@@ -67,6 +67,8 @@ def spectrum_peak_frequencies(lc, npeaks=5):
         print >> sys.stderr, "There were fewer peaks than requested (%d), so returning %d" % (npeaks, len(pamps))
         npeaks = len(pamps)
 
+    lc.sinusoid_freqs = freqs[pidxs[:npeaks]]
+
     return freqs[pidxs[:npeaks]]
 
 
@@ -96,7 +98,6 @@ class Bayes():
         self.ranges     = deepcopy(model.ranges)
         self.confidence = 0.999
         self.noise_ev = self.noise_evidence()
-        self.sinusoid_freqs = None # frequencies of any fitted sinusoids
 
     def bayes_factors(self, **kwargs):
         """
@@ -140,7 +141,7 @@ class Bayes():
             m = m.clc
 
             # Run the xcorr and perform the analytical marginalisation over amplitude
-            B = log_marg_amp(z,m, sk)
+            B = log_marg_amp(z, m, sk)
             # Apply Bayes Formula
             self.lnBmargAmp[q][:] = B + np.sum(model.priors)
 
@@ -184,7 +185,8 @@ class Bayes():
         Parameters
         ----------
         bglen : int, default: 55
-            The length, in bins, of the background variation polynomial window. This must be odd.
+            The length, in bins, of the background variation polynomial window. If used this must be odd,
+            but if set to None then the window will just be the whole light curve.
         bgorder : int, default: 4
             The order of the polynomial background variation. If `bgorder` is -1 then no polynomial
             background variation is used, and this functions defaults to use :func:`bayes_factors`.
@@ -222,13 +224,15 @@ class Bayes():
         """
 
         # check bglen is odd
-        if bglen % 2 == 0 and nsinusoids == 0:
-            print "Error... Background length (bglen) must be an odd number"
-            return
+        if bglen != None:
+            if bglen % 2 == 0 and nsinusoids == 0:
+                print "Error... Background length (bglen) must be an odd number"
+                return
 
         # get noise estimate on a filtered lightcurve to better represent just the noise
-        tmpcurve = copy(self.lightcurve)
-        tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
+        tmpcurve = deepcopy(self.lightcurve)
+        if tmpcurve.detrended == False: # only detrend if not already detrended
+            tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
         if noiseestmethod == 'powerspectrum':
             sk = estimate_noise_ps(tmpcurve, estfrac=psestfrac)[0]
         elif noiseestmethod == 'tailveto':
@@ -239,7 +243,10 @@ class Bayes():
         del tmpcurve
 
         N = len(self.lightcurve.cts)
-        nsteps = int(bglen/2)
+        if bglen == None:
+            nsteps = int(N/2)
+        else:
+            nsteps = int(bglen/2)
 
         npoly = bgorder+1 # number of polynomial coefficients
 
@@ -248,25 +255,28 @@ class Bayes():
         # get data
         d = np.copy(self.lightcurve.clc)
 
-        dt = model.ts[1]-model.ts[0]                # time step
-        idxt0 = int((model.t0-model.ts[0])/dt)+1    # index of t0 for the model
+        if bglen != None and nsinusoids == 0:
+            dt = model.ts[1]-model.ts[0]                # time step
+            idxt0 = int((model.t0-model.ts[0])/dt)+1    # index of t0 for the model
 
-        idx1 = idxt0 - nsteps
-        idx2 = idxt0 + nsteps + 1
+            idx1 = idxt0 - nsteps
+            idx2 = idxt0 + nsteps + 1
 
-        if idx1 < 0:
-            # shift times
-            mts = model.ts[:bglen]
-        elif idx2 > N-1:
-            mts = model.ts[-bglen:]
+            if idx1 < 0:
+                # shift times
+                mts = model.ts[:bglen]
+            elif idx2 > N-1:
+                mts = model.ts[-bglen:]
+            else:
+                mts = model.ts[idx1:idx2] # time stamps for model creation
         else:
-            mts = model.ts[idx1:idx2] # time stamps for model creation
+            mts = model.ts # just use original model times
 
-        if nsinusoids != 0 and self.sinusoid_freqs is None:
+        if nsinusoids != 0 and self.lightcurve.sinusoid_freqs is None:
             # get the frequencies of the nsinusoids largest peaks in the spectrum
             freqs = spectrum_peak_frequencies(self.lightcurve, npeaks=nsinusoids)
-        elif nsinusoids != 0 and len(self.sinusoid_freqs) == nsinusoids:
-            freqs = self.sinusoid_freqs
+        elif nsinusoids != 0 and len(self.lightcurve.sinusoid_freqs) == nsinusoids:
+            freqs = self.lightcurve.sinusoid_freqs
 
         # set amplitude priors
         if halfrange:
@@ -276,7 +286,7 @@ class Bayes():
 
         nwaves = 2*nsinusoids
 
-        if nsinusoids != 0:
+        if nsinusoids != 0 or bglen == None:
             bgmodels = np.ndarray((npoly + nwaves, N))
             tsp = np.linspace(0., 1., N)
         else:
@@ -293,15 +303,35 @@ class Bayes():
             else:
                 bgmodels[i] = tsp**(i-nwaves)
 
-        bgcross = np.zeros((npoly + nwaves, npoly + nwaves))
+        bgcross = np.zeros((npoly + nwaves, npoly + nwaves, N))
+
+        # get noise time series (data error and error estimate added in quadrature)
+        noisevar = (sk**2+self.lightcurve.cle**2)
 
         # background cross terms for each time step
         for i in range(npoly + nwaves):
             for j in range(i, npoly + nwaves):
-                bgcross[i,j] = np.sum(bgmodels[i]*bgmodels[j])
+                if nsinusoids == 0 and bglen != None:
+                    #  use the correct part of the noise variance for the particular stamp
+                    for k in range(N):
+                        if k < nsteps:
+                            bgm = bgmodels[i,nsteps-k:]*bgmodels[j,nsteps-k:]
+                            bgm = bgm/noisevar[:len(bgm)]
+                        elif k >= N-nsteps:
+                            bgm = bgmodels[i,:(N-nsteps-k-1)]*bgmodels[j,:(N-nsteps-k-1)]
+                            bgm = bgm/noisevar[-len(bgm):]
+                        else:
+                            bgm = bgmodels[i]*bgmodels[j]/noisevar[k-nsteps:k+nsteps+1]
+
+                        bgcross[i,j,k] = np.sum(bgm)
+                else:
+                    bgcross[i,j] = np.sum(bgmodels[i]*bgmodels[j]/noisevar)*np.ones(N)
 
         # store models, so not regenerating them (these are truncated to the length of bglen)
-        ms = np.ndarray(tuple(model.shape) + (bglen,))
+        if bglen != None:
+            ms = np.ndarray(tuple(model.shape) + (bglen,))
+        else:
+            ms = np.ndarray(tuple(model.shape) + (N,))
         priors = np.ndarray(tuple(model.shape))
         mparams = {}
 
@@ -323,27 +353,54 @@ class Bayes():
             priors[q] = model.prior(mparams)
 
             if m == None or priors[q] == -np.inf:
-                ms[q] = -np.inf*np.ones(bglen)
+                if bglen != None:
+                    ms[q] = -np.inf*np.ones(bglen)
+                else:
+                    ms[q] = -np.inf*np.ones(N)
                 mdcross[q] = -np.inf*np.ones(N)
             else:
                 ms[q] = m.clc
-                mdcross[q] = np.sum(m.clc**2)*np.ones(N)
+
+                for k in range(N):
+                    if k < nsteps:
+                        mm = m.clc[nsteps-k:]**2
+                        mm = mm/noisevar[:len(mm)]
+                    elif k >= N-nsteps:
+                        mm = m.clc[:(N-nsteps-k-1)]**2
+                        mm = mm/noisevar[-len(mm):]
+                    else:
+                        mm = m.clc**2/noisevar[k-nsteps:k+nsteps+1]
+
+                    mdcross[q+(k,)] = np.sum(mm)
 
             # model*background terms
             for j in range(npoly+nwaves):
                 if m != None and priors[q] != -np.inf:
-                    if nsinusoids == 0:
-                        mdbgcross[q+(j,)] = np.sum(ms[q]*bgmodels[j])*np.ones(N)
+                    if nsinusoids == 0 and bglen != None:
+                        for k in range(N):
+                            if k < nsteps:
+                                mgm = bgmodels[j,nsteps-k:]*ms[q][nsteps-k:]
+                                mgm = mgm/noisevar[:len(mgm)]
+                            elif k >= N-nsteps:
+                                mgm = bgmodels[j,:(N-nsteps-k-1)]*ms[q][:(N-nsteps-k-1)]
+                                mgm = mgm/noisevar[-len(mgm):]
+                            else:
+                                mgm = bgmodels[j]*ms[q]/noisevar[k-nsteps:k+nsteps+1]
+
+                            mdbgcross[q+(j,k)] = np.sum(mgm)
                     else:
-                        mdbgcross[q+(j,)] = np.correlate(bgmodels[j], ms[q], 'same')
+                        mdbgcross[q+(j,)] = np.correlate(bgmodels[j]/noisevar, ms[q], 'same')
                 else:
                     mdbgcross[q+(j,)] = np.zeros(N)
 
         # get the data crossed with the background polynomial terms
         dbgr = np.ndarray((npoly+nwaves, N))
 
+        # whiten the data using the estimated noise and the lightcurve noise added in quadrature
+        d = d/noisevar
+
         for i in range(npoly+nwaves):
-            if nsinusoids == 0:
+            if nsinusoids == 0 and bglen != None:
                 dbgr[i] = np.correlate(d, bgmodels[i], 'same')
             else:
                 dbgr[i] = np.sum(d*bgmodels[i])*np.ones(N)
@@ -355,6 +412,8 @@ class Bayes():
         # Parallel-ize it! Run different model parameter calculation in a parallel way if multiple CPUs
         # are available.
         l = np.product(model.shape)
+
+        sk = np.sqrt(noisevar)
 
         pool = Pool(processes=ncpus)
         Ms = pool.map_async(log_marg_amp_full_model_wrapper,
@@ -395,45 +454,50 @@ class Bayes():
         """
 
         # check bglen is odd
-        if bglen % 2 == 0 and nsinusoids == 0:
-            print "Error... Background length (bglen) must be an odd number"
-            return
+        if bglen != None:
+            if bglen % 2 == 0 and nsinusoids == 0:
+                print "Error... Background length (bglen) must be an odd number"
+                return
 
         N = len(self.lightcurve.cts)
-        nsteps = int(bglen/2)
+        if bglen == None:
+            nsteps = int(N/2)
+        else:
+            nsteps = int(bglen/2)
 
         if bglen > N:
             print "Error... bglen is greater than the data length!"
             return
 
         """ get noise estimate on a filtered lightcurve to better represent just the noise """
-        tmpcurve = copy(self.lightcurve)
-        tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
+        tmpcurve = deepcopy(self.lightcurve)
+        if tmpcurve.detrended == False: # only detrend if not already detrende
+            tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
         if noiseestmethod == 'powerspectrum':
-          sk = estimate_noise_ps(tmpcurve, estfrac=psestfrac)[0]
+            sk = estimate_noise_ps(tmpcurve, estfrac=psestfrac)[0]
         elif noiseestmethod == 'tailveto':
-          sk = estimate_noise_tv(tmpcurve.clc, sigma=tvsigma)[0]
+            sk = estimate_noise_tv(tmpcurve.clc, sigma=tvsigma)[0]
         else:
-          print "Noise estimation method must be 'powerspectrum' or 'tailveto'"
-          return None
+            print "Noise estimation method must be 'powerspectrum' or 'tailveto'"
+            return None
         del tmpcurve
 
         npoly = bgorder+1 # number of polynomial coefficients
         nwaves = 2*nsinusoids
 
         # get the background polynomial model cross terms for each t0
-        if nsinusoids != 0:
+        if nsinusoids != 0 or bglen == None:
             bgmodels = np.ndarray((npoly + nwaves, N))
             tsp = np.linspace(0., 1., N)
         else:
             bgmodels = np.ndarray((npoly, bglen))
             tsp = np.linspace(0., 1., bglen)
 
-        if nsinusoids != 0 and self.sinusoid_freqs is None:
+        if nsinusoids != 0 and self.lightcurve.sinusoid_freqs is None:
             # get the frequencies of the nsinusoids largest peaks in the spectrum
             freqs = spectrum_peak_frequencies(self.lightcurve, npeaks=nsinusoids)
-        elif nsinusoids != 0 and len(self.sinusoid_freqs) == nsinusoids:
-            freqs = self.sinusoid_freqs
+        elif nsinusoids != 0 and len(self.lightcurve.sinusoid_freqs) == nsinusoids:
+            freqs = self.lightcurve.sinusoid_freqs
 
         ts = self.lightcurve.cts-self.lightcurve.cts[0]
 
@@ -446,12 +510,29 @@ class Bayes():
                 bgmodels[i] = tsp**(i-nwaves)
 
         # background cross terms for each time step
-        bgcross = np.zeros((npoly + nwaves, npoly + nwaves))
+        bgcross = np.zeros((npoly + nwaves, npoly + nwaves, N))
+
+        # get noise time series (data error and error estimate added in quadrature)
+        noisevar = (sk**2+self.lightcurve.cle**2)
 
         # background cross terms for each time step
         for i in range(npoly + nwaves):
             for j in range(i, npoly + nwaves):
-                bgcross[i,j] = np.sum(bgmodels[i]*bgmodels[j])
+                if nsinusoids == 0 and bglen != None:
+                    #  use the correct part of the noise variance for the particular stamp
+                    for k in range(N):
+                        if k < nsteps:
+                            bgm = bgmodels[i,nsteps-k:]*bgmodels[j,nsteps-k:]
+                            bgm = bgm/noisevar[:len(bgm)]
+                        elif k >= N-nsteps:
+                            bgm = bgmodels[i,:(N-nsteps-k-1)]*bgmodels[j,:(N-nsteps-k-1)]
+                            bgm = bgm/noisevar[-len(bgm):]
+                        else:
+                            bgm = bgmodels[i]*bgmodels[j]/noisevar[k-nsteps:k+nsteps+1]
+
+                        bgcross[i,j,k] = np.sum(bgm)
+                else:
+                    bgcross[i,j] = np.sum(bgmodels[i]*bgmodels[j]/noisevar)*np.ones(N)
 
         # get data
         d = np.copy(self.lightcurve.clc)
@@ -459,13 +540,18 @@ class Bayes():
         # get the data crossed with the background model terms
         dbgr = np.ndarray((npoly+nwaves, N))
 
+        # whiten the data using the estimated noise and the lightcurve noise added in quadrature
+        d = d/noisevar
+
         for i in range(npoly+nwaves):
-            if nsinusoids == 0:
+            if nsinusoids == 0 and bglen != None:
                 dbgr[i] = np.correlate(d, bgmodels[i], 'same')
             else:
                 dbgr[i] = np.sum(d*bgmodels[i])*np.ones(N)
 
         self.lnBmargBackground = -np.inf*np.ones(N)
+
+        sk = np.sqrt(noisevar)
 
         B = log_marg_amp_full_background(sk, N, npoly+nwaves, bgcross, dbgr)
 
