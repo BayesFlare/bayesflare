@@ -69,8 +69,12 @@ if __name__=='__main__':
 
   parser.add_option("-b", "--background-length", dest="bglen",
                     help="The length (in number of data) of the running background window used \
-in the Bayes factor calculation (must be an odd number) [default: %default (about 27 hours \
-with the default time step)].", type="int", default=55)
+in the Bayes factor calculation (must be an odd number) [default: is None. enter 55 for %default (about 27 hours \
+with the default time step)].", type="int", default=None)
+
+  parser.add_option("-G", "--filter_background-length", dest="filter_bglen",
+                    help="Length of running window for filter",
+                    type="int", default=55)
 
   parser.add_option("-o", "--background-order", dest="bgorder",
                     help="The polynomial order of the fitted background variability [default: %default].",
@@ -251,15 +255,17 @@ of standard devaitons with which to estimate the noise [default: %default].",
   bgorder = opts.bgorder
   nsinusoids = opts.nsinusoids
 
-  if bglen % 2 == 0:
-    print >> sys.stderr, "Error... background length (bglen) must be an odd number"
-    sys.exit(0)
+  if bglen != None:
+    if bglen % 2 == 0:
+      print >> sys.stderr, "Error... background length (bglen) must be an odd number"
+      sys.exit(0)
 
   # set amplitude priors to be large
   largeprior = 1.e6 # 1 million!
   amppriors = (np.ones(bgorder+2)*largeprior).tolist()
 
-  tslen = len(ts)-bglen+1 # length of time series with edges removed
+  if bglen != None:
+    tslen = len(ts)-bglen+1 # length of time series with edges removed
 
   # inject flare
   if opts.injflare:
@@ -289,11 +295,11 @@ of standard devaitons with which to estimate the noise [default: %default].",
   tmpcurve = copy(flarelc)
 
   if opts.detrendmeth == 'savitzkygolay':
-    tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
+    tmpcurve.detrend(method='savitzkygolay', nbins=opts.filter_bglen, order=bgorder)
   elif opts.detrendmeth == 'highpassfilter':
     tmpcurve.detrend(method='highpassfilter', knee=opts.kneevalue)
   elif opts.detrendmeth == 'runningmedian':
-    tmpcurve.detrend(method='runningmedian', nbins=bglen)
+    tmpcurve.detrend(method='runningmedian', nbins=opts.filter_bglen)
   elif opts.detrendmeth == 'supersmoother':
     tmpcurve.detrend(method='supersmoother', alpha=opts.alpha)
   elif opts.detrendmeth =='perioidsmoother':
@@ -311,6 +317,10 @@ of standard devaitons with which to estimate the noise [default: %default].",
 
   if not opts.lconly:
     # get the odds ratio
+    if bglen != None:
+      noiseimpulseparams={'t0': (0, (bglen-1.)*flarelc.dt(), bglen)}
+    else:
+      noiseimpulseparams={'t0': (np.inf,)}  
     Or = bf.OddsRatioDetector( tmpcurve,
                                bglen=bglen,
                                bgorder=bgorder,
@@ -321,7 +331,7 @@ of standard devaitons with which to estimate the noise [default: %default].",
                                flareparams={'taugauss': (0, 1.5*60*60, 10), 'tauexp': (0.5*60*60, 3.*60*60, 10)},
                                noisepoly=True,
                                noiseimpulse=True,
-                               noiseimpulseparams={'t0': (0, (bglen-1.)*flarelc.dt(), bglen)},
+                               noiseimpulseparams=noiseimpulseparams,
                                noiseexpdecay=True,
                                noiseexpdecayparams={'tauexp': (0.0, 0.25*60*60, 3)},
                                noiseexpdecaywithreverse=True,
@@ -379,13 +389,34 @@ of standard devaitons with which to estimate the noise [default: %default].",
       axarr.set_ylim((ylims[0], ylims[1]))
 
     axarr.set_ylabel('Flux', fontsize=16, fontweight=100)
-  else:
-    tst = (tst-tst[0])/86400.
+################################################################################################
+  # else:
+  #   tst = (tst-tst[0])/86400.
 
-    axarr[0].plot(tst, flarelc.clc[np.arange(int(bglen/2), len(ts)-int(bglen/2))], 'b')
+  #   axarr[0].plot(tst, flarelc.clc[np.arange(int(bglen/2), len(ts)-int(bglen/2))], 'b')
+
+  #   if opts.oinj: # overplot injection
+  #     axarr[0].plot(tst, oinj[np.arange(int(bglen/2), len(ts)-int(bglen/2))], 'r')
+
+#################################################################################################
+  else:
+    ts0 = tst[0]
+    tst = (tst-ts0)/86400.
+  
+    if bglen != None:
+      tsp = flarelc.cts[np.arange(int(bglen/2), len(ts)-int(bglen/2))]
+      axarr[0].plot((tsp-ts0)/86400., flarelc.clc[np.arange(int(bglen/2), len(ts)-int(bglen/2))], 'b')
+    else:
+      axarr[0].plot((flarelc.cts-ts0)/86400., flarelc.clc, 'b')
 
     if opts.oinj: # overplot injection
-      axarr[0].plot(tst, oinj[np.arange(int(bglen/2), len(ts)-int(bglen/2))], 'r')
+      if bglen != None:
+        axarr[0].plot((tsp-ts0)/86400., oinj[np.arange(int(bglen/2), len(ts)-int(bglen/2))], 'r')
+      else:
+        axarr[0].plot(tst, oinj, 'r')
+
+
+
 
     if opts.threshold != None:
       # get above threshold (i.e. flare) points.
