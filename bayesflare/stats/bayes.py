@@ -231,8 +231,10 @@ class Bayes():
 
         # get noise estimate on a filtered lightcurve to better represent just the noise
         tmpcurve = deepcopy(self.lightcurve)
-        if tmpcurve.detrended == False: # only detrend if not already detrended
-            tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
+        # if tmpcurve.detrended == False: # only detrend if not already detrended
+        #     tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
+
+            
         if noiseestmethod == 'powerspectrum':
             sk = estimate_noise_ps(tmpcurve, estfrac=psestfrac)[0]
         elif noiseestmethod == 'tailveto':
@@ -471,8 +473,8 @@ class Bayes():
 
         """ get noise estimate on a filtered lightcurve to better represent just the noise """
         tmpcurve = deepcopy(self.lightcurve)
-        if tmpcurve.detrended == False: # only detrend if not already detrende
-            tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
+        # if tmpcurve.detrended == False: # only detrend if not already detrende
+        #     tmpcurve.detrend(method='savitzkygolay', nbins=bglen, order=bgorder)
         if noiseestmethod == 'powerspectrum':
             sk = estimate_noise_ps(tmpcurve, estfrac=psestfrac)[0]
         elif noiseestmethod == 'tailveto':
