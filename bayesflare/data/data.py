@@ -325,10 +325,10 @@ class Lightcurve():
 
         """
 
-        self.datamask = ~np.isfinite(self.clc)
-        self.clc[self.datamask] = 0.
+        self.datamask = np.isfinite(self.clc)
+        self.clc[~self.datamask] = 0.
         #self.cle[self.datamask] = np.inf
-        self.cle[self.datamask] = 1e5 # a large, but finite value
+        self.cle[~self.datamask] = 1e5 # a large, but finite value
 
         # sort out any timestamps that are screwy!
         tidxs = np.isfinite(self.cts)
@@ -393,35 +393,33 @@ class Lightcurve():
             if nbins is None or order is None:
                 raise ValueError("Number of bins, or polynomial order, for Savitsky-Golay filter not set")
 
-            ffit = bf.savitzky_golay(self.clc[~self.datamask], nbins, order)
-            self.clc[~self.datamask] = (self.clc[~self.datamask] - ffit)
-            self.detrend_fit = np.copy(ffit)
+            self.detrend_fit = bf.savitzky_golay(self.clc[self.datamask], nbins, order)
+            self.clc[self.datamask] = (self.clc[self.datamask] - self.detrend_fit)
+            
 
         elif method == 'runningmedian':
             if nbins is None:
                 raise ValueError("Number of bins for running median filter not set")
 
-            ffit = bf.running_median(self.clc[~self.datamask], nbins)
-            self.clc[~self.datamask] = (self.clc[~self.datamask] - ffit)
-
-            self.detrend_fit = np.copy(ffit)
+            self.detrend_fit = bf.running_median(self.clc[self.datamask], nbins)
+            self.clc[self.datamask] = (self.clc[self.datamask] - self.detrend_fit)
 
         elif method == 'highpassfilter':
             if knee is None:
                 raise ValueError("Knee frequency for high-pass filter not set.")
-            dlc = bf.highpass_filter_lightcurve(self, knee=knee)
-            self.clc = np.copy(dlc)
-
+            self.clc[self.datamask] = bf.highpass_filter_lightcurve(self, knee=knee)
+         
         elif method == 'supersmoother':
             smooth = ss.SuperSmoother(alpha=alpha) 
-            smooth.fit(self.cts, self.clc)
-            yfit = smooth.predict(self.cts) #currently has no option to change number of points and uses length of curve given
-            self.clc =  self.clc - yfit 
+            smooth.fit(self.cts[self.datamask], self.clc[self.datamask])
+            self.detrend_fit = smooth.predict(self.cts[self.datamask]) #currently has no option to change number of points and uses length of curve given
+            self.clc[self.datamask] = (self.clc[self.datamask] - self.detrend_fit)
 
-        elif method == 'periodsmoother':
-            model = ss.SuperSmoother(period=period)
-            yfit = model.fit(self.cts, self.clc).predict(self.cts)
-            self.clc =  self.clc - yfit 
+
+        # elif method == 'periodsmoother':
+        #     model = ss.SuperSmoother(period=period)
+        #     yfit = model.fit(self.cts, self.clc).predict(self.cts)
+        #     self.clc =  self.clc - yfit 
         else:
             raise ValueError("No detrend method set")
 
