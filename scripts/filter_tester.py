@@ -37,6 +37,8 @@ def make_curve(add_sine=False,amp=None,period=None):
 	flarelc = bf.Lightcurve()
 	flarelc.clc = nstd*np.random.randn(len(ts)) #clc y data
 	flarelc.cts = np.copy(ts) #cts time stamp data
+	flarelc.cle = np.zeros(len(flarelc.clc))
+	flarelc.maskdata()
 	flarelc.cadence = 'long'
 	tmi = flarelc.cts-flarelc.cts[0] #makes time data start at 0
 	Mfi = bf.Flare(tmi, amp=1.) #creates a Flare object
@@ -81,7 +83,7 @@ def find_best_filter(curve_maker):
 
 def find_best_periodic_filter():
 	min_period = 0.2*24*60*60
-	max_period = 10*24*60*60
+	max_period = 20*24*60*60
 	step = (max_period - min_period) / 100.
 	i = min_period
 	best = []
@@ -142,8 +144,9 @@ def avg_chi(no_tests, filter_used, curve_maker):
 def format_periodic_list(best_filters):
 	# sort them so that the same filters are adjacent 
 	# and within these filters elements are sorted by period
-	best_filters.sort(lambda x, y: cmp(x[0], y[0]) if x[1] == y[1] else cmp(x[1], y[1]))
-
+	#best_filters.sort(lambda x, y: cmp(x[0], y[0]) if x[1] == y[1] else cmp(x[1], y[1]))
+	print "\n".join(map(str, best_filters))
+	return
 	# extract a range of periods for which the filter is best
 	def extract_ranges(ranges, element):
 		"""Returns a dictionary in the form {'filter': [min_period, max_period]}"""
@@ -188,6 +191,7 @@ if __name__=='__main__':
 
 	elif test_which == "periodic":
 		# find best filters for each period
+		
 		print format_periodic_list(find_best_periodic_filter()) # tests a 100 periods in the range 0.2days to 10days on each filter once
 
 	else:
