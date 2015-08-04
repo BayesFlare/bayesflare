@@ -407,8 +407,8 @@ class Lightcurve():
         elif method == 'highpassfilter':
             if knee is None:
                 raise ValueError("Knee frequency for high-pass filter not set.")
-            self.clc[self.datamask] = bf.highpass_filter_lightcurve(self, knee=knee)
-         
+            self.clc = bf.highpass_filter_lightcurve(self, knee=knee)
+             
         elif method == 'supersmoother':
             smooth = ss.SuperSmoother(alpha=alpha) 
             smooth.fit(self.cts[self.datamask], self.clc[self.datamask])
