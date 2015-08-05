@@ -27,12 +27,11 @@ def get_flares(curve_file):
 	lnO, ts, Or = get_odds_ratio(my_curve)
 	Or.impulse_excluder(lnO, ts)
 	flarelist, numflares, maxlist = Or.thresholder(lnO, 10, 1)
-
-	if numflares > 0:
-		print curve_file
-		print str(numflares) + " " + str(flarelist)
-		pl.plot(ts, lnO)
-		pl.show()
+	print curve_file
+	print str(numflares) + " " + str(flarelist)
+	pl.plot(my_curve.cts, my_curve.clc)
+	pl.plot(ts, lnO)				
+	pl.show()
 
 curve_files = {'/home/holly/Kepler/Q1_public/kplr001429589-2009166043257_llc.fits',
 				'/home/holly/Kepler/Q1_public/kplr003329643-2009166043257_llc.fits',
