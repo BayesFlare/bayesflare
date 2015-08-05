@@ -47,9 +47,13 @@ def get_odds_ratio(curve, bglen):
 curve_file = '/home/holly/data/001873543/kplr001873543-2009166043257_llc.fits'
 my_curve = bf.Lightcurve(curve_file, detrend=False)
 
+psd, f = my_curve.psd()
+pidx = np.argmax(psd)
+period = 1./f[pidx]
+print period
 
 bglen = None
-nsinusoids = 0
+
 
 
 filters = [
@@ -62,11 +66,16 @@ filters = [
 fig, ax = pl.subplots(5)
 i = 0
 for f in filters:
+  nsinusoids = 0
   tmpcurve = f(deepcopy(my_curve))
   tmpcurve2 = deepcopy(tmpcurve)
+  tmpcurve3 = deepcopy(tmpcurve)
   lnO, ts = get_odds_ratio(tmpcurve,None)
   ax[i].plot(ts, lnO)
   lnO, ts = get_odds_ratio(tmpcurve2,55)
+  ax[i].plot(ts, lnO)
+  nsinusoids=30
+  lnO, ts = get_odds_ratio(tmpcurve2,None)
   ax[i].plot(ts, lnO)
   i += 1
 pl.show()
