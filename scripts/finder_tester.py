@@ -1,6 +1,7 @@
 import bayesflare as bf
 import matplotlib.pyplot as pl
 import numpy as np
+import os
 
 def get_odds_ratio(curve):
     Or = bf.OddsRatioDetector( curve,
@@ -26,32 +27,31 @@ def get_flares(curve_file):
 	my_curve.detrend(method='runningmedian', nbins=55)
 	lnO, ts, Or = get_odds_ratio(my_curve)
 	Or.impulse_excluder(lnO, ts)
-	flarelist, numflares, maxlist = Or.thresholder(lnO, 10, 1)
+	flarelist, numflares, maxlist = Or.thresholder(lnO, 5, 1)
 	print curve_file
 	print str(numflares) + " " + str(flarelist)
 	pl.plot(my_curve.cts, my_curve.clc)
 	pl.plot(ts, lnO)				
 	pl.show()
 
-curve_files = {'/home/holly/Kepler/Q1_public/kplr001429589-2009166043257_llc.fits',
-				'/home/holly/Kepler/Q1_public/kplr003329643-2009166043257_llc.fits',
-				'/home/holly/Kepler/Q1_public/kplr003852865-2009166043257_llc.fits',
-				'/home/holly/Kepler/Q1_public/kplr004851356-2009166043257_llc.fits',
-				# '/home/holly/Kepler/Q1_public/kplr004949027-2009166043257_llc.fits',
-				'/home/holly/Kepler/Q1_public/kplr005781991-2009166043257_llc.fits',
-				'/home/holly/Kepler/Q1_public/kplr005965629-2009166043257_llc.fits',
-				'/home/holly/Kepler/Q1_public/kplr006128245-2009166043257_llc.fits',
-				'/home/holly/Kepler/Q1_public/kplr007115200-2009166043257_llc.fits',
-				'/home/holly/Kepler/Q1_public/kplr007191523-2009166043257_llc.fits',
-				'/home/holly/Kepler/Q1_public/kplr007598326-2009166043257_llc.fits',
-				# '/home/holly/Kepler/Q1_public/kplr008043882-2009166043257_llc.fits',
-				'/home/holly/Kepler/Q1_public/kplr008167504-2009166043257_llc.fits',
-				'/home/holly/Kepler/Q1_public/kplr008939211-2009166043257_llc.fits',
-				'/home/holly/Kepler/Q1_public/kplr008949512-2009166043257_llc.fits',
-				'/home/holly/Kepler/Q1_public/kplr009025739-2009166043257_llc.fits'
-			}
-for curve in curve_files:
-	get_flares(curve)
+def find_files(rootDir):
+	files = []
+	for dirName, subdirList, fileList in os.walk(rootDir):
+		# print ('Found directory: %s' % dirName)
+		for fname in fileList:
+			lc = '{0}/{1}'.format(dirName, fname)
+			files.append(lc)
+	return files
+
+all_files = find_files('/home/holly/data')
+
+for lc in all_files:
+	get_flares(lc)
+
+
+
+
+
 
 
 
