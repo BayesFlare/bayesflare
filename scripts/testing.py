@@ -79,24 +79,45 @@ def get_flares_old(curve_file):
 	pl.show()
 
 
-def zero_excluder(curve, lnO, ts):
-	indexs = curve.nonzero()
-	indexs = indexs[0]
+# def zero_excluder(curve, lnO, ts):
+# 	indexs = curve.nonzero()
+# 	indexs = indexs[0]
+# 	zero_gap = []
+# 	lnO = np.array(lnO)
+# 	ts = np.array(ts)
+# 	for i in indexs:
+# 		if i > 5 and i < len(indexs) - 6:
+# 			if indexs[i] - indexs[i-1] > 2:
+# 				zero_gap.append([indexs[i-6], indexs[i+5]])
+	
+# 	print zero_gap 
+# 	for pair in zero_gap:
+# 		lnO[pair[0]:pair[1]] = False
+# 		ts[pair[0]:pair[1]] = False
+
+
+# 	return lnO, ts
+
+def zero_excluder(curve, lnO, ts): #will explode if zeros close together, maybe....
+	indexs = curve.nonzero()[0]
 	zero_gap = []
+
 	lnO = np.array(lnO)
 	ts = np.array(ts)
-	for i in indexs:
-		if i > 5 and i < len(indexs) - 6:
-			if indexs[i] - indexs[i-1] > 2:
-				zero_gap.append([indexs[i-6], indexs[i+5]])
-	
+
+	for i in xrange(6, len(indexs) - 12):
+		if indexs[i] - indexs[i-1] > 2:
+			zero_gap.append(slice(indexs[i-1]-6, indexs[i]+12))
+
 	print zero_gap 
-	for pair in zero_gap:
-		lnO[pair[0]:pair[1]] = False
-		ts[pair[0]:pair[1]] = False
 
+	ind = np.indices(lnO.shape)[0]
+	rm = np.hstack([ind[i] for i in zero_gap])
 
-	return lnO, ts
+	new_lnO = np.take(lnO, sorted(set(ind)-set(rm)))
+	new_ts = np.take(ts, sorted(set(ind)-set(rm)))
+
+	return new_lnO, new_ts
 
 curve_file = '/home/holly/data/007598326/kplr007598326-2010355172524_llc.fits'
 get_flares(curve_file)
