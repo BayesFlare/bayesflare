@@ -863,10 +863,23 @@ class OddsRatioDetector():
     def zero_excluder(self, curve_clc, lnO, ts):
       """Must be run before impulse_excluder as impulse_excluder modifies length of lnO and ts, and zero_excluder needs this length to be the origional 
       takes input of my_curve lnO and ts, returns modifies lnO and ts"""
-      indexs = curve_clc.nonzero()
-      lnO = lnO[indexs[0]]
-      ts = ts[indexs[0]]
-      return lnO, ts
+      indexs = curve_clc.nonzero()[0]
+      zero_gap = []
+
+      lnO = np.array(lnO)
+      ts = np.array(ts)
+
+      for i in xrange(6, len(indexs) - 12):
+        if indexs[i] - indexs[i-1] > 2:
+          zero_gap.append(slice(indexs[i-1]-6, indexs[i]+12))
+
+      ind = np.indices(lnO.shape)[0]
+      rm = np.hstack([ind[i] for i in zero_gap])
+
+      new_lnO = np.take(lnO, sorted(set(ind)-set(rm)))
+      new_ts = np.take(ts, sorted(set(ind)-set(rm)))
+
+      return new_lnO, new_ts
 
     def impulse_excluder(self, lnO, ts, exclusionwidth=5):
         """
