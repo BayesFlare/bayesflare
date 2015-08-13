@@ -2,6 +2,7 @@ import bayesflare as bf
 import matplotlib.pyplot as pl
 import numpy as np
 import os
+import re
 
 def get_odds_ratio(curve):
     Or = bf.OddsRatioDetector( curve,
@@ -26,13 +27,33 @@ def get_flares(curve_file):
 	my_curve = bf.Lightcurve(curve_file)
 	my_curve.detrend(method='runningmedian', nbins=55)
 	lnO, ts, Or = get_odds_ratio(my_curve)
-	Or.impulse_excluder(lnO, ts)
+	lnO, ts = Or.impulse_excluder(lnO, ts)
 	flarelist, numflares, maxlist = Or.thresholder(lnO, 5, 1)
-	print curve_file
-	print str(numflares) + " " + str(flarelist)
-	pl.plot(my_curve.cts, my_curve.clc)
-	pl.plot(ts, lnO)				
-	pl.show()
+	# print curve_file
+	# print str(numflares) + " " + str(flarelist)
+	ts0 = ts[0]
+	ts = (ts-ts0)/86400.
+	
+	fig, axarr = pl.subplots(2)
+
+	results = re.search(r"kplr(.*)_llc\.fits", curve_file)
+	axarr[0].set_title(results.group(1))
+
+	axarr[0].plot(ts, my_curve.clc)
+	axarr[1].plot(ts, lnO)	
+	ylims = axarr[0].get_ylim()
+
+	for fl in flarelist:
+		fs = ts[fl[0]]
+		fe = ts[fl[1]]
+		axarr[0].fill_between([fs, fe], [ylims[0], ylims[0]], [ylims[1], ylims[1]], alpha=0.35, facecolor='k', edgecolor='none')
+
+	axarr[0].set_ylim((ylims[0], ylims[1]))
+	pl.savefig(results.group(1))
+	pl.close()		
+	
+
+
 
 def find_files(rootDir):
 	files = []
