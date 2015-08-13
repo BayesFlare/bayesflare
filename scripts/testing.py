@@ -83,22 +83,25 @@ def zero_excluder(curve, lnO, ts):
 	indexs = curve.nonzero()
 	indexs = indexs[0]
 	zero_gap = []
+	lnO = np.array(lnO)
+	ts = np.array(ts)
 	for i in indexs:
 		if i > 5 and i < len(indexs) - 6:
 			if indexs[i] - indexs[i-1] > 2:
 				zero_gap.append([indexs[i-6], indexs[i+5]])
 	
 	print zero_gap 
-	# trying to do something with zero_gap and lnO and ts here
+	for pair in zero_gap:
+		lnO[pair[0]:pair[1]] = False
+		ts[pair[0]:pair[1]] = False
 
-	lnO = lnO[indexs]
-	ts = ts[indexs]
+
 	return lnO, ts
 
 curve_file = '/home/holly/data/007598326/kplr007598326-2010355172524_llc.fits'
 get_flares(curve_file)
 
 
-# a = [1,2,3,4,5,6,7,8,9]
+# a = np.array([1,2,3,4,5,6,7,8,9])
 # a[1:2] = False
 # print a
