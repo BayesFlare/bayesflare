@@ -860,6 +860,14 @@ class OddsRatioDetector():
 
         return lnO, ts
 
+    def zero_excluder(self, curve_clc, lnO, ts):
+      """Must be run before impulse_excluder as impulse_excluder modifies length of lnO and ts, and zero_excluder needs this length to be the origional 
+      takes input of my_curve lnO and ts, returns modifies lnO and ts"""
+      indexs = curve_clc.nonzero()
+      lnO = lnO[indexs[0]]
+      ts = ts[indexs[0]]
+      return lnO, ts
+
     def impulse_excluder(self, lnO, ts, exclusionwidth=5):
         """
         Return a copy of the odds ratio time series with sections excluded based on containing features
@@ -876,7 +884,6 @@ class OddsRatioDetector():
             The number of points either side of the feature to be excluded. In practice this should be
             based on the charactistic maximum flare width.
         """
-
         # find log odds ratios < -5 (i.e. favouring the impulse/noise model
         negidxs = np.arange(len(lnO))[np.copy(lnO) < -5.]
 
