@@ -3,6 +3,7 @@ import matplotlib.pyplot as pl
 import numpy as np
 import os
 import re
+from copy import copy, deepcopy
 
 def get_odds_ratio(curve):
     Or = bf.OddsRatioDetector( curve,
@@ -27,6 +28,8 @@ def get_flares(curve_file):
 	my_curve = bf.Lightcurve(curve_file)
 	my_curve.detrend(method='runningmedian', nbins=55)
 	lnO, ts, Or = get_odds_ratio(my_curve)
+	full_length_ts = copy(ts)
+	lnO, ts = Or.zero_excluder(my_curve.clc, lnO, ts)
 	lnO, ts = Or.impulse_excluder(lnO, ts)
 	flarelist, numflares, maxlist = Or.thresholder(lnO, 5, 1)
 	# print curve_file
@@ -39,7 +42,7 @@ def get_flares(curve_file):
 	results = re.search(r"kplr(.*)_llc\.fits", curve_file)
 	axarr[0].set_title(results.group(1))
 
-	axarr[0].plot(ts, my_curve.clc)
+	axarr[0].plot(full_length_ts, my_curve.clc)
 	axarr[1].plot(ts, lnO)	
 	ylims = axarr[0].get_ylim()
 
