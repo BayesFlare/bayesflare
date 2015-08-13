@@ -36,6 +36,8 @@ def get_flares(curve_file):
 	# print str(numflares) + " " + str(flarelist)
 	ts0 = ts[0]
 	ts = (ts-ts0)/86400.
+	full_length_ts0 =full_length_ts[0]
+	full_length_ts = (full_length_ts - full_length_ts0)/86400.
 	
 	fig, axarr = pl.subplots(2)
 
@@ -52,6 +54,7 @@ def get_flares(curve_file):
 		axarr[0].fill_between([fs, fe], [ylims[0], ylims[0]], [ylims[1], ylims[1]], alpha=0.35, facecolor='k', edgecolor='none')
 
 	axarr[0].set_ylim((ylims[0], ylims[1]))
+	pl.show()
 	pl.savefig(results.group(1))
 	pl.close()		
 	

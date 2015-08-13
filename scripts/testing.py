@@ -98,26 +98,18 @@ def get_flares_old(curve_file):
 
 # 	return lnO, ts
 
-def zero_excluder(curve, lnO, ts): #will explode if zeros close together, maybe....
-	indexs = curve.nonzero()[0]
-	zero_gap = []
+def zero_excluder(curve, lnO, ts):
+    indexs = curve.nonzero()[0]
 
-	lnO = np.array(lnO)
-	ts = np.array(ts)
+    non_zero = np.ones(len(lnO), dtype=np.bool)
 
-	for i in xrange(6, len(indexs) - 12):
-		if indexs[i] - indexs[i-1] > 2:
-			zero_gap.append(slice(indexs[i-1]-6, indexs[i]+12))
+    w = 6 # window border
+    for i in xrange(w, len(indexs) - w*2):
+        if indexs[i] - indexs[i-1] > 2:
+            non_zero[indexs[i-w] : indexs[i+w*2]] = False
 
-	print zero_gap 
-
-	ind = np.indices(lnO.shape)[0]
-	rm = np.hstack([ind[i] for i in zero_gap])
-
-	new_lnO = np.take(lnO, sorted(set(ind)-set(rm)))
-	new_ts = np.take(ts, sorted(set(ind)-set(rm)))
-
-	return new_lnO, new_ts
+    # return arrays with parts excluded
+    return np.copy(lnO)[non_zero], np.copy(ts)[non_zero]
 
 curve_file = '/home/holly/data/007598326/kplr007598326-2010355172524_llc.fits'
 get_flares(curve_file)

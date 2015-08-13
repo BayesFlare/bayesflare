@@ -860,26 +860,18 @@ class OddsRatioDetector():
 
         return lnO, ts
 
-    def zero_excluder(self, curve_clc, lnO, ts):
-      """Must be run before impulse_excluder as impulse_excluder modifies length of lnO and ts, and zero_excluder needs this length to be the origional 
-      takes input of my_curve lnO and ts, returns modifies lnO and ts"""
-      indexs = curve_clc.nonzero()[0]
-      zero_gap = []
+    def zero_excluder(self, curve, lnO, ts):
+        """Must be run before impulse_excluder as impulse_excluder modifies length of lnO and ts, and zero_excluder needs this length to be the origional 
+        takes input of my_curve lnO and ts, returns modifies lnO and ts"""
+        indexs = curve.nonzero()[0]
+        non_zero = np.ones(len(lnO), dtype=np.bool)
+        w = 6 # window border
+        for i in xrange(w, len(indexs) - w*2):
+          if indexs[i] - indexs[i-1] > 2:
+            non_zero[indexs[i-w] : indexs[i+w*2]] = False
 
-      lnO = np.array(lnO)
-      ts = np.array(ts)
-
-      for i in xrange(6, len(indexs) - 12):
-        if indexs[i] - indexs[i-1] > 2:
-          zero_gap.append(slice(indexs[i-1]-6, indexs[i]+12))
-
-      ind = np.indices(lnO.shape)[0]
-      rm = np.hstack([ind[i] for i in zero_gap])
-
-      new_lnO = np.take(lnO, sorted(set(ind)-set(rm)))
-      new_ts = np.take(ts, sorted(set(ind)-set(rm)))
-
-      return new_lnO, new_ts
+        # return arrays with parts excluded
+        return np.copy(lnO)[non_zero], np.copy(ts)[non_zero]
 
     def impulse_excluder(self, lnO, ts, exclusionwidth=5):
         """
