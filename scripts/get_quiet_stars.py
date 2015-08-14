@@ -21,7 +21,7 @@ amplitude.
 Nquiet = 1
 
 # directory of Kepler Quarter 1 data
-keplerdir = '/home/holly/data/001429589'
+keplerdir = '/scratch/nebula/kepler/Q2_public'
 
 # list directory contents and randomise
 kfs = os.listdir(keplerdir)
