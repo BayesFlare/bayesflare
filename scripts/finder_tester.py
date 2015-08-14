@@ -48,7 +48,7 @@ def get_flares(curve_file):
 	axarr[1].plot(ts, lnO)	
 	ylims = axarr[0].get_ylim()
 
-	for fl in flarelist:
+	for fl in flarelist: # one of the stars didn't have an fl[1]? maybe not fl[0] which star? put in a skip incase this happens again 
 		fs = ts[fl[0]]
 		fe = ts[fl[1]]
 		axarr[0].fill_between([fs, fe], [ylims[0], ylims[0]], [ylims[1], ylims[1]], alpha=0.35, facecolor='k', edgecolor='none')
