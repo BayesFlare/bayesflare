@@ -19,7 +19,6 @@ the paper by [Pitkin, Williams, Fletcher & Grant, arXiv:1406.1712](http://arxiv.
 
 
 * Python 2.7
-* sshfs
 * NumPy 1.6.1
 * SciPy 0.9.0
 * Matplotlib 1.1.1
