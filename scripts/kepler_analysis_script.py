@@ -418,7 +418,7 @@ then delete the file.
 
       # get the noise estimate
       tmpcurve = copy(flarelc)
-      tmpcurve.detrend(method='savitzkygolay', odds.bglen, odds.bgorder)
+      tmpcurve.detrend(method='savitzkygolay', nbins=odds.bglen, order=odds.bgorder)
       if odds.noiseestmethod == 'powerspectrum':
         sk = bf.estimate_noise_ps(tmpcurve, estfrac=odds.psestfrac)[0]
       elif odds.noiseestmethod == 'tailveto':
