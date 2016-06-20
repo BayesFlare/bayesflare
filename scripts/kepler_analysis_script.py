@@ -355,7 +355,12 @@ then delete the file.
 
     print "Iteration %d: KIC %d" % (i+1, kids[i]["kepid"])
 
-    flarelc = bf.Lightcurve(curve=kfile)
+    flarelc = bf.Lightcurve(curve=kfile, maxgap=maxgap)
+    # check if the data had gaps
+    if flarelc.datagap:
+      print "KIC %d had a data gap greater than %d. Ignoring this star." % (kids[i]["kepid"], maxgap)
+      outdict["Rejected stars"].append(kids[i]["kepid"])
+      continue
 
     # check if star had already been analysed
     if starlist != None:
