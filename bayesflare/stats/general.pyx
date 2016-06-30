@@ -566,12 +566,10 @@ cpdef logminus(double x, double y):
     logplus : A similar calculation, but for adding two values.
     """
     cdef double z = np.inf
-    if isinf(x) and isinf(y) and (x < 0) and (y < 0):
+    if (isinf(x) and isinf(y) and (x < 0) and (y < 0)) or y < x:
         z = -np.inf
-    elif (x > y) and not (isinf(x) and isinf(y)):
+    else (x > y) and not (isinf(x) and isinf(y)):
         z = x + log(1 - exp(y - x))
-    elif (x <= y) and not (isinf(x) and isinf(y)):
-        z = y + log(1 - exp(x - y))
     return z
 
 
