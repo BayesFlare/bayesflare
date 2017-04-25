@@ -568,7 +568,7 @@ cpdef logminus(double x, double y):
     cdef double z = np.inf
     if (isinf(x) and isinf(y) and (x < 0) and (y < 0)) or y < x:
         z = -np.inf
-    else (x > y) and not (isinf(x) and isinf(y)):
+    elif (x > y) and not (isinf(x) and isinf(y)):
         z = x + log(1 - exp(y - x))
     return z
 
