@@ -3,6 +3,8 @@
 from setuptools import setup, find_packages
 from setuptools import Extension
 from setuptools.command.build_ext import build_ext as _build_ext
+from setuptools.command.sdist import sdist  as _sdist
+import os, sys
 
 #from setuptools import find_packages
 #from distutils.core import setup
@@ -10,7 +12,7 @@ from setuptools.command.build_ext import build_ext as _build_ext
 #from Cython.Distutils import build_ext
 #from Cython.Build import cythonize
 
-cmdclass = { 'build_ext': build_ext }
+cmdclass = { 'build_ext': _build_ext }
 
 
 # Make sure that when a source distribution gets rolled that the Cython files get rebuilt into C
