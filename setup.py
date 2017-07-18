@@ -6,7 +6,7 @@ from setuptools.command.build_ext import build_ext as _build_ext
 from setuptools.command.sdist import sdist  as _sdist
 import os, sys
 
-cmdclass = { 'build_ext': _build_ext }
+
 
 # Make sure that when a source distribution gets rolled that the Cython files get rebuilt into C
 class sdist(_sdist):
@@ -15,7 +15,7 @@ class sdist(_sdist):
         from Cython.Build import cythonize
         cythonize(['bayesflare/stats/general.pyx'])
         _sdist.run(self)
-cmdclass['sdist'] = sdist
+
 
 # see https://stackoverflow.com/a/21621689/1862861 for why this is here
 class build_ext(_build_ext):
@@ -26,6 +26,7 @@ class build_ext(_build_ext):
         import numpy
         self.include_dirs.append(numpy.get_include())
 
+cmdclass = { 'build_ext': build_ext, 'sdist': sdist}
 # check if cython is available in the system
 try:
     import Cython
@@ -36,6 +37,7 @@ else:
 
 if use_cython:
     from Cython.Build import cythonize
+    #import numpy
     directives = {'embedsignatjobsure': True} # embed cython function signature in docstring
     ext_modules = [ Extension("bayesflare.stats.general",
                               sources =[ "bayesflare/stats/log_marg_amp_full.c", "bayesflare/stats/general.pyx"],
@@ -44,6 +46,7 @@ if use_cython:
                               libraries=['gsl', 'gslcblas'], extra_compile_args=['-O3']) ]
     ext_modules = cythonize(ext_modules, gdb_debug=False, compiler_directives=directives)
 else:
+    #import numpy
     ext_modules = [ Extension("bayesflare.stats.general",
                               sources =[ "bayesflare/stats/log_marg_amp_full.c", "bayesflare/stats/general.c"],
                               include_dirs=['.', os.popen('gsl-config --cflags').read()[2:-1]],
@@ -52,13 +55,13 @@ else:
 
 setup(
     name = 'bayesflare',
-    version = '1.0.3',
+    version = '1.0.4',
     url = 'https://github.com/BayesFlare/bayesflare',
     description = 'Python functions and classes implementing a Bayesian approach to flare finding.',
     author = 'Matthew Pitkin, Daniel Williams',
     author_email = 'matthew.pitkin@glasgow.ac.uk',
     setup_requires=['numpy'],
-    install_requires = ['numpy', 'scipy', 'cython', 'matplotlib', 'pyfits'],
+    install_requires = ['numpy', 'scipy', 'matplotlib', 'pyfits'],
     packages = find_packages(),
     cmdclass = cmdclass,
     ext_modules = ext_modules,
