@@ -52,7 +52,7 @@ else:
 
 setup(
     name = 'bayesflare',
-    version = '1.0.2',
+    version = '1.0.3',
     url = 'https://github.com/BayesFlare/bayesflare',
     description = 'Python functions and classes implementing a Bayesian approach to flare finding.',
     author = 'Matthew Pitkin, Daniel Williams',
