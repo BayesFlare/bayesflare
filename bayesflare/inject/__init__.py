@@ -2,4 +2,6 @@
 Contains functions to inject models into lightcurves
 """
 
-from inject import inject_model
+from __future__ import absolute_import
+
+from .inject import inject_model

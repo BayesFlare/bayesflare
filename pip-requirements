@@ -2,5 +2,5 @@ numpydoc>=0.4
 numpy>=1.6.1
 scipy>=0.9.0
 matplotlib>=1.1.1
-pyfits>=2.4.0
+astropy
 cython>=0.20.0

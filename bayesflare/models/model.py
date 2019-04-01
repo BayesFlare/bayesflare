@@ -212,13 +212,13 @@ class Flare(Model):
         """
 
         # check input values
-        if not pdict.has_key('t0'):
+        if 't0' not in pdict:
             raise ValueError("Error... no 't0' value in dictionary!")
-        if not pdict.has_key('amp'):
+        if 'amp' not in pdict:
             raise ValueError("Error... no 'amp' value in dictionary!")
-        if not pdict.has_key('taugauss'):
+        if 'taugauss' not in pdict:
             raise ValueError("Error... no 'taugauss' value in dictionary!")
-        if not pdict.has_key('tauexp'):
+        if 'tauexp' not in pdict:
             raise ValueError("Error... no 'tauexp' value in dictionary!")
 
         if ts == None:
@@ -268,13 +268,13 @@ class Flare(Model):
         """
 
         # check input values
-        if not pdict.has_key('t0'):
+        if 't0' not in pdict:
             raise ValueError("Error... no 't0' value in dictionary!")
-        if not pdict.has_key('amp'):
+        if 'amp' not in pdict:
             raise ValueError("Error... no 'amp' value in dictionary!")
-        if not pdict.has_key('taugauss'):
+        if 'taugauss' not in pdict:
             raise ValueError("Error... no 'taugauss' value in dictionary!")
-        if not pdict.has_key('tauexp'):
+        if 'tauexp' not in pdict:
             raise ValueError("Error... no 'tauexp' value in dictionary!")
 
         t0 = pdict['t0']
@@ -402,13 +402,13 @@ class Transit(Model):
         """
 
         # check input values
-        if not pdict.has_key('t0'):
+        if 't0' not in pdict:
             raise ValueError("Error... no 't0' value in dictionary!")
-        if not pdict.has_key('amp'):
+        if 'amp' not in pdict:
             raise ValueError("Error... no 'amp' value in dictionary!")
-        if not pdict.has_key('sigmag'):
+        if 'sigmag' not in pdict:
             raise ValueError("Error... no 'sigmag' value in dictionary!")
-        if not pdict.has_key('tauf'):
+        if 'tauf' not in pdict:
             raise ValueError("Error... no 'tauf' value in dictionary!")
 
         if ts == None:
@@ -454,13 +454,13 @@ class Transit(Model):
         """
 
         # check input values
-        if not pdict.has_key('t0'):
+        if 't0' not in pdict:
             raise ValueError("Error... no 't0' value in dictionary!")
-        if not pdict.has_key('amp'):
+        if 'amp' not in pdict:
             raise ValueError("Error... no 'amp' value in dictionary!")
-        if not pdict.has_key('sigmag'):
+        if 'sigmag' not in pdict:
             raise ValueError("Error... no 'sigmag' value in dictionary!")
-        if not pdict.has_key('tauf'):
+        if 'tauf' not in pdict:
             raise ValueError("Error... no 'tauf' value in dictionary!")
 
         t0range = self.ranges['t0']
@@ -575,11 +575,11 @@ class Expdecay(Model):
         """
 
         # check input values
-        if not pdict.has_key('t0'):
+        if 't0' not in pdict:
             raise ValueError("Error... no 't0' value in dictionary!")
-        if not pdict.has_key('amp'):
+        if 'amp' not in pdict:
             raise ValueError("Error... no 'amp' value in dictionary!")
-        if not pdict.has_key('tauexp'):
+        if 'tauexp' not in pdict:
             raise ValueError("Error... no 'tauexp' value in dictionary!")
 
         if ts == None:
@@ -622,11 +622,11 @@ class Expdecay(Model):
         """
 
         # check input values
-        if not pdict.has_key('t0'):
+        if 't0' not in pdict:
             raise ValueError("Error... no 't0' value in dictionary!")
-        if not pdict.has_key('amp'):
+        if 'amp' not in pdict:
             raise ValueError("Error... no 'amp' value in dictionary!")
-        if not pdict.has_key('tauexp'):
+        if 'tauexp' not in pdict:
             raise ValueError("Error... no 'tauexp' value in dictionary!")
 
         t0 = pdict['t0']
@@ -709,9 +709,9 @@ class Impulse(Model):
         """
 
         # check input values
-        if not pdict.has_key('t0'):
+        if 't0' not in pdict:
             raise ValueError("Error... no 't0' value in dictionary!")
-        if not pdict.has_key('amp'):
+        if 'amp' not in pdict:
             raise ValueError("Error... no 'amp' value in dictionary!")
 
         if ts == None:
@@ -751,9 +751,9 @@ class Impulse(Model):
         """
 
         # check input values
-        if not pdict.has_key('t0'):
+        if 't0' not in pdict:
             raise ValueError("Error... no 't0' value in dictionary!")
-        if not pdict.has_key('amp'):
+        if 'amp' not in pdict:
             raise ValueError("Error... no 'amp' value in dictionary!")
 
         t0 = pdict['t0']
@@ -829,11 +829,11 @@ class Gaussian(Model):
         """
 
         # check input values
-        if not pdict.has_key('t0'):
+        if 't0' not in pdict:
             raise ValueError("Error... no 't0' value in dictionary!")
-        if not pdict.has_key('amp'):
+        if 'amp' not in pdict:
             raise ValueError("Error... no 'amp' value in dictionary!")
-        if not pdict.has_key('sigma'):
+        if 'sigma' not in pdict:
             raise ValueError("Error... no 'sigma' value in dictionary!")
 
         if ts == None:
@@ -873,11 +873,11 @@ class Gaussian(Model):
         """
 
         # check input values
-        if not pdict.has_key('t0'):
+        if 't0' not in pdict:
             raise ValueError("Error... no 't0' value in dictionary!")
-        if not pdict.has_key('amp'):
+        if 'amp' not in pdict:
             raise ValueError("Error... no 'amp' value in dictionary!")
-        if not pdict.has_key('sigma'):
+        if 'sigma' not in pdict:
             raise ValueError("Error... no 'sigma' value in dictionary!")
 
         t0 = pdict['t0']
@@ -958,9 +958,9 @@ class Step(Model):
         """
 
         # check input values
-        if not pdict.has_key('t0'):
+        if 't0' not in pdict:
             raise ValueError("Error... no 't0' value in dictionary!")
-        if not pdict.has_key('amp'):
+        if 'amp' not in pdict:
             raise ValueError("Error... no 'amp' value in dictionary!")
 
         if ts == None:
@@ -997,9 +997,9 @@ class Step(Model):
         """
 
         # check input values
-        if not pdict.has_key('t0'):
+        if 't0' not in pdict:
             raise ValueError("Error... no 't0' value in dictionary!")
-        if not pdict.has_key('amp'):
+        if 'amp' not in pdict:
             raise ValueError("Error... no 'amp' value in dictionary!")
 
         t0 = pdict['t0']

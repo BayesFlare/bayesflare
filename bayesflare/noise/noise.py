@@ -123,7 +123,7 @@ def addNoise(z, mean, stdev):
        The input time series with added Gaussian noise.
 
     """
-    z += [random.gauss(mean,stdev) for _ in xrange(len(z))]
+    z += [random.gauss(mean,stdev) for _ in range(len(z))]
     return z
 
 def make_noise_lightcurve(dt = 1765.55929, length=33.5, sigma=0.5, mean=1):
@@ -233,13 +233,13 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     try:
         window_size = np.abs(np.int(window_size))
         order = np.abs(np.int(order))
-    except ValueError, msg:
+    except ValueError as msg:
         raise ValueError("window_size and order have to be of type int")
     if window_size % 2 != 1 or window_size < 1:
         raise TypeError("window_size size must be a positive odd number")
     if window_size < order + 2:
         raise TypeError("window_size is too small for the polynomials order")
-    order_range = range(order+1)
+    order_range = list(range(order+1))
     half_window = (window_size -1) // 2
     # precompute coefficients
     b = np.mat([[k**i for i in order_range] for k in range(-half_window, half_window+1)])
@@ -278,7 +278,7 @@ def highpass_filter_lightcurve(lightcurve, knee=(1./(0.3*86400.))):
 
     dt = lightcurve.dt()
     if dt <= 0:
-        raise(NameError("[ERROR] Sample time of 0 detected. Halting."))
+        raise NameError
     fs = lightcurve.fs()
     highcut = knee/(1./(2.*dt))
     zr = z[::-1]               # Reverse the timeseries to remove phase offset
