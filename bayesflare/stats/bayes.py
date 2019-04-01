@@ -1,6 +1,9 @@
 """
 
 """
+
+from __future__ import print_function
+
 from math import log
 import numpy as np
 from copy import copy, deepcopy
@@ -64,7 +67,7 @@ def spectrum_peak_frequencies(lc, npeaks=5):
 
     # return the frequecies of the n largest peaks
     if len(pamps) < npeaks:
-        print >> sys.stderr, "There were fewer peaks than requested (%d), so returning %d" % (npeaks, len(pamps))
+        print("There were fewer peaks than requested (%d), so returning %d" % (npeaks, len(pamps)), file=sys.stderr)
         npeaks = len(pamps)
 
     lc.sinusoid_freqs = freqs[pidxs[:npeaks]]
@@ -226,7 +229,7 @@ class Bayes():
         # check bglen is odd
         if bglen != None:
             if bglen % 2 == 0 and nsinusoids == 0:
-                print "Error... Background length (bglen) must be an odd number"
+                print("Error... Background length (bglen) must be an odd number")
                 return
 
         # get noise estimate on a filtered lightcurve to better represent just the noise
@@ -238,7 +241,7 @@ class Bayes():
         elif noiseestmethod == 'tailveto':
             sk = estimate_noise_tv(tmpcurve.clc, sigma=tvsigma)[0]
         else:
-            print "Noise estimation method must be 'powerspectrum' or 'tailveto'"
+            print("Noise estimation method must be 'powerspectrum' or 'tailveto'")
             return None
         del tmpcurve
 
@@ -456,7 +459,7 @@ class Bayes():
         # check bglen is odd
         if bglen != None:
             if bglen % 2 == 0 and nsinusoids == 0:
-                print "Error... Background length (bglen) must be an odd number"
+                print("Error... Background length (bglen) must be an odd number")
                 return
 
         N = len(self.lightcurve.cts)
@@ -466,7 +469,7 @@ class Bayes():
             nsteps = int(bglen/2)
 
         if bglen > N:
-            print "Error... bglen is greater than the data length!"
+            print("Error... bglen is greater than the data length!")
             return
 
         """ get noise estimate on a filtered lightcurve to better represent just the noise """
@@ -478,7 +481,7 @@ class Bayes():
         elif noiseestmethod == 'tailveto':
             sk = estimate_noise_tv(tmpcurve.clc, sigma=tvsigma)[0]
         else:
-            print "Noise estimation method must be 'powerspectrum' or 'tailveto'"
+            print("Noise estimation method must be 'powerspectrum' or 'tailveto'")
             return None
         del tmpcurve
 
@@ -716,16 +719,16 @@ class ParameterEstimationGrid():
         :class:`.Lightcurve`.
         """
         if lightcurve == None:
-            print "A lightcurve is required as input"
+            print("A lightcurve is required as input")
         else:
             self.lightcurve = deepcopy(lightcurve) # the lightcurve data to use
 
         if modelType == None:
-            print "Specify the model type with set_model_type()"
+            print("Specify the model type with set_model_type()")
         elif modelType.lower() == 'flare' or modelType.lower() == 'transit':
             self.set_model_type(modelType)
         else:
-            print "Unknown model type"
+            print("Unknown model type")
 
         # set the noise standard deviation
 
@@ -782,7 +785,7 @@ class ParameterEstimationGrid():
         """
 
         if len(ranges) == 0:
-            print "Must specify a dictionary of ranges"
+            print("Must specify a dictionary of ranges")
             return
 
         # set ranges in model if nothing is already set
@@ -795,7 +798,7 @@ class ParameterEstimationGrid():
             try:
                 irange = ranges[p]
             except:
-                print "Error. The parameter %s is not in the dictionary" % p
+                print("Error. The parameter %s is not in the dictionary" % p)
                 return
 
             if not isinstance(irange, tuple):
@@ -805,7 +808,7 @@ class ParameterEstimationGrid():
                 if irange[0] < irange[1] and irange[2] > 1:
                     vals = np.linspace(irange[0], irange[1], int(irange[2]))
                 else:
-                    print "%s range has an upper bound smaller than the lower bound! Try again." % item
+                    print("%s range has an upper bound smaller than the lower bound! Try again." % item)
                     return
             elif len(irange) == 1:
                 vals = np.array([irange[0]], dtype='float32')
@@ -900,7 +903,7 @@ class ParameterEstimationGrid():
         elif noiseestmethod == 'std':
             sigma = np.std(tmpcurve.clc)
         else:
-          print "Noise estimation method must be 'powerspectrum' or 'tailveto'"
+          print("Noise estimation method must be 'powerspectrum' or 'tailveto'")
 
         del tmpcurve
 
@@ -946,11 +949,11 @@ class ParameterEstimationGrid():
                 try:
                     item = pv[p]
                 except:
-                    print "Parameter %s is not in the supplied paramValues" % p
+                    print("Parameter %s is not in the supplied paramValues" % p)
                     return None
 
             if len(pv) != len(self.paramNames):
-                print "Input parameter values dictionary is not the right length!"
+                print("Input parameter values dictionary is not the right length!")
                 return None
         else:
             pv = self.paramValues
@@ -1068,11 +1071,11 @@ class ParameterEstimationGrid():
         """
 
         if parameter not in self.paramNames:
-            print "Given parameter (%s) is not in model" % parameter
+            print("Given parameter (%s) is not in model" % parameter)
             return None
 
         if self.posterior == None:
-            print "Posterior not yet defined!"
+            print("Posterior not yet defined!")
             return None
 
         # get dimension of parameter
@@ -1140,29 +1143,29 @@ class ParameterEstimationGrid():
         """
 
         if parameters == None:
-            print "Must supply a list of two parameters"
+            print("Must supply a list of two parameters")
             return None
         elif not isinstance(parameters, list):
-            print "Must supply a list of two parameters"
+            print("Must supply a list of two parameters")
             return None
         elif len(parameters) != 2:
-            print "Must supply a list of two parameters"
+            print("Must supply a list of two parameters")
             return None
 
         for p in parameters:
             if p.lower() not in self.paramNames:
-                print "Given parameter (%s) is not in model" % p
+                print("Given parameter (%s) is not in model" % p)
                 return None
 
         if self.posterior == None:
-            print "Posterior not yet defined!"
+            print("Posterior not yet defined!")
             return None
 
         nump = len(self.paramNames) # number of parameters
         pv = self.paramValues     # parameter grids
 
         if nump < 3:
-            print "No need to marginalise, posterior is already 2d or 1d"
+            print("No need to marginalise, posterior is already 2d or 1d")
             return None
 
         # get indices of two parameters
@@ -1219,7 +1222,7 @@ class ParameterEstimationGrid():
         """
 
         if self.posterior == None:
-            print "Posterior not defined"
+            print("Posterior not defined")
             return None
 
         # get index of maximum of posterior
@@ -1319,28 +1322,28 @@ class ParameterEstimationGrid():
         """
 
         if parameter == None:
-            print "Must provide a parameter"
+            print("Must provide a parameter")
             return None
 
         if parameter.lower() not in self.paramNames:
-            print "Given parameter (%s) is not in model" % parameter
+            print("Given parameter (%s) is not in model" % parameter)
             return None
 
         # check marginalised posteriors have been set
         if len(self.margposteriors) == 0:
-            print "No marginalised posteriors have been set"
+            print("No marginalised posteriors have been set")
             return None
 
         try:
             post = self.margposteriors[parameter.lower()]
         except:
-            print "Marginalised posterior does not exist for %s" % parameter
+            print("Marginalised posterior does not exist for %s" % parameter)
             return None
 
         try:
             pvals = self.paramVals[parameter.lower()]
         except:
-            print "Parameter grid does not exist for %s" % parameter
+            print("Parameter grid does not exist for %s" % parameter)
             return None
 
         # get cumulative probability distribution

@@ -58,7 +58,7 @@ setup(
     author = 'Matthew Pitkin, Daniel Williams',
     author_email = 'matthew.pitkin@glasgow.ac.uk',
     setup_requires=['numpy'],
-    install_requires = ['numpy', 'scipy', 'cython', 'matplotlib', 'pyfits'],
+    install_requires = ['numpy', 'scipy', 'cython', 'matplotlib', 'astropy'],
     packages = find_packages(),
     cmdclass = cmdclass,
     ext_modules = ext_modules,

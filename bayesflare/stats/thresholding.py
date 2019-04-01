@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from ..misc import mkdir
 import numpy as np
 import bayesflare as pf
@@ -40,7 +42,7 @@ class Thresholder():
         datap= np.array([])
 
         if len(files) < 1000 :
-            print "[Note] The thresholding values must be calculated for this quarter, as they do not appear to exist. This can take several hours."
+            print("[Note] The thresholding values must be calculated for this quarter, as they do not appear to exist. This can take several hours.")
             repeats = 1000 - len(files)
             dt = B.lightcurve.dt()
             length = (B.lightcurve.cts[-1] - B.lightcurve.cts[0] )
@@ -53,7 +55,7 @@ class Thresholder():
             P = pf.Transit(B.lightcurve.cts, amp=10)
             P.set_tauf(0.5*hours, 6*hours, 11)
             for i in np.arange(repeats-len(files)):
-                print "[Note] Iteration ",  1+i, " of ", repeats, "(", ((float(i))/float(repeats))*100,"% completed)"
+                print("[Note] Iteration ",  1+i, " of ", repeats, "(", ((float(i))/float(repeats))*100,"% completed)")
                 A = pf.SimLightcurve(dt=dt, length=length, cadence=cadence)
                 # Run the detection statistic for the flare model
                 B = pf.Bayes(A, M)
@@ -74,7 +76,7 @@ class Thresholder():
         pickle.dump(cdf, open(self.thrfolder+'/cdf.pickle', 'wb'))
         pickle.dump(bin_edges, open(self.thrfolder+'/binedge.pickle', 'wb'))
 
-        print "[Note] The thresholding files have been found, and the histogram has been constructed"
+        print("[Note] The thresholding files have been found, and the histogram has been constructed")
 
     def calculate_threshold(self):
         """
@@ -106,16 +108,16 @@ class Thresholder():
             self.cdf = pickle.load(open(self.thrfolder+'/cdf.pickle', 'rb'))
             self.bin_edges = pickle.load(open(self.thrfolder+'/binedge.pickle', 'rb'))
             thresh = np.where( self.cdf >= confidence )
-            print "[Note] Now analysing the generated random noise to find flare threshold."
+            print("[Note] Now analysing the generated random noise to find flare threshold.")
             self.threshold = self.bin_edges[thresh[0]][0]
         except IOError:
             # If the files containing the two histograms don't exist the must be created
-            print "[Note] The files required to calculate the confidence levels were not found."
+            print("[Note] The files required to calculate the confidence levels were not found.")
             self.generate_threshold()
             self.cdf = pickle.load(open(self.thrfolder+'/cdf.pickle', 'rb'))
             self.bin_edges = pickle.load(open(self.thrfolder+'/binedge.pickle', 'rb'))
             thresh = np.where( self.cdf >= confidence )
-            print "[Note] Now analysing the generated random noise to find flare threshold."
+            print("[Note] Now analysing the generated random noise to find flare threshold.")
             self.threshold = self.bin_edges[thresh[0]][0]
 
     def bayes_to_confidence(self, lnB):
