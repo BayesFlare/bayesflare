@@ -36,7 +36,7 @@ else:
 
 if use_cython:
     from Cython.Build import cythonize
-    directives = {'embedsignatjobsure': True} # embed cython function signature in docstring
+    directives = {'embedsignature': True} # embed cython function signature in docstring
     ext_modules = [ Extension("bayesflare.stats.general",
                               sources =[ "bayesflare/stats/log_marg_amp_full.c", "bayesflare/stats/general.pyx"],
                               include_dirs=['.', os.popen('gsl-config --cflags').read()[2:-1]],
